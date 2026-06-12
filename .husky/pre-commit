@@ -1,0 +1,3 @@
+# Miejsce na przyszłe sprawdzenia (lint, testy, formatowanie).
+# Przykład po dodaniu kodu aplikacji:
+# npx lint-staged

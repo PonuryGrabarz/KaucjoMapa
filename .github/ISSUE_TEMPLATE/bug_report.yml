@@ -1,0 +1,41 @@
+name: Zgłoszenie błędu
+description: Coś nie działa zgodnie z oczekiwaniami
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Opisz problem jak najdokładniej. Jeśli możesz, dołącz kroki reprodukcji.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Opis błędu
+      description: Co się dzieje i czego oczekujesz?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Kroki reprodukcji
+      placeholder: |
+        1. Otwórz ...
+        2. Kliknij ...
+        3. Zobacz błąd ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Wersja / commit / środowisko
+      placeholder: np. main @ abc1234, Chrome 125
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logi / zrzut ekranu
+      description: Wklej komunikaty błędów lub dołącz zrzuty ekranu.

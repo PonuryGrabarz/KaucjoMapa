@@ -1,0 +1,26 @@
+name: Branch name
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate-branch-name:
+    name: Sprawdzenie nazwy brancha
+    runs-on: ubuntu-latest
+    steps:
+      - name: Walidacja wzorca nazwy brancha
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          pattern='^(main|develop|(feature|fix|chore|docs|refactor|test|ci|build|hotfix)\/[a-z0-9]+(-[a-z0-9]+)*|cursor\/[a-z0-9]+(-[a-z0-9]+)*-f7a4)$'
+          if [[ ! "$BRANCH_NAME" =~ $pattern ]]; then
+            echo "::error::Nieprawidłowa nazwa brancha: $BRANCH_NAME"
+            echo "Dozwolone wzorce:"
+            echo "  feature/krotki-opis"
+            echo "  fix/krotki-opis"
+            echo "  chore/krotki-opis"
+            echo "  cursor/opis-zadania-f7a4"
+            exit 1
+          fi
+          echo "Nazwa brancha jest poprawna: $BRANCH_NAME"
