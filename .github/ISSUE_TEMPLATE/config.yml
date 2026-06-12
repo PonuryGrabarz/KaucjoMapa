@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Dokumentacja współpracy
+    url: https://github.com/ponurygrabarz/kaucjomapa/blob/main/CONTRIBUTING.md
+    about: Konwencje commitów, branchy i pull requestów
