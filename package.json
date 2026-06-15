@@ -5,7 +5,13 @@
   "description": "Aplikacja webowa do wyszukiwania punktów zwrotu opakowań kaucyjnych",
   "scripts": {
     "prepare": "husky",
-    "commitlint": "commitlint --edit"
+    "commitlint": "commitlint --edit",
+    "frontend:dev": "bun --cwd frontend dev",
+    "frontend:build": "bun --cwd frontend build",
+    "frontend:check": "bun --cwd frontend check",
+    "frontend:lint": "bun --cwd frontend lint",
+    "frontend:format": "bun --cwd frontend format",
+    "frontend:format:check": "bun --cwd frontend format:check"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

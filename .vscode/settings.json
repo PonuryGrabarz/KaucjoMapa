@@ -1,6 +1,40 @@
 {
   "github.copilot.chat.commitMessageGeneration.instructions": [
     { "file": "CONTRIBUTING.md" },
-    { "text": "Generate commit messages in English. Analyze staged files to determine type and scope. Keep descriptions concise and action-oriented." }
-  ]
+    {
+      "text": "Generate commit messages in English. Analyze staged files to determine type and scope. Keep descriptions concise and action-oriented."
+    }
+  ],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "astro"],
+  "eslint.workingDirectories": [{ "directory": "frontend", "changeProcessCWD": true }],
+  "js/ts.tsdk.path": "frontend/node_modules/typescript/lib",
+  "[astro]": {
+    "editor.defaultFormatter": "astro-build.astro-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  }
 }

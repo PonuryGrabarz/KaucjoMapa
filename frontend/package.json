@@ -1,7 +1,11 @@
 {
-  "name": "frontend",
+  "name": "kaucjo-mapa",
   "type": "module",
   "version": "0.0.1",
+  "private": true,
+  "author": {
+    "name": "Eviraznva"
+  },
   "engines": {
     "node": ">=22.12.0"
   },
@@ -9,12 +13,28 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check": "astro check",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "dependencies": {
-    "astro": "^6.4.6"
+    "astro": "^6.4.6",
+    "sass": "^1.101.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.14"
+    "@astrojs/check": "^0.9.9",
+    "@eslint/js": "^9",
+    "@types/bun": "^1.3.14",
+    "eslint": "^9",
+    "eslint-plugin-astro": "^1.7.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.4",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.0"
   }
 }
