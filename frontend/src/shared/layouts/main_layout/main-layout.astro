@@ -1,6 +1,8 @@
 ---
 import "./main-layout.sass";
 
+import { ClientRouter } from "astro:transitions";
+
 type MetaTag = {
   name?: string;
   property?: string;
@@ -94,7 +96,7 @@ const toIso = (date: string | Date) => date instanceof Date ? date.toISOString()
 ---
 
 <!doctype html>
-<html lang="pl">
+<html lang="pl" transition:name="root" transition:animate="none">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -127,6 +129,8 @@ const toIso = (date: string | Date) => date instanceof Date ? date.toISOString()
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl.href} />
+
+    <ClientRouter />
 
     {
       type === "article" && publishedTime && (
