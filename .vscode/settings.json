@@ -1,0 +1,6 @@
+{
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    { "file": "CONTRIBUTING.md" },
+    { "text": "Generate commit messages in English. Analyze staged files to determine type and scope. Keep descriptions concise and action-oriented." }
+  ]
+}
