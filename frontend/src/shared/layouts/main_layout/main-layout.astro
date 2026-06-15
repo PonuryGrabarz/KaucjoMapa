@@ -1,0 +1,189 @@
+---
+import "./main-layout.sass";
+
+type MetaTag = {
+  name?: string;
+  property?: string;
+  content: string;
+};
+
+type LinkTag = {
+  rel: string;
+  href: string;
+  as?: string;
+  type?: string;
+  sizes?: string;
+  media?: string;
+};
+
+type JsonObject = { [key: string]: unknown };
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string | URL;
+
+  image?: string;
+  imageAlt?: string;
+
+  type?: "website" | "article";
+  publishedTime?: string | Date;
+  modifiedTime?: string | Date;
+  tags?: string[];
+
+  noindex?: boolean;
+  themeColor?: string;
+
+  meta?: MetaTag[];
+  links?: LinkTag[];
+  jsonLd?: JsonObject | JsonObject[];
+
+  bodyClass?: string;
+}
+
+const isProduction = import.meta.env.PROD;
+
+const SITE_NAME = "KaucjoMapa";
+
+const DEFAULT_DESCRIPTION =
+  "KaucjoMapa pomaga znaleźć najbliższe punkty zwrotu opakowań kaucyjnych, butelkomaty i sklepy przyjmujące opakowania.";
+
+const DEFAULT_THEME_COLOR = "#34b85a";
+const DEFAULT_IMAGE = "/og-image.png";
+
+const SITE_URL = Astro.site ?? new URL("http://localhost:4321/");
+
+const {
+  title = SITE_NAME,
+  description = DEFAULT_DESCRIPTION,
+  canonical,
+
+  image = DEFAULT_IMAGE,
+  imageAlt = "KaucjoMapa — mapa punktów zwrotu opakowań kaucyjnych",
+
+  type = "website",
+  publishedTime,
+  modifiedTime,
+  tags = [],
+
+  noindex = false,
+  themeColor = DEFAULT_THEME_COLOR,
+
+  meta = [],
+  links = [],
+  jsonLd,
+
+  bodyClass,
+} = Astro.props;
+
+const fullTitle = title === SITE_NAME ? SITE_NAME : `${title} | ${SITE_NAME}`;
+
+const canonicalUrl = canonical
+  ? new URL(canonical.toString(), SITE_URL)
+  : new URL(Astro.url.pathname, SITE_URL);
+
+const imageUrl = new URL(image, SITE_URL);
+
+const robots = noindex
+  ? "noindex, nofollow"
+  : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
+
+const jsonLdItems = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
+
+const toIso = (date: string | Date) => date instanceof Date ? date.toISOString() : date;
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{fullTitle}</title>
+
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+
+    {!noindex && <link rel="canonical" href={canonicalUrl.href} />}
+
+    <meta name="theme-color" content={themeColor} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl.href} />
+    <meta property="og:image" content={imageUrl.href} />
+    <meta property="og:image:alt" content={imageAlt} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl.href} />
+
+    {
+      type === "article" && publishedTime && (
+        <meta property="article:published_time" content={toIso(publishedTime)} />
+      )
+    }
+
+    {
+      type === "article" && modifiedTime && (
+        <meta property="article:modified_time" content={toIso(modifiedTime)} />
+      )
+    }
+
+    {
+      type === "article" &&
+        tags.map((tag) => <meta property="article:tag" content={tag} />)
+    }
+
+    {
+      meta.map((tag) =>
+        tag.name ? (
+          <meta name={tag.name} content={tag.content} />
+        ) : tag.property ? (
+          <meta property={tag.property} content={tag.content} />
+        ) : null
+      )
+    }
+
+    {links.map((link) => <link {...link} />)}
+
+    {
+      jsonLdItems.map((item) => (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={JSON.stringify(item)}
+        />
+      ))
+    }
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
+    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+    <script is:inline src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js" defer></script>
+
+    <slot name="head" />
+
+    <meta name="generator" content={Astro.generator} />
+  </head>
+
+  <body class={bodyClass}>
+    <slot />
+
+    {isProduction && <script is:inline src="/registerSW.js"></script>}
+  </body>
+</html>
