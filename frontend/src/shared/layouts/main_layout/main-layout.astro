@@ -43,7 +43,7 @@ export interface Props {
   bodyClass?: string;
 }
 
-const isProduction = import.meta.env.PROD;
+// const isProduction = import.meta.env.PROD;
 
 const SITE_NAME = "KaucjoMapa";
 
@@ -113,7 +113,7 @@ const toIso = (date: string | Date) => date instanceof Date ? date.toISOString()
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- <link rel="manifest" href="/manifest.webmanifest" /> -->
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <meta property="og:site_name" content={SITE_NAME} />
@@ -188,6 +188,6 @@ const toIso = (date: string | Date) => date instanceof Date ? date.toISOString()
   <body class={bodyClass}>
     <slot />
 
-    {isProduction && <script is:inline src="/registerSW.js"></script>}
+    <!-- {isProduction && <script is:inline src="/registerSW.js"></script>} -->
   </body>
 </html>

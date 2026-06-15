@@ -1,0 +1,34 @@
+---
+import Styles from "./navigation.module.sass";
+
+const currentPath = Astro.url.pathname;
+
+const links = [
+  { href: "/", label: "Mapa", icon: "fa7-regular:map" },
+  { href: "/lista-punktow", label: "Lista punktów", icon: "fa7-solid:list" },
+  { href: "/kalkulator", label: "Kalkulator", icon: "fa7-solid:calculator" },
+  { href: "/historia", label: "Historia", icon: "fa7-solid:history" },
+  { href: "/alerty", label: "Alerty", icon: "fa7-regular:bell" },
+  { href: "/profil", label: "Profil", icon: "fa7-regular:user" },
+];
+
+const isActive = (href: string) => currentPath === href || (href !== "/" && currentPath.startsWith(href));
+---
+
+<nav class:list={[Styles["navigation"]]} aria-label="Główna nawigacja">
+  <ul class:list={[Styles["navigation__list"]]}>
+    {links.map(({ href, label, icon }) =>
+        <li class:list={[Styles["navigation__item"]]}>
+          <a
+            href={href}
+            class:list={[Styles["navigation__link"], { [Styles["navigation__link--active"]]: isActive(href) }]}
+            aria-current={isActive(href) ? "page" : undefined}
+            aria-label={label}
+          >
+            {label}
+            <iconify-icon icon={icon} class:list={[Styles["navigation__icon"]]} />
+          </a>
+        </li>
+    )}
+  </ul>
+</nav>

@@ -1,0 +1,61 @@
+.navigation
+  flex: 0 0 auto
+  padding: clamp(6px, calc(0.55px + 1.70vw), 18px) clamp(6px, calc(-0.36px + 1.99vw), 20px)
+  background: var(--paper-50)
+  border-top: 1px solid var(--ink-100)
+  .navigation__list
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: clamp(8px, calc(-5.64px + 4.26vw), 38px)
+    margin: 0
+    padding: 0
+    list-style: none
+    .navigation__item
+      .navigation__link
+        display: flex
+        flex-direction: column-reverse
+        align-items: center
+        gap: clamp(3px, calc(2.55px + 0.14vw), 4px)
+        padding: clamp(4px, calc(2.18px + 0.57vw), 8px) clamp(6px, calc(-2.18px + 2.56vw), 24px)
+        border-radius: clamp(4px, calc(1.27px + 0.85vw), 10px)
+        color: var(--muted-500)
+        font-size: clamp(8px, calc(5.27px + 0.85vw), 14px)
+        font-weight: 700
+        text-decoration: none
+        &:hover, &.navigation__link--active
+          background: var(--grass-100)
+          color: var(--grass-700)
+        .navigation__icon
+          font-size: 1.5em
+
+@media screen and (min-width: 1024px)
+  .navigation
+    display: flex
+    flex: 0 0 clamp(140px, 12vw, 180px)
+    width: clamp(140px, 12vw, 180px)
+    height: 100dvh
+    padding: clamp(10px, 1.1vw, 16px) clamp(6px, 0.8vw, 10px)
+    border-top: none
+    border-right: 1px solid var(--ink-100)
+    overflow-y: auto
+    .navigation__list
+      flex-direction: column
+      align-items: stretch
+      justify-content: flex-start
+      width: 100%
+      gap: clamp(4px, 0.5vw, 8px)
+      .navigation__item
+        width: 100%
+        .navigation__link
+          flex-direction: row-reverse
+          justify-content: flex-end
+          width: 100%
+          gap: clamp(6px, 0.6vw, 10px)
+          padding: clamp(6px, 0.7vw, 10px) clamp(7px, 0.8vw, 11px)
+          border-radius: clamp(6px, 0.6vw, 10px)
+          font-size: clamp(11px, 0.8vw, 13px)
+          box-sizing: border-box
+          .navigation__icon
+            flex: 0 0 auto
+            font-size: 1.2em
