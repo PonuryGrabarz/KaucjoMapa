@@ -1,0 +1,11 @@
+---
+import Image from "astro/components/Image.astro"
+import Styles from "./topbar.module.sass"
+---
+
+<header class:list={[Styles["topbar"]]}>
+  <div class:list={[Styles["topbar__logo__container"]]}>
+    <Image class:list={[Styles["topbar__logo"]]} src="/favicon.svg" alt="Logo - Kaucjo Mapa" width={24} height={24}/>
+    <span class:list={[Styles["topbar__logo_title"]]} >KaucjoMapa</span>
+  </div>
+</header>

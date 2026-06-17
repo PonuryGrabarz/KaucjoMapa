@@ -1,8 +1,11 @@
 ---
+import Topbar from "@shared/components/topbar/topbar.astro";
 import AppLayout from "@shared/layouts/app_layout/app-layout.astro";
 import MainLayout from "@shared/layouts/main_layout/main-layout.astro";
 ---
 
 <MainLayout>
-  <AppLayout />
+  <AppLayout>
+    <Topbar />
+  </AppLayout>
 </MainLayout>

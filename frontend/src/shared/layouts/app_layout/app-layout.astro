@@ -4,7 +4,9 @@ import Styles from "./app-layout.module.sass";
 ---
 
 <div class:list={[Styles["app-layout"]]}>
-  <main class:list={[Styles["app-layout__main"]]}>Siema</main>
+  <main class:list={[Styles["app-layout__main"]]}>
+    <slot />
+  </main>
 
   <Navigation />
 </div>

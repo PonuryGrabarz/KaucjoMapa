@@ -1,0 +1,27 @@
+$scale: 1.25
+
+.topbar
+  display: flex
+  align-items: center
+  padding: calc(clamp(6px, calc(0.55px + 1.70vw), 18px) * $scale) calc(clamp(6px, calc(-0.36px + 1.99vw), 20px) * $scale)
+  background: var(--paper-50)
+  border-bottom: 1px solid var(--ink-100)
+  font-size: calc(clamp(8px, calc(5.27px + 0.85vw), 14px) * $scale)
+  .topbar__logo__container
+    display: flex
+    align-items: center
+    gap: calc(clamp(4px, calc(2.73px + 0.60vw), 12px) * $scale)
+    .topbar__logo
+      width: 2em
+      height: auto
+    .topbar__logo_title
+      color: var(--ink-900)
+      font-weight: bold
+      font-size: 1.15em
+
+@media screen and (min-width: 1024px)
+  .topbar
+    padding: calc(clamp(10px, 1.1vw, 16px) * $scale) calc(clamp(7px, 0.8vw, 11px) * $scale)
+    font-size: calc(clamp(11px, 0.8vw, 13px) * $scale)
+    .topbar__logo__container
+      gap: calc(clamp(6px, 0.6vw, 10px) * $scale)
