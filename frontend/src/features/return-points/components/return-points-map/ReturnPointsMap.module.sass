@@ -1,0 +1,72 @@
+$map-control-scale: 1
+$map-control-symbol-scale: 2.5
+
+.return-points-map
+  position: relative
+  flex: 1
+  min-height: 0
+  [data-map-container]
+    position: absolute
+    background: var(--mint-200)
+    font-family: var(--body)
+    inset: 0
+    :global(.leaflet-control-attribution.leaflet-control)
+      visibility: hidden
+    :global(.leaflet-bottom.leaflet-left)
+      left: calc(clamp(6px, calc(-0.36px + 1.99vw), 20px) * $map-control-scale)
+      bottom: calc(clamp(6px, calc(0.55px + 1.70vw), 18px) * $map-control-scale)
+    :global(.leaflet-left .leaflet-control),
+    :global(.leaflet-bottom .leaflet-control)
+      margin: 0
+    :global(.leaflet-control-zoom.leaflet-bar)
+      display: flex
+      flex-direction: column
+      overflow: hidden
+      border: 1px solid var(--ink-100)
+      border-radius: calc(clamp(4px, calc(1.27px + 0.85vw), 10px) * $map-control-scale)
+      background: var(--paper-50)
+      box-shadow: var(--shadow-md)
+    :global(.leaflet-control-zoom a)
+      display: flex
+      align-items: center
+      justify-content: center
+      inline-size: clamp(38px, calc(2.65em + 1.2vw), 48px)
+      block-size: clamp(38px, calc(2.65em + 1.2vw), 48px)
+      border: 0
+      border-radius: 0
+      background: var(--paper-50)
+      color: var(--grass-700)
+      font-family: var(--display)
+      font-size: calc(clamp(8px, calc(5.27px + 0.85vw), 14px) * $map-control-scale * $map-control-symbol-scale)
+      font-weight: 800
+      line-height: 1
+      text-decoration: none
+      transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease
+    :global(.leaflet-control-zoom a + a)
+      border-top: 1px solid var(--ink-100)
+    :global(.leaflet-control-zoom a:hover)
+      background: var(--grass-100)
+      color: var(--grass-700)
+    :global(.leaflet-control-zoom a:focus-visible)
+      background: var(--grass-100)
+      box-shadow: inset var(--focus-500)
+      outline: none
+    :global(.leaflet-control-zoom a.leaflet-disabled)
+      background: var(--off-100)
+      color: var(--off-400)
+      cursor: not-allowed
+    :global(.leaflet-control-zoom a span)
+      transform: translateY(-0.04em)
+
+@media screen and (min-width: 1024px)
+  .return-points-map
+    [data-map-container]
+      :global(.leaflet-bottom.leaflet-left)
+        left: calc(clamp(7px, 0.8vw, 11px) * $map-control-scale)
+        bottom: calc(clamp(10px, 1.1vw, 16px) * $map-control-scale)
+      :global(.leaflet-control-zoom.leaflet-bar)
+        border-radius: calc(clamp(6px, 0.6vw, 10px) * $map-control-scale)
+      :global(.leaflet-control-zoom a)
+        inline-size: clamp(34px, calc(2.4em + 0.4vw), 40px)
+        block-size: clamp(34px, calc(2.4em + 0.4vw), 40px)
+        font-size: calc(clamp(11px, 0.8vw, 13px) * $map-control-scale * $map-control-symbol-scale)
