@@ -1,0 +1,18 @@
+---
+import MapPin from '../../components/map_pin/map-pin.astro';
+import ReturnPointsMap from '../../components/return_points_map/return-points-map.astro';
+import Styles from './home-page-view.module.sass';
+
+import { apiClient } from '@shared/api/api-client-factory';
+import { GetMapPointsRequest } from '@shared/api/requests';
+
+
+const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
+---
+
+<home-page-view class:list={Styles['home-page-view']}>
+  <MapPin />
+  <ReturnPointsMap initialReturnPoints={initialReturnPoints} />
+</home-page-view>
+
+<script src="./home-page-view.ts"></script>

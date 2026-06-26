@@ -1,21 +1,15 @@
 ---
-import MapPin from '../map_pin/map-pin.astro';
+import MapFabButton from '../map_fab_button/map-fab-button.astro';
 import Styles from './return-points-map.module.sass';
 
-import { apiClient } from '@shared/api/api-client-factory';
-import { GetMapPointsRequest } from '@shared/api/requests';
-
-const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
+const { initialReturnPoints } = Astro.props;
 ---
 
-<MapPin />
-
-<return-points-map class:list={Styles['return-points-map']}>
+<return-points-map class:list={Styles['return-points-map']}
+                   data-initial-return-points={JSON.stringify(initialReturnPoints)}>
   <div data-map-container />
-</return-points-map>
 
-<script is:inline define:vars={{ initialReturnPoints }}>
-  window.initialReturnPoints = initialReturnPoints;
-</script>
+  <MapFabButton />
+</return-points-map>
 
 <script src="./return-points-map.ts" />

@@ -1,0 +1,14 @@
+---
+import Styles from './map-fab-button.module.sass';
+---
+
+<map-fab class:list={Styles['map-fab']}>
+  <button class:list={Styles['map-fab__button']}
+          type="button"
+          title="Wyśrodkuj na mojej lokalizacji"
+          aria-label="Wyśrodkuj na mojej lokalizacji">
+    <iconify-icon class:list={Styles['map-fab__icon']} icon="mdi:map-marker-outline" />
+  </button>
+</map-fab>
+
+<script src="./map-fab-button.ts" />
