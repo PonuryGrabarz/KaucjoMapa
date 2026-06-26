@@ -1,5 +1,5 @@
 import LF from "leaflet";
-import { MapPin } from "../map-pin/MapPin";
+import { MapPin } from "../map_pin/map-pin";
 
 import "leaflet/dist/leaflet.css";
 

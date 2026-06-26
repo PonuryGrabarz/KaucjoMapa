@@ -1,4 +1,4 @@
-import { TEMPLATE_ID } from "./MapPin.constants";
+import { TEMPLATE_ID } from "./map-pin.constants";
 
 export class MapPin extends HTMLElement {
     connectedCallback() {

@@ -1,0 +1,18 @@
+---
+import { apiClient } from '@shared/api/api-client-factory';
+import { GetMapPointsRequest } from '@shared/api/requests';
+import MapPin from '../map_pin/map-pin.astro';
+import Styles from './return-points-map.module.sass';
+
+const result = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
+
+console.log('result', result);
+---
+
+<MapPin />
+
+<return-points-map class:list={Styles['return-points-map']}>
+  <div data-map-container />
+</return-points-map>
+
+<script src="./return-points-map.ts" />
