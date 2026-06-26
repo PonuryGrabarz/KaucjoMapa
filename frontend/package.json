@@ -23,6 +23,7 @@
   "dependencies": {
     "@types/leaflet": "^1.9.21",
     "astro": "^6.4.6",
+    "ky": "^2.0.2",
     "leaflet": "^1.9.4",
     "sass": "^1.101.0"
   },

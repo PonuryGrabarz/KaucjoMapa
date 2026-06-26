@@ -1,11 +1,13 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  vite: {
-    server: {
-      allowedHosts: ["f10c-2a00-f41-587a-e764-58a2-99ff-fef6-14aa.ngrok-free.app"]
+  env: {
+    validateSecrets: true,
+    schema: {
+      API_URL: envField.string({ context: 'client', access: 'public', optional: true }),
+      USE_DUMMY_API: envField.boolean({ context: 'client', access: 'public', default: false}),
     }
   }
 });
