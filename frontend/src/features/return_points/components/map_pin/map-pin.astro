@@ -1,10 +1,14 @@
 ---
+import Styles from "./map-pin.module.sass";
+
 import { TEMPLATE_ID } from "./map-pin.constants";
 ---
 
 <template id={TEMPLATE_ID}>
-  <map-pin>
-    <div>Test</div>
+  <map-pin class:list={Styles["map-pin"]}>
+    <div class:list={Styles["map-pin__content"]}>
+      <span class:list={Styles["map-pin__text"]}></span>
+    </div>
   </map-pin>
 </template>
 

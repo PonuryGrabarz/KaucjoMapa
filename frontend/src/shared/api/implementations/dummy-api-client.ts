@@ -14,7 +14,6 @@ export class DummyApiClient extends ApiClientBase {
   protected getMapPoints(request: GetMapPointsRequest): Promise<GetMapPointsResponse> {
     const dummyMapPoint1: MapPoint = {
       returnPointId: "1",
-      name: "EkoPunkt Galeria Sądecka",
       shortName: "GS",
       bgColor: "#193f2a",
       textColor: "#ffffff",
@@ -24,7 +23,6 @@ export class DummyApiClient extends ApiClientBase {
 
     const dummyMapPoint2: MapPoint = {
       returnPointId: "2",
-      name: "Market Zielony Koszyk",
       shortName: "ZK",
       bgColor: "#2f8f46",
       textColor: "#ffffff",
@@ -34,7 +32,6 @@ export class DummyApiClient extends ApiClientBase {
 
     const dummyMapPoint3: MapPoint = {
       returnPointId: "3",
-      name: "Butelkomat Dworzec PKP",
       shortName: "PKP",
       bgColor: "#174ea6",
       textColor: "#ffffff",
@@ -44,7 +41,6 @@ export class DummyApiClient extends ApiClientBase {
 
     const dummyMapPoint4: MapPoint = {
       returnPointId: "4",
-      name: "Sklep Osiedlowy Słoneczny",
       shortName: "S",
       bgColor: "#f0b429",
       textColor: "#3d2b03",
@@ -54,7 +50,6 @@ export class DummyApiClient extends ApiClientBase {
 
     const dummyMapPoint5: MapPoint = {
       returnPointId: "5",
-      name: "RecyHub przy Rynku",
       shortName: "RH",
       bgColor: "#0e2a1b",
       textColor: "#5fd37e",
@@ -64,7 +59,6 @@ export class DummyApiClient extends ApiClientBase {
 
     const dummyMapPoint6: MapPoint = {
       returnPointId: "6",
-      name: "Punkt Kaucyjny Millenium",
       shortName: "M",
       bgColor: "#6f4be8 ",
       textColor: "#ffffff",
@@ -74,7 +68,6 @@ export class DummyApiClient extends ApiClientBase {
 
     const dummyMapPoint7: MapPoint = {
       returnPointId: "7",
-      name: "Biedronka Zabełcze",
       shortName: "B",
       bgColor: "#e31b23",
       textColor: "#ffd400",

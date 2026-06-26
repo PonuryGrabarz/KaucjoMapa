@@ -1,0 +1,27 @@
+.map-pin
+  display: grid
+  place-items: center
+  .map-pin__content
+    display: grid
+    place-items: center
+    width: 40px
+    height: 40px
+    background: var(--map-pin-bg-color, var(--grass-500))
+    border: 3px solid var(--paper-50)
+    border-radius: 50% 50% 50% 6px
+    box-shadow: var(--shadow-md)
+    transform: rotate(45deg)
+    transition: transform .15s ease
+    &:hover, &:global(.focus)
+      transform: rotate(45deg) scale(1.25)
+      box-shadow: var(--focus-500), var(--shadow-md)
+    .map-pin__text
+      max-width: 30px
+      color: var(--map-pin-text-color, var(--paper-50))
+      font-size: 12px
+      font-weight: 800
+      letter-spacing: -.02em
+      font-family: var(--display)
+      text-align: center
+      overflow: hidden
+      transform: rotate(-45deg)

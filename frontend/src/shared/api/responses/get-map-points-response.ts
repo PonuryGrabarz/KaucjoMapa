@@ -1,6 +1,5 @@
 export class MapPoint {
   returnPointId!: string;
-  name!: string;
   shortName!: string;
   bgColor!: string;
   textColor!: string;
