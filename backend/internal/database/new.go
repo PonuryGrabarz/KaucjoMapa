@@ -10,7 +10,8 @@ import (
 )
 
 type Service struct {
-	db *sql.DB
+	DB      *sql.DB
+	Queries *Queries
 }
 
 var (
@@ -36,7 +37,8 @@ func NewConn() Service {
 		log.Fatal(err)
 	}
 	dbInstance = &Service{
-		db: db,
+		DB:      db,
+		Queries: New(db),
 	}
 
 	return *dbInstance

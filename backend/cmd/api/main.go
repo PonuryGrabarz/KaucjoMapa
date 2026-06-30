@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -22,6 +23,14 @@ import (
 // @BasePath  /
 func main() {
 	server := server.New()
+
+	if err := server.SeedAdminUser(context.Background()); err != nil {
+		panic(fmt.Sprintf("seed admin user error: %s", err))
+	}
+
+	if err := server.ScrapPoints(); err != nil {
+		fmt.Printf("scrap points error: %s", err)
+	}
 
 	server.RegisterFiberRoutes()
 

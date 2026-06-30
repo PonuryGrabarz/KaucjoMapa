@@ -1,14 +1,17 @@
 package server
 
 import (
+	"context"
 	"log"
 	"os"
 
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/kaucjomatapi"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/google/uuid"
 	"github.com/yokeTH/gofiber-scalar/scalar/v3"
 )
+
+var adminUsername = os.Getenv("ADMIN_USERNAME")
 
 func (s *FiberServer) RegisterFiberRoutes() {
 	s.Use(cors.New(cors.Config{
@@ -58,10 +61,27 @@ func (s *FiberServer) HelloWorldHandler(c fiber.Ctx) error {
 }
 
 func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
-	kaucjomatyList, err := kaucjomatapi.GetKaucjomaty("data/kaucjomaty_polska.json")
+	kaucjomatyList, err := s.db.Queries.GetAllReturnPoints(context.Background())
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(kaucjomatyList)
+	mapPoints := []MapPoint{}
+
+	for _, kaucjomat := range kaucjomatyList {
+		style := ResolvePointStyle(kaucjomat.Name)
+		mapPoint := MapPoint{
+			ReturnPointID: uuid.New(),
+			ShortName:     style.ShortName,
+			BgColor:       style.BgColor,
+			TextColor:     style.TextColor,
+			Latitude:      kaucjomat.Latitude,
+			Longitude:     kaucjomat.Longitude,
+		}
+
+		mapPoints = append(mapPoints, mapPoint)
+
+	}
+
+	return c.JSON(mapPoints)
 }
