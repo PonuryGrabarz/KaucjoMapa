@@ -11,7 +11,7 @@ build:
 
 # Run the application
 run:
-	@go run cmd/api/main.go
+	@swag init -g main.go -d ./cmd/api,./internal/server --parseInternal -o ./docs; go run cmd/api/main.go;
 # Create DB container
 docker-run:
 	@if docker compose up --build 2>/dev/null; then \
@@ -46,7 +46,7 @@ clean:
 
 # Live Reload
 watch:
-	@if command -v air > /dev/null; then \
+	@swag init -g main.go -d ./cmd/api,./internal/server --parseInternal -o ./docs; if command -v air > /dev/null; then \
             air; \
             echo "Watching...";\
         else \

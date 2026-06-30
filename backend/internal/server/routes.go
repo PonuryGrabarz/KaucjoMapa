@@ -52,6 +52,13 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	s.Get("/kaucjomaty", s.GetKaucjomatyHandler)
 }
 
+// HelloWorldHandler godoc
+// @Summary      Sprawdzenie działania API
+// @Description  Zwraca prostą wiadomość potwierdzającą, że API działa.
+// @Tags         health
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       / [get]
 func (s *FiberServer) HelloWorldHandler(c fiber.Ctx) error {
 	resp := fiber.Map{
 		"message": "Hello World",
@@ -60,6 +67,14 @@ func (s *FiberServer) HelloWorldHandler(c fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+// GetKaucjomatyHandler godoc
+// @Summary      Lista kaucjomatów
+// @Description  Zwraca punkty zwrotu do wyświetlenia na mapie.
+// @Tags         kaucjomaty
+// @Produce      json
+// @Success      200  {array}   MapPoint
+// @Failure      500  {object}  map[string]string
+// @Router       /kaucjomaty [get]
 func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 	kaucjomatyList, err := s.db.Queries.GetAllReturnPoints(context.Background())
 	if err != nil {
