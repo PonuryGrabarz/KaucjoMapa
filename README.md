@@ -4,13 +4,13 @@ Aplikacja webowa do wyszukiwania najbliższych punktów, w których można odda�
 
 Projekt ma pomagać użytkownikom szybko znaleźć najbliższy punkt zwrotu, sprawdzić jego aktualny status oraz współtworzyć bazę miejsc dzięki zgłoszeniom i potwierdzeniom społeczności.
 
-> Nazwa **KaucjoFinder** jest robocza i może zostać zmieniona przed publikacją projektu.
+> Nazwa **KaucjoMapa** jest robocza i może zostać zmieniona przed publikacją projektu.
 
 ---
 
 ## Opis projektu
 
-KaucjoFinder to aplikacja webowa, która umożliwia znalezienie w okolicy najbliższego miejsca, gdzie można oddać pojemniki zwrotne, takie jak butelki, puszki lub inne opakowania objęte systemem kaucyjnym.
+KaucjoMapa to aplikacja webowa, która umożliwia znalezienie w okolicy najbliższego miejsca, gdzie można oddać pojemniki zwrotne, takie jak butelki, puszki lub inne opakowania objęte systemem kaucyjnym.
 
 Aplikacja pokazuje punkty zwrotu na mapie, pozwala wyznaczyć trasę do wybranego miejsca oraz umożliwia społecznościowe aktualizowanie informacji o punktach, np. czy butelkomat jest czynny, zapełniony albo tymczasowo niedostępny.
 
