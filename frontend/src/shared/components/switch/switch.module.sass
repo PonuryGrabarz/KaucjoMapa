@@ -1,0 +1,68 @@
+.switch
+  --switch-width: 44px
+  --switch-height: 24px
+  --switch-thumb-size: 18px
+  --switch-inset: 3px
+
+  display: inline-flex
+
+  .switch__track
+    position: relative
+    display: inline-flex
+    align-items: center
+    width: var(--switch-width)
+    height: var(--switch-height)
+    padding: 0
+    background: var(--switch-track-off-color, var(--off-400))
+    border: 1px solid var(--switch-border-color, var(--ink-100))
+    border-radius: calc(var(--switch-height) / 2)
+    box-shadow: var(--switch-shadow, var(--shadow-sm))
+    cursor: pointer
+    transition: background-color .18s cubic-bezier(0.4, 0, 0.2, 1)
+    &:focus-visible
+      outline: none
+      box-shadow: var(--switch-focus-ring, var(--focus-500)), var(--switch-shadow, var(--shadow-sm))
+    &[aria-checked="true"]
+      background: var(--switch-track-on-color, var(--grass-500))
+    &:disabled
+      opacity: 0.5
+      pointer-events: none
+      cursor: default
+
+    .switch__thumb
+      position: relative
+      width: var(--switch-thumb-size)
+      height: var(--switch-thumb-size)
+      margin-left: var(--switch-inset)
+      background: var(--switch-thumb-color, var(--paper-50))
+      border-radius: 50%
+      box-shadow: var(--shadow-sm)
+      transform: translateX(0)
+      transition: transform .18s cubic-bezier(0.4, 0, 0.2, 1)
+      pointer-events: none
+
+      :global(.switch__ripple)
+        position: absolute
+        top: 50%
+        left: 50%
+        width: 28px
+        height: 28px
+        background: var(--switch-ripple-off-color, var(--muted-400))
+        border-radius: 50%
+        opacity: 0.35
+        pointer-events: none
+        transform: translate(-50%, -50%) scale(0)
+        animation: switch-ripple .32s cubic-bezier(0.4, 0, 0.2, 1) forwards
+        &:global(.switch__ripple--on)
+          background: var(--switch-ripple-on-color, var(--grass-500))
+
+    &[aria-checked="true"] .switch__thumb
+      transform: translateX(calc(var(--switch-width) - var(--switch-thumb-size) - 2 * var(--switch-inset)))
+
+@keyframes switch-ripple
+  from
+    transform: translate(-50%, -50%) scale(0)
+    opacity: 0.35
+  to
+    transform: translate(-50%, -50%) scale(1.6)
+    opacity: 0

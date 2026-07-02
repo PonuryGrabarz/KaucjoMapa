@@ -1,0 +1,16 @@
+---
+import Styles from "./switch.module.sass";
+---
+
+<km-switch class:list={Styles["switch"]}>
+  <button
+    class:list={Styles["switch__track"]}
+    type="button"
+    role="switch"
+    aria-checked="false"
+  >
+    <span class:list={Styles["switch__thumb"]}></span>
+  </button>
+</km-switch>
+
+<script src="./switch.ts" />
