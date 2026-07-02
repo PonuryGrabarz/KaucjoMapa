@@ -1,13 +1,11 @@
 package server
 
 import (
-	"context"
 	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
-	"github.com/google/uuid"
 	"github.com/yokeTH/gofiber-scalar/scalar/v3"
 )
 
@@ -50,6 +48,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	))
 
 	s.Get("/kaucjomaty", s.GetKaucjomatyHandler)
+	s.Post("/kaucjomaty", s.CreateKaucjomatHandler)
 }
 
 // HelloWorldHandler godoc
@@ -65,38 +64,4 @@ func (s *FiberServer) HelloWorldHandler(c fiber.Ctx) error {
 	}
 
 	return c.JSON(resp)
-}
-
-// GetKaucjomatyHandler godoc
-// @Summary      Lista kaucjomatów
-// @Description  Zwraca punkty zwrotu do wyświetlenia na mapie.
-// @Tags         kaucjomaty
-// @Produce      json
-// @Success      200  {array}   MapPoint
-// @Failure      500  {object}  map[string]string
-// @Router       /kaucjomaty [get]
-func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
-	kaucjomatyList, err := s.db.Queries.GetAllReturnPoints(context.Background())
-	if err != nil {
-		return err
-	}
-
-	mapPoints := []MapPoint{}
-
-	for _, kaucjomat := range kaucjomatyList {
-		style := ResolvePointStyle(kaucjomat.Name)
-		mapPoint := MapPoint{
-			ReturnPointID: uuid.New(),
-			ShortName:     style.ShortName,
-			BgColor:       style.BgColor,
-			TextColor:     style.TextColor,
-			Latitude:      kaucjomat.Latitude,
-			Longitude:     kaucjomat.Longitude,
-		}
-
-		mapPoints = append(mapPoints, mapPoint)
-
-	}
-
-	return c.JSON(mapPoints)
 }
