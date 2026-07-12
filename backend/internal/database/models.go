@@ -103,6 +103,16 @@ func (ns NullPointType) Value() (driver.Value, error) {
 	return string(ns.PointType), nil
 }
 
+type RefreshToken struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Token     string
+	ExpiresAt time.Time
+	RevokedAt sql.NullTime
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type ReturnPoint struct {
 	ID                 uuid.UUID
 	UserID             uuid.NullUUID

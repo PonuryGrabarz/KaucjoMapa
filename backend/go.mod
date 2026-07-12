@@ -4,6 +4,7 @@ go 1.26.2
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/alexedwards/argon2id v1.0.0 // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/go-openapi/jsonpointer v0.23.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.6 // indirect
@@ -22,6 +23,7 @@ require (
 	github.com/gofiber/schema v1.8.0 // indirect
 	github.com/gofiber/utils v0.0.10 // indirect
 	github.com/gofiber/utils/v2 v2.1.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect

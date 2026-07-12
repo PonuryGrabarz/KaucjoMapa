@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (s Service) SeedAdminUser(ctx context.Context) error {
@@ -26,7 +26,7 @@ func (s Service) SeedAdminUser(ctx context.Context) error {
 		return fmt.Errorf("ADMIN_PASSWORD is required to seed admin user")
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	passwordHash, err := auth.HashPassword(password)
 	if err != nil {
 		return fmt.Errorf("hash admin password: %w", err)
 	}

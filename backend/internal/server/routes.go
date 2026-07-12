@@ -49,6 +49,10 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	s.Get("/kaucjomaty", s.GetKaucjomatyHandler)
 	s.Post("/kaucjomaty", s.CreateKaucjomatHandler)
+	s.Post("/users", s.CreateUserHandler)
+	s.Post("/login", s.LoginUserHandler)
+	s.Post("/auth/token", s.refreshTokenHandler)
+	s.Post("/auth/revoke", s.revokeTokenHandler)
 }
 
 // HelloWorldHandler godoc

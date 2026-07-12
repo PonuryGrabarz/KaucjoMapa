@@ -42,6 +42,14 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 	return c.JSON(mapPoints)
 }
 
+// CreateKaucjomatHandler godoc
+// @Summary      Dodanie kaucjomatu
+// @Description  Przyjmuje dane punktu zwrotu do dodania.
+// @Tags         kaucjomaty
+// @Accept       json
+// @Param        request  body  MapPoint  true  "Dane kaucjomatu"
+// @Success      200      "OK"
+// @Router       /kaucjomaty [post]
 func (s *FiberServer) CreateKaucjomatHandler(c fiber.Ctx) error {
 	var mapPoint MapPoint
 

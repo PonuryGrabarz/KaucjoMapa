@@ -1,5 +1,21 @@
 basePath: /
 definitions:
+  server.CreateUserHandler.parameters:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  server.LoginUserHandler.parameters:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   server.MapPoint:
     properties:
       bg_color:
@@ -13,6 +29,29 @@ definitions:
       short_name:
         type: string
       text_color:
+        type: string
+    type: object
+  server.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_admin:
+        type: boolean
+      is_banned:
+        type: boolean
+      refresh_token:
+        type: string
+      reputation:
+        type: integer
+      token:
+        type: string
+      updated_at:
+        type: string
+      username:
         type: string
     type: object
 host: localhost:3000
@@ -43,6 +82,61 @@ paths:
       summary: Sprawdzenie działania API
       tags:
       - health
+  /auth/revoke:
+    post:
+      description: Unieważnia refresh token przekazany w nagłówku Authorization Bearer.
+      parameters:
+      - description: Bearer refresh_token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Unieważnienie refresh tokenu
+      tags:
+      - auth
+  /auth/token:
+    post:
+      description: Przyjmuje refresh token w nagłówku Authorization Bearer i zwraca
+        nowy token JWT.
+      parameters:
+      - description: Bearer refresh_token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Odświeżenie tokenu JWT
+      tags:
+      - auth
   /kaucjomaty:
     get:
       description: Zwraca punkty zwrotu do wyświetlenia na mapie.
@@ -64,4 +158,96 @@ paths:
       summary: Lista kaucjomatów
       tags:
       - kaucjomaty
+    post:
+      consumes:
+      - application/json
+      description: Przyjmuje dane punktu zwrotu do dodania.
+      parameters:
+      - description: Dane kaucjomatu
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.MapPoint'
+      responses:
+        "200":
+          description: OK
+      summary: Dodanie kaucjomatu
+      tags:
+      - kaucjomaty
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Weryfikuje dane logowania i zwraca dane użytkownika z tokenem JWT
+        oraz tokenem odświeżającym.
+      parameters:
+      - description: Dane logowania
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.LoginUserHandler.parameters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logowanie użytkownika
+      tags:
+      - auth
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Tworzy nowe konto użytkownika i zwraca dane utworzonego użytkownika.
+      parameters:
+      - description: Dane rejestracji użytkownika
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.CreateUserHandler.parameters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Rejestracja użytkownika
+      tags:
+      - users
 swagger: "2.0"
