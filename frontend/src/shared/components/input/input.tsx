@@ -34,7 +34,7 @@ export default function Input(props: InputProps): JSX.Element {
 	} = props;
 
 	const hasStartAdornment = startAdornment !== undefined && startAdornment !== null && startAdornment !== false;
-	
+
 	const rootClasses = [
 		Styles["input"],
 		fullWidth ? Styles["input--full-width"] : undefined,
@@ -43,7 +43,7 @@ export default function Input(props: InputProps): JSX.Element {
 		error ? Styles["input--error"] : undefined,
 		className ?? "",
 	].filter(Boolean).join(" ");
-	
+
 	const controlClasses = [Styles["input__control"], inputClass].filter(Boolean).join(" ");
 
 	return (

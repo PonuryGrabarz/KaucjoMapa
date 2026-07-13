@@ -39,7 +39,7 @@ export default function Ripple({ disabled }: RippleProps): JSX.Element {
 		if (!ripple) return;
 
 		const rect = ripple.getBoundingClientRect();
-		
+
 		const x = e.clientX - rect.left;
 		const y = e.clientY - rect.top;
 

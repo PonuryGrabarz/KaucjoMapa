@@ -13,7 +13,7 @@ type IconifyIconProps = {
 
 export default function IconifyIcon(props: IconifyIconProps): JSX.Element {
 	const [prefix, name] = (props.icon ?? "").split(":");
-	
+
 	const iconUrl = prefix && name ? `url("https://api.iconify.design/${prefix}/${name}.svg")` : "";
 
 	const iconifyIconStyle = [

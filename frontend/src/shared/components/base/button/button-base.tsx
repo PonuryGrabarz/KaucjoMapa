@@ -36,7 +36,7 @@ export function ButtonBase({
 	children,
 }: ButtonBaseComponentProps): JSX.Element {
 	const isLink = (href?.length ?? 0) > 0;
-  
+
 	const classes = [rootClass, className ?? ""].filter(Boolean).join(" ");
 
 	const handleClick = (e: MouseEvent): void => {

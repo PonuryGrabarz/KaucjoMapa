@@ -36,7 +36,7 @@ export default function Button(props: ButtonProps): JSX.Element {
 	} = props;
 
 	const spinner = <span class={Styles["btn__spinner"]} />;
-	
+
 	const isDisabled = !!props.disabled || !!loading;
 
 	const rootClass = [
