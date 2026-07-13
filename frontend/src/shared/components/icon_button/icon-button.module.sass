@@ -1,0 +1,68 @@
+.icon-btn
+	position: relative
+	display: inline-flex
+	align-items: center
+	justify-content: center
+	box-sizing: border-box
+	flex: 0 0 auto
+	margin: 0
+	padding: var(--icon-btn-padding, 8px)
+	background: var(--icon-btn-bg, transparent)
+	color: var(--icon-btn-color, currentColor)
+	font-size: var(--icon-btn-font-size, unset)
+	font-family: inherit
+	text-align: center
+	text-decoration: none
+	border: var(--icon-btn-border, none)
+	border-radius: var(--icon-btn-border-radius, 50%)
+	outline: none
+	cursor: pointer
+	overflow: hidden
+	user-select: none
+	-webkit-tap-highlight-color: transparent
+	transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1)
+	--ripple-color: var(--icon-btn-ripple-color, currentColor)
+	--ripple-opacity: 0.3
+	.icon-btn__content
+		display: inline-flex
+		align-items: center
+		justify-content: center
+		font-size: inherit
+		line-height: 1
+		pointer-events: none
+
+		--iconify-icon-width: 1em
+		--iconify-icon-height: 1em
+		.icon-btn__spinner
+			display: inline-block
+			width: 1em
+			height: 1em
+			border: 2px solid currentColor
+			border-right-color: transparent
+			border-radius: 50%
+			animation: icon-btn-spin 750ms linear infinite
+	&.icon-btn--edge-start
+		margin-left: -12px
+	&.icon-btn--edge-end
+		margin-right: -12px
+	&.icon-btn--disabled
+		background: transparent
+		color: var(--icon-btn-disabled-color, color-mix(in srgb, currentColor 30%, transparent))
+	&.icon-btn--disabled, &.icon-btn--loading
+		cursor: default
+		pointer-events: none
+	&:hover
+		background: var(--icon-btn-hover-bg, color-mix(in srgb, currentColor 8%, transparent))
+		border: var(--icon-btn-hover-border, var(--icon-btn-border, none))
+		color: var(--icon-btn-hover-color, var(--icon-btn-color, currentColor))
+	&:active
+		background: var(--icon-btn-active-bg, color-mix(in srgb, currentColor 12%, transparent))
+		border: var(--icon-btn-active-border, var(--icon-btn-border, none))
+		color: var(--icon-btn-active-color, var(--icon-btn-color, currentColor))
+	&:focus-visible
+		outline: 2px solid var(--icon-btn-focus-color, currentColor)
+		outline-offset: 2px
+
+@keyframes icon-btn-spin
+	to
+		transform: rotate(360deg)

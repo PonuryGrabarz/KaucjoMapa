@@ -1,201 +1,97 @@
-.button
-  --button-height: 40px
-  --button-padding-block: 8px
-  --button-padding-inline: 18px
-  --button-icon-only-size: 40px
-  --button-icon-size: 1.25em
-  --button-font-size: 0.95rem
+.btn
+	position: relative
+	display: inline-flex
+	align-items: center
+	justify-content: center
+	vertical-align: middle
+	gap: var(--btn-gap, 8px)
+	padding: var(--btn-padding, 6px 16px)
+	margin: var(--btn-margin, 0)
+	background: transparent
+	color: var(--btn-color, inherit)
+	font-size: var(--btn-font-size, unset)
+	font-family: inherit
+	font-weight: var(--btn-font-weight, 500)
+	line-height: 1.75
+	letter-spacing: var(--btn-letter-spacing, 0.02857em)
+	white-space: nowrap
+	text-decoration: none
+	border: none
+	border-radius: var(--btn-radius, 6px)
+	outline: none
+	cursor: pointer
+	overflow: hidden
+	user-select: none
+	-webkit-tap-highlight-color: transparent
+	transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), border-color 200ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms cubic-bezier(0.4, 0, 0.2, 1)
+	--ripple-color: var(--btn-ripple-color, currentColor)
+	--ripple-opacity: 0.2
+	&:hover
+		color: var(--btn-hover-color, inherit)
+	.btn__label
+		display: inline-flex
+		align-items: center
+		pointer-events: none
+		&.btn--loading-hidden-label
+			visibility: hidden
+	.btn__icon
+		font-size: var(--btn-icon-size, 1.25em)
+		pointer-events: none
+	.btn__loading-center
+		position: absolute
+		display: flex
+		align-items: center
+		justify-content: center
+		inset: 0
+		pointer-events: none
+	.btn__spinner
+		display: inline-block
+		width: 1.25em
+		height: 1.25em
+		border: 2px solid currentColor
+		border-right-color: transparent
+		border-radius: 50%
+		animation: btn-spin 750ms linear infinite
+	&.btn--full-width
+		display: flex
+		width: 100%
+	&.btn--disabled
+		color: var(--btn-disabled-color, rgba(255 255 255 / 0.3))
+		&.btn--contained
+			background: var(--btn-disabled-bg, rgba(255 255 255 / 0.12))
+			box-shadow: none
+		&.btn--outlined
+			border-color: var(--btn-disabled-border-color, rgba(255 255 255 / 0.12))
+	&.btn--text
+		&:hover
+			background: var(--btn-hover-bg, color-mix(in srgb, currentColor 8%, transparent))
+		&:active
+			background: var(--btn-active-bg, color-mix(in srgb, currentColor 12%, transparent))
+	&.btn--contained
+		background: var(--btn-bg)
+		color: var(--btn-color, #fff)
+		box-shadow: var(--btn-shadow, 0 3px 1px -2px rgba(0 0 0 / 0.2), 0 2px 2px 0 rgba(0 0 0 / 0.14), 0 1px 5px 0 rgba(0 0 0 / 0.12))
+		&:hover
+			background: var(--btn-hover-bg, var(--btn-bg))
+			box-shadow: var(--btn-hover-shadow, 0 2px 4px -1px rgba(0 0 0 / 0.2), 0 4px 5px 0 rgba(0 0 0 / 0.14), 0 1px 10px 0 rgba(0 0 0 / 0.12))
+		&:active
+			background: var(--btn-active-bg, var(--btn-bg))
+			box-shadow: var(--btn-active-shadow, 0 5px 5px -3px rgba(0 0 0 / 0.2), 0 8px 10px 1px rgba(0 0 0 / 0.14), 0 3px 14px 2px rgba(0 0 0 / 0.12))
+	&.btn--outlined
+		color: var(--btn-color, currentColor)
+		border: 1px solid var(--btn-border-color, color-mix(in srgb, currentColor 50%, transparent))
+		&:hover
+			background: var(--btn-hover-bg, color-mix(in srgb, currentColor 8%, transparent))
+			border-color: var(--btn-hover-border-color, currentColor)
+		&:active
+			background: var(--btn-active-bg, color-mix(in srgb, currentColor 12%, transparent))
+		&:focus-visible
+			outline: 2px solid var(--btn-focus-color, currentColor)
+			outline-offset: 2px
+	&.btn--disabled, &.btn--loading
+		cursor: default
+		pointer-events: none
 
-  display: inline-flex
-  max-width: 100%
-  vertical-align: middle
-
-  &[data-size="small"]
-    --button-height: 34px
-    --button-padding-block: 6px
-    --button-padding-inline: 14px
-    --button-icon-only-size: 34px
-    --button-icon-size: 1.1em
-    --button-font-size: 0.875rem
-
-  &[data-size="large"]
-    --button-height: 48px
-    --button-padding-block: 11px
-    --button-padding-inline: 22px
-    --button-icon-only-size: 48px
-    --button-icon-size: 1.35em
-    --button-font-size: 1rem
-
-  &[data-full-width="true"]
-    display: flex
-    width: 100%
-
-    .button__control
-      width: 100%
-
-  .button__control
-    position: relative
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    gap: var(--button-gap, 8px)
-    min-width: var(--button-min-width, 64px)
-    min-height: var(--button-height)
-    padding: var(--button-padding-block) var(--button-padding-inline)
-    overflow: hidden
-    border: 1px solid var(--button-border-color, transparent)
-    border-radius: var(--button-radius, 12px)
-    font: inherit
-    font-size: var(--button-font-size)
-    font-weight: var(--button-font-weight, 700)
-    line-height: 1.35
-    letter-spacing: var(--button-letter-spacing, 0.01em)
-    text-align: center
-    text-decoration: none
-    white-space: nowrap
-    user-select: none
-    touch-action: manipulation
-    transition: background-color .18s cubic-bezier(0.4, 0, 0.2, 1), border-color .18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .18s cubic-bezier(0.4, 0, 0.2, 1), color .18s cubic-bezier(0.4, 0, 0.2, 1), transform .15s cubic-bezier(0.4, 0, 0.2, 1)
-
-    &:focus-visible
-      outline: none
-      box-shadow: var(--button-focus-ring, var(--focus-500)), var(--button-shadow, var(--shadow-sm))
-
-    &:active:not(:disabled)
-      transform: translateY(1px)
-
-    &:disabled
-      color: var(--button-disabled-text-color, var(--muted-400))
-      background: var(--button-disabled-bg-color, var(--paper-100))
-      border-color: var(--button-disabled-border-color, var(--ink-100))
-      box-shadow: var(--button-disabled-shadow, none)
-      cursor: not-allowed
-      opacity: var(--button-disabled-opacity, 0.62)
-      pointer-events: none
-      transform: none
-
-    :global(.button__ripple)
-      position: absolute
-      width: 1px
-      height: 1px
-      background: var(--button-ripple-color, var(--paper-50))
-      border-radius: 50%
-      opacity: 0.32
-      pointer-events: none
-      transform: translate(-50%, -50%) scale(0)
-      animation: button-ripple .34s cubic-bezier(0.4, 0, 0.2, 1) forwards
-
-  .button__label
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    min-width: 0
-    pointer-events: none
-
-  .button__icon
-    display: inline-flex
-    flex: 0 0 auto
-    align-items: center
-    justify-content: center
-    font-size: var(--button-icon-size)
-    line-height: 1
-    pointer-events: none
-
-    > *
-      flex: 0 0 auto
-      font-size: inherit
-
-  &[data-icon-only="true"]
-    .button__control
-      width: var(--button-icon-only-size)
-      min-width: var(--button-icon-only-size)
-      height: var(--button-icon-only-size)
-      min-height: var(--button-icon-only-size)
-      padding: 0
-      border-radius: var(--button-icon-only-radius, 50%)
-
-  &[data-variant="contained"][data-color="primary"]
-    .button__control
-      color: var(--button-text-color, var(--paper-50))
-      background: var(--button-bg-color, var(--grass-500))
-      border-color: var(--button-border-color, var(--grass-500))
-      box-shadow: var(--button-shadow, var(--shadow-sm))
-
-      &:hover:not(:disabled)
-        background: var(--button-hover-bg-color, var(--grass-700))
-        border-color: var(--button-hover-border-color, var(--grass-700))
-        box-shadow: var(--button-hover-shadow, var(--shadow-md))
-
-  &[data-variant="contained"][data-color="danger"]
-    .button__control
-      color: var(--button-text-color, var(--paper-50))
-      background: var(--button-bg-color, var(--danger-500))
-      border-color: var(--button-border-color, var(--danger-500))
-      box-shadow: var(--button-shadow, var(--shadow-sm))
-
-      &:hover:not(:disabled)
-        background: var(--button-hover-bg-color, color-mix(in srgb, var(--button-bg-color, var(--danger-500)) 88%, var(--ink-900)))
-        border-color: var(--button-hover-border-color, color-mix(in srgb, var(--button-border-color, var(--danger-500)) 88%, var(--ink-900)))
-        box-shadow: var(--button-hover-shadow, var(--shadow-md))
-
-  &[data-variant="outlined"][data-color="primary"]
-    .button__control
-      color: var(--button-text-color, var(--grass-500))
-      background: var(--button-bg-color, transparent)
-      border-color: var(--button-border-color, var(--grass-500))
-      box-shadow: var(--button-shadow, none)
-
-      &:hover:not(:disabled)
-        background: var(--button-hover-bg-color, var(--grass-100))
-        border-color: var(--button-hover-border-color, var(--grass-700))
-
-      :global(.button__ripple)
-        background: var(--button-ripple-color, var(--grass-500))
-
-  &[data-variant="outlined"][data-color="danger"]
-    .button__control
-      color: var(--button-text-color, var(--danger-500))
-      background: var(--button-bg-color, transparent)
-      border-color: var(--button-border-color, var(--danger-500))
-      box-shadow: var(--button-shadow, none)
-
-      &:hover:not(:disabled)
-        background: var(--button-hover-bg-color, color-mix(in srgb, var(--button-text-color, var(--danger-500)) 12%, transparent))
-        border-color: var(--button-hover-border-color, color-mix(in srgb, var(--button-border-color, var(--danger-500)) 88%, var(--ink-900)))
-
-      :global(.button__ripple)
-        background: var(--button-ripple-color, var(--danger-500))
-
-  &[data-variant="text"][data-color="primary"]
-    .button__control
-      color: var(--button-text-color, var(--grass-500))
-      background: var(--button-bg-color, transparent)
-      border-color: var(--button-border-color, transparent)
-      box-shadow: var(--button-shadow, none)
-
-      &:hover:not(:disabled)
-        background: var(--button-hover-bg-color, var(--grass-100))
-
-      :global(.button__ripple)
-        background: var(--button-ripple-color, var(--grass-500))
-
-  &[data-variant="text"][data-color="danger"]
-    .button__control
-      color: var(--button-text-color, var(--danger-500))
-      background: var(--button-bg-color, transparent)
-      border-color: var(--button-border-color, transparent)
-      box-shadow: var(--button-shadow, none)
-
-      &:hover:not(:disabled)
-        background: var(--button-hover-bg-color, color-mix(in srgb, var(--button-text-color, var(--danger-500)) 12%, transparent))
-
-      :global(.button__ripple)
-        background: var(--button-ripple-color, var(--danger-500))
-
-@keyframes button-ripple
-  from
-    transform: translate(-50%, -50%) scale(0)
-    opacity: 0.32
-  to
-    transform: translate(-50%, -50%) scale(1)
-    opacity: 0
+@keyframes btn-spin
+	to
+		transform: rotate(360deg)

@@ -41,7 +41,7 @@
       transition: transform .18s cubic-bezier(0.4, 0, 0.2, 1)
       pointer-events: none
 
-      :global(.switch__ripple)
+      .switch__ripple
         position: absolute
         top: 50%
         left: 50%
@@ -53,7 +53,7 @@
         pointer-events: none
         transform: translate(-50%, -50%) scale(0)
         animation: switch-ripple .32s cubic-bezier(0.4, 0, 0.2, 1) forwards
-        &:global(.switch__ripple--on)
+        &.switch__ripple--on
           background: var(--switch-ripple-on-color, var(--grass-500))
 
     &[aria-checked="true"] .switch__thumb
