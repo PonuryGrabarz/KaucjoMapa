@@ -1,5 +1,6 @@
 ---
 import Styles from "./navigation.module.sass";
+import Button from "@components/button/button";
 
 const currentPath = Astro.url.pathname;
 
@@ -19,15 +20,15 @@ const isActive = (href: string) => currentPath === href || (href !== "/" && curr
   <ul class:list={[Styles["navigation__list"]]}>
     {links.map(({ href, label, icon }) =>
         <li class:list={[Styles["navigation__item"]]}>
-          <a
+          <Button
             href={href}
             class:list={[Styles["navigation__link"], { [Styles["navigation__link--active"]]: isActive(href) }]}
             aria-current={isActive(href) ? "page" : undefined}
             aria-label={label}
+            endIcon={icon}
           >
             {label}
-            <iconify-icon icon={icon} class:list={[Styles["navigation__icon"]]} />
-          </a>
+          </Button>
         </li>
     )}
   </ul>
