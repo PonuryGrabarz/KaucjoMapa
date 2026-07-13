@@ -1,17 +1,25 @@
-import { API_URL, USE_DUMMY_API } from "astro:env/client";
+import { API_URL, USE_DUMMY_API } from 'astro:env/client';
 
-import type ApiClientBase from "./abstractions/api-client-base";
+import type ApiClientBase from './abstractions/api-client-base';
 
-let instance: ApiClientBase | undefined;
+let instance: ApiClientBase;
 
-const isProd = import.meta.env.PROD;
+const useDummyApi = !import.meta.env.PROD && USE_DUMMY_API;
 
-if (isProd) {
-  instance = await import("./implementations/api-client").then((module) => new module.ApiClient(API_URL as string));
+if (useDummyApi) {
+  instance = await import('./implementations/dummy-api-client').then(
+    (module) => new module.DummyApiClient(),
+  );
 } else {
-  if (USE_DUMMY_API) {
-    instance = await import("./implementations/dummy-api-client").then((module) => new module.DummyApiClient());
+  const apiUrl = API_URL;
+
+  if (!apiUrl) {
+    throw new Error('API_URL must be set when using the real API client.');
   }
+
+  instance = await import('./implementations/api-client').then(
+    (module) => new module.ApiClient(apiUrl),
+  );
 }
 
-export const apiClient = instance!;
+export const apiClient = instance;

@@ -8,6 +8,7 @@ import Styles from "./home-page-view.module.sass";
 
 import { apiClient } from "@shared/api/api-client-factory";
 import { GetMapPointsRequest } from "@shared/api/requests";
+import Filters from "@features/return_points/components/filters/filters";
 
 
 const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
@@ -18,7 +19,7 @@ const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMap
     <div class:list={Styles["home-page-view__header__search"]}>
       <Input startAdornment="material-symbols:search" placeholder="Wyszukaj punkty zwrotu — możesz podać nazwę, adres lub kod pocztowy" />
       <Button startIcon="majesticons:map-marker-area-line">5 km</Button>
-      <Button startIcon="mage:filter">Filtry</Button>
+      <Filters client:load />
     </div>
     <div class:list={Styles["home-page-view__header__gps-toogle"]}>
       <Button startIcon="mdi:crosshairs-gps">Lokalizacja</Button>
