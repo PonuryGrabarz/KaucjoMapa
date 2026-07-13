@@ -1,2 +1,36 @@
 .home-page-view
   display: contents
+  .home-page-view__header
+    display: flex
+    justify-content: space-between
+    align-items: center
+    padding: 1rem 1rem
+    .home-page-view__header__search
+      display: flex
+      gap: 1rem
+      km-input div:not(:focus-within)
+        box-shadow: unset
+      km-button
+        --button-bg-color: var(--paper-50)
+        --button-hover-bg-color: var(--paper-100)
+        --button-text-color: var(--ink-900)
+        --button-border-color: var(--ink-200)
+        --button-hover-border-color: var(--ink-200)
+        --button-shadow: none
+        --button-hover-shadow: none
+        iconify-icon
+          color: var(--muted-400)
+    .home-page-view__header__gps-toogle
+      display: flex
+      align-items: center
+      gap: 0.5rem
+      km-button
+        --button-bg-color: var(--paper-50)
+        --button-hover-bg-color: var(--paper-100)
+        --button-text-color: var(--ink-900)
+        --button-border-color: var(--ink-200)
+        --button-hover-border-color: var(--ink-200)
+        --button-shadow: none
+        --button-hover-shadow: none
+        iconify-icon
+          color: var(--muted-400)

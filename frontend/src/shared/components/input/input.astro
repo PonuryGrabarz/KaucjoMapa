@@ -33,7 +33,7 @@ const ariaLabel = ariaLabelFromProps ?? (labelHidden ? label : undefined);
 const hasTrailingIcon = Astro.slots.has('trailing-icon');
 ---
 
-<km-input class:list={Styles['input']} disabled={disabled}>
+<km-input class:list={Styles['input']} disabled={disabled || undefined}>
   {
     label && !labelHidden && (
       <label class:list={Styles['input__label']} for={inputId}>

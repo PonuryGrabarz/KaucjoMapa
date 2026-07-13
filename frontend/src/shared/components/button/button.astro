@@ -53,7 +53,7 @@ const isIconOnly = !hasDefaultSlot && (hasStartIcon || hasEndIcon);
   data-size={size}
   data-full-width={fullWidth ? 'true' : undefined}
   data-icon-only={isIconOnly ? 'true' : undefined}
-  disabled={isDisabled}
+  disabled={isDisabled ? true : undefined}
 >
   <button
     {...buttonAttributes}

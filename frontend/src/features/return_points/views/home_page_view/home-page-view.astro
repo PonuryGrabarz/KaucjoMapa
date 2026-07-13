@@ -1,16 +1,31 @@
 ---
-import MapPin from '../../components/map_pin/map-pin.astro';
-import ReturnPointsMap from '../../components/return_points_map/return-points-map.astro';
-import Styles from './home-page-view.module.sass';
+import Button from "@shared/components/button/button.astro";
+import Input from "@shared/components/input/input.astro";
+import Switch from "@shared/components/switch/switch.astro";
+import MapPin from "../../components/map_pin/map-pin.astro";
+import ReturnPointsMap from "../../components/return_points_map/return-points-map.astro";
+import Styles from "./home-page-view.module.sass";
 
-import { apiClient } from '@shared/api/api-client-factory';
-import { GetMapPointsRequest } from '@shared/api/requests';
+import { apiClient } from "@shared/api/api-client-factory";
+import { GetMapPointsRequest } from "@shared/api/requests";
 
 
 const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
 ---
 
-<home-page-view class:list={Styles['home-page-view']}>
+<home-page-view class:list={Styles["home-page-view"]}>
+  <div class:list={Styles["home-page-view__header"]}>
+    <div class:list={Styles["home-page-view__header__search"]}>
+      <Input icon="material-symbols:search" placeholder="Wyszukaj punkty zwrotu — możesz podać nazwę, adres lub kod pocztowy" />
+      <Button startIcon="majesticons:map-marker-area-line">5 km</Button>
+      <Button startIcon="mage:filter">Filtry</Button>
+    </div>
+    <div class:list={Styles["home-page-view__header__gps-toogle"]}>
+      <Button startIcon="mdi:crosshairs-gps">Lokalizacja</Button>
+      <Switch />
+    </div>
+  </div>
+
   <MapPin />
   <ReturnPointsMap initialReturnPoints={initialReturnPoints} />
 </home-page-view>

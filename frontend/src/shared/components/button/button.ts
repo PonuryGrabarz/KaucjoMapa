@@ -24,7 +24,7 @@ export class Button extends HTMLElement {
     }
 
     this._buttonElement = buttonElement;
-    this._isDisabled = this.hasAttribute('disabled') || this._buttonElement.disabled;
+    this._isDisabled = this.getAttribute('disabled') === 'true' || this._buttonElement.disabled;
 
     this.syncDisabledState();
   }

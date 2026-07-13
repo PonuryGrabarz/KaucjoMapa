@@ -19,7 +19,9 @@ export class Input extends HTMLElement {
     }
 
     this._inputElement = inputElement;
-    this._isDisabled = this.hasAttribute('disabled') || this._inputElement.disabled;
+
+    const disabledAttribute = this.getAttribute('disabled');
+    this._isDisabled = (disabledAttribute !== null && disabledAttribute !== 'false') || this._inputElement.disabled;
 
     this._inputElement.disabled = this._isDisabled;
 
