@@ -6,13 +6,13 @@ router and `docs/` for background knowledge.
 
 ## Scope
 
-Astro 6 + TypeScript app. Renders the map of deposit-return points, status,
+Astro 7 + TypeScript app. Renders the map of deposit-return points, status,
 navigation, and (later) reports/community features. No backend yet — see
 `src/shared/api`.
 
 ## Stack
 
-- **Astro 6** (`astro.config.mjs`), TypeScript, **Sass** (`.module.sass` per
+- **Astro 7** (`astro.config.mjs`), TypeScript, **Sass** (`.module.sass` per
   component), **Leaflet** for the map, **ky** for HTTP.
 - Package manager: **bun** (`bun.lock`) — run everything with `bun --cwd
   frontend <script>` or `cd frontend && bun run <script>`.

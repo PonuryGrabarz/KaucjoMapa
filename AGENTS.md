@@ -13,7 +13,7 @@ nearest deposit-return point (butelkomat / shop / other) for Polish kaucja
 product spec lives in `README.md` (Polish) — read it once for domain
 vocabulary, then rely on `docs/` for anything that changes.
 
-Stack today: **Astro 6 + TypeScript + Sass + Leaflet**, `frontend/` only.
+Stack today: **Astro 7 + TypeScript + Sass + Leaflet**, `frontend/` only.
 No backend yet — `frontend/src/shared/api` talks to either a real API
 (`API_URL` env) or a `DummyApiClient` in dev (`USE_DUMMY_API` env). Package
 manager: **bun** for `frontend/`, **npm** at repo root (husky/commitlint only).

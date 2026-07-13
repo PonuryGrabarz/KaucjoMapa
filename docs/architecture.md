@@ -12,7 +12,7 @@ a workspace/monorepo build. No `backend/` directory exists yet.
 
 ## Frontend stack
 
-- **Astro 6**, TypeScript, **Sass** (CSS modules, one `.module.sass` per
+- **Astro 7**, TypeScript, **Sass** (CSS modules, one `.module.sass` per
   component), **Leaflet** (map rendering), **ky** (HTTP client wrapper).
 - Package manager: **bun** for `frontend/` (see `bun.lock`).
 - PWA support present (`public/manifest.webmanifest`, service worker via
