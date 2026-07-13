@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/server"
+	"github.com/gofiber/fiber/v3/middleware/encryptcookie"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 )
@@ -31,6 +32,10 @@ func main() {
 	if err := server.ScrapPoints(); err != nil {
 		fmt.Printf("scrap points error: %s", err)
 	}
+
+	server.Use(encryptcookie.New(encryptcookie.Config{
+		Key: os.Getenv("COOKIE_SECRET"),
+	}))
 
 	server.RegisterFiberRoutes()
 

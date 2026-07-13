@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
@@ -77,7 +79,7 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 
 		refreshToken := auth.MakeRefreshToken()
 
-		_, err = s.db.Queries.CreateRefreshToken(c.Context(), database.CreateRefreshTokenParams{
+		dbRefreshToken, err := s.db.Queries.CreateRefreshToken(c.Context(), database.CreateRefreshTokenParams{
 			ID:        uuid.New(),
 			Token:     refreshToken,
 			CreatedAt: time.Now(),
@@ -92,8 +94,19 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 		}
 
 		loggedInUser.Token = token
-		loggedInUser.RefreshToken = refreshToken
 
+		cookie := new(fiber.Cookie)
+		cookie.Name = "RefreshToken"
+		cookie.Value = dbRefreshToken.Token
+		cookie.Path = "/auth"
+		cookie.Expires = dbRefreshToken.ExpiresAt
+		cookie.HTTPOnly = true
+		cookie.SameSite = "strict"
+		// TODO: Uncomment the following line if using HTTPS
+		// cookie.Secure = true // Set to true if using HTTPS
+
+		fmt.Println(cookie)
+		c.Cookie(cookie)
 		//respondWithJSON(w, 200, loggedInUser)
 		return c.JSON(loggedInUser)
 	}
@@ -112,14 +125,33 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 // @Router       /auth/token [post]
 func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 	token, err := auth.GetBearerToken(c.GetReqHeaders())
+	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
+	if refreshToken == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "Unauthorized: Refresh token not provided",
+		})
+	}
+
 	if err != nil {
 		//respondWithError(w, 401, err.Error())
 		return err
 	}
 
-	userToken, err := s.db.Queries.GetUserToken(context.Background(), token)
+	claims, err := auth.ValidateJWT(token, os.Getenv("JWT_SECRET"))
 	if err != nil {
-		//respondWithError(w, 401, err.Error())
+		return err
+	}
+
+	userID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		return err
+	}
+
+	userToken, err := s.db.Queries.GetUserRefreshToken(c.Context(), database.GetUserRefreshTokenParams{
+		UserID: userID,
+		Token:  refreshToken,
+	})
+	if err != nil {
 		return err
 	}
 
@@ -128,7 +160,7 @@ func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 		return err
 	}
 
-	user, err := s.db.Queries.GetUserById(c.Context(), userToken.UserID)
+	user, err := s.db.Queries.GetUserById(c.Context(), userID)
 	if err != nil {
 		return err
 	}
@@ -139,12 +171,6 @@ func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 		//respondWithError(w, 401, err.Error())
 		return err
 	}
-
-	// respondWithJSON(w, 200, struct {
-	// 	Token string `json:"token"`
-	// }{
-	// 	Token: newToken,
-	// })
 
 	return c.JSON(
 		struct {
@@ -159,7 +185,7 @@ func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 // @Summary      Unieważnienie refresh tokenu
 // @Description  Unieważnia refresh token przekazany w nagłówku Authorization Bearer.
 // @Tags         auth
-// @Param        Authorization  header  string  true  "Bearer refresh_token"
+// @Param        Authorization  header  string  true  "Bearer access_token"
 // @Success      204            "No Content"
 // @Failure      401            {object}  map[string]string
 // @Failure      500            {object}  map[string]string
@@ -171,7 +197,26 @@ func (s *FiberServer) revokeTokenHandler(c fiber.Ctx) error {
 		return err
 	}
 
-	userToken, err := s.db.Queries.GetUserToken(c.Context(), token)
+	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
+	if refreshToken == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "Unauthorized: Refresh token not provided",
+		})
+	}
+
+	claims, err := auth.ValidateJWT(token, os.Getenv("JWT_SECRET"))
+	if err != nil {
+		return err
+	}
+	userID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		return err
+	}
+
+	userToken, err := s.db.Queries.GetUserRefreshToken(c.Context(), database.GetUserRefreshTokenParams{
+		UserID: userID,
+		Token:  refreshToken,
+	})
 	if err != nil {
 		//respondWithError(w, 401, err.Error())
 		return err

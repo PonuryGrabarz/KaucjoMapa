@@ -26,6 +26,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 			"Accept",
 			"Authorization",
 			"Content-Type",
+			"Set-Cookie",
 		},
 		AllowCredentials: false,
 		MaxAge:           300,
