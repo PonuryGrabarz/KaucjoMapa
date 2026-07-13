@@ -29,7 +29,10 @@ INSERT INTO return_points (
   rejections_count,
   is_verified,
   created_at,
-  updated_at
+  updated_at,
+  pet,
+  can,
+  glass
 ) VALUES (
   $1,
   $2,
@@ -45,8 +48,11 @@ INSERT INTO return_points (
   $12,
   $13,
   $14,
-  $15
-  ) RETURNING id, user_id, name, type, address, latitude, longitude, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at
+  $15,
+  $16,
+  $17,
+  $18
+  ) RETURNING id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at
 `
 
 type CreatePointParams struct {
@@ -65,6 +71,9 @@ type CreatePointParams struct {
 	IsVerified         bool
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+	Pet                bool
+	Can                bool
+	Glass              bool
 }
 
 func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (ReturnPoint, error) {
@@ -84,6 +93,9 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 		arg.IsVerified,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.Pet,
+		arg.Can,
+		arg.Glass,
 	)
 	var i ReturnPoint
 	err := row.Scan(
@@ -94,6 +106,9 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 		&i.Address,
 		&i.Latitude,
 		&i.Longitude,
+		&i.Pet,
+		&i.Can,
+		&i.Glass,
 		&i.OpeningHours,
 		&i.Description,
 		&i.CurrentStatus,
@@ -107,7 +122,7 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 }
 
 const getAllReturnPoints = `-- name: GetAllReturnPoints :many
-SELECT id, user_id, name, type, address, latitude, longitude, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at FROM return_points
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at FROM return_points
 `
 
 func (q *Queries) GetAllReturnPoints(ctx context.Context) ([]ReturnPoint, error) {
@@ -127,6 +142,9 @@ func (q *Queries) GetAllReturnPoints(ctx context.Context) ([]ReturnPoint, error)
 			&i.Address,
 			&i.Latitude,
 			&i.Longitude,
+			&i.Pet,
+			&i.Can,
+			&i.Glass,
 			&i.OpeningHours,
 			&i.Description,
 			&i.CurrentStatus,
@@ -147,4 +165,31 @@ func (q *Queries) GetAllReturnPoints(ctx context.Context) ([]ReturnPoint, error)
 		return nil, err
 	}
 	return items, nil
+}
+
+const getPointByDistance = `-- name: GetPointByDistance :one
+SELECT id, name, address FROM return_points
+WHERE earth_distance(
+    ll_to_earth(latitude, longitude),
+    ll_to_earth($1, $2)
+) < 25
+LIMIT 1
+`
+
+type GetPointByDistanceParams struct {
+	LlToEarth   float64
+	LlToEarth_2 float64
+}
+
+type GetPointByDistanceRow struct {
+	ID      uuid.UUID
+	Name    string
+	Address sql.NullString
+}
+
+func (q *Queries) GetPointByDistance(ctx context.Context, arg GetPointByDistanceParams) (GetPointByDistanceRow, error) {
+	row := q.db.QueryRowContext(ctx, getPointByDistance, arg.LlToEarth, arg.LlToEarth_2)
+	var i GetPointByDistanceRow
+	err := row.Scan(&i.ID, &i.Name, &i.Address)
+	return i, err
 }

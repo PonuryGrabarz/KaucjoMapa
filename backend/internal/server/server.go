@@ -76,6 +76,9 @@ func (s *FiberServer) ScrapPoints() error {
 			Address:   address,
 			Latitude:  kaucjomat.Lat,
 			Longitude: kaucjomat.Lng,
+			Pet:       kaucjomat.Pet,
+			Can:       kaucjomat.Can,
+			Glass:     kaucjomat.Glass,
 			OpeningHours: sql.NullString{
 				String: "8:00 - 20:00",
 				Valid:  true,

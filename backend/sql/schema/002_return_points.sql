@@ -27,6 +27,9 @@ CREATE TABLE return_points (
     address             TEXT,
     latitude            DOUBLE PRECISION NOT NULL,
     longitude           DOUBLE PRECISION NOT NULL,
+    pet                 BOOLEAN NOT NULL DEFAULT FALSE,
+    can                 BOOLEAN NOT NULL DEFAULT FALSE,
+    glass               BOOLEAN NOT NULL DEFAULT FALSE,
     opening_hours       TEXT,
     description         TEXT,
     current_status      point_status NOT NULL DEFAULT 'brak_informacji',
@@ -39,6 +42,12 @@ CREATE TABLE return_points (
 
 CREATE INDEX idx_return_points_location ON return_points USING GIST (
     ll_to_earth(latitude, longitude)
+);
+
+CREATE UNIQUE INDEX uniq_return_points_location_rounded
+ON return_points (
+    ROUND(latitude::numeric, 5),
+    ROUND(longitude::numeric, 5)
 );
 
 CREATE INDEX idx_return_points_status   ON return_points (current_status);

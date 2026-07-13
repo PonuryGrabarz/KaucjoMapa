@@ -22,9 +22,9 @@ import (
 // @Produce      json
 // @Param        request  body      server.LoginUserHandler.parameters  true  "Dane logowania"
 // @Success      200      {object}  User
-// @Failure      400      {object}  map[string]string
 // @Failure      401      {object}  map[string]string
 // @Failure      500      {object}  map[string]string
+// @Failure      400      {object}  map[string]string
 // @Router       /login [post]
 func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 	type parameters struct {

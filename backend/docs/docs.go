@@ -56,7 +56,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer refresh_token",
+                        "description": "Bearer access_token",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -160,8 +160,16 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Przyjmuje dane punktu zwrotu do dodania.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.",
                 "consumes": [
+                    "application/json"
+                ],
+                "produces": [
                     "application/json"
                 ],
                 "tags": [
@@ -170,18 +178,55 @@ const docTemplate = `{
                 "summary": "Dodanie kaucjomatu",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Dane kaucjomatu",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.MapPoint"
+                            "$ref": "#/definitions/server.CreateKaucjomatRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "Utworzony kaucjomat",
+                        "schema": {
+                            "$ref": "#/definitions/server.MapPoint"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe dane wejściowe",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy token JWT",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Błąd serwera",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -301,6 +346,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "server.CreateKaucjomatRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "current_status": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "opening_hours": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "server.CreateUserHandler.parameters": {
             "type": "object",
             "properties": {
@@ -366,9 +440,6 @@ const docTemplate = `{
                 },
                 "is_banned": {
                     "type": "boolean"
-                },
-                "refresh_token": {
-                    "type": "string"
                 },
                 "reputation": {
                     "type": "integer"

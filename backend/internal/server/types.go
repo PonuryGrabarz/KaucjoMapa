@@ -22,3 +22,14 @@ type User struct {
 	CreatedAt  string    `json:"created_at"`
 	UpdatedAt  string    `json:"updated_at"`
 }
+
+type CreateKaucjomatRequest struct {
+	Name          string  `json:"name"`
+	Type          string  `json:"type"`
+	Address       string  `json:"address"`
+	Latitude      float64 `json:"latitude"`
+	Longitude     float64 `json:"longitude"`
+	OpeningHours  string  `json:"opening_hours"`
+	Description   string  `json:"description"`
+	CurrentStatus string  `json:"current_status"`
+}

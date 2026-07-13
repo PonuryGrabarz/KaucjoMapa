@@ -121,6 +121,9 @@ type ReturnPoint struct {
 	Address            sql.NullString
 	Latitude           float64
 	Longitude          float64
+	Pet                bool
+	Can                bool
+	Glass              bool
 	OpeningHours       sql.NullString
 	Description        sql.NullString
 	CurrentStatus      PointStatus

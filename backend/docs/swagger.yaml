@@ -1,5 +1,24 @@
 basePath: /
 definitions:
+  server.CreateKaucjomatRequest:
+    properties:
+      address:
+        type: string
+      current_status:
+        type: string
+      description:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      opening_hours:
+        type: string
+      type:
+        type: string
+    type: object
   server.CreateUserHandler.parameters:
     properties:
       email:
@@ -43,8 +62,6 @@ definitions:
         type: boolean
       is_banned:
         type: boolean
-      refresh_token:
-        type: string
       reputation:
         type: integer
       token:
@@ -86,7 +103,7 @@ paths:
     post:
       description: Unieważnia refresh token przekazany w nagłówku Authorization Bearer.
       parameters:
-      - description: Bearer refresh_token
+      - description: Bearer access_token
         in: header
         name: Authorization
         required: true
@@ -161,17 +178,46 @@ paths:
     post:
       consumes:
       - application/json
-      description: Przyjmuje dane punktu zwrotu do dodania.
+      description: Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.
       parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Dane kaucjomatu
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/server.MapPoint'
+          $ref: '#/definitions/server.CreateKaucjomatRequest'
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Utworzony kaucjomat
+          schema:
+            $ref: '#/definitions/server.MapPoint'
+        "400":
+          description: Nieprawidłowe dane wejściowe
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Brak lub nieprawidłowy token JWT
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Błąd serwera
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
       summary: Dodanie kaucjomatu
       tags:
       - kaucjomaty
