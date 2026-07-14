@@ -122,6 +122,80 @@ paths:
       summary: Sprawdzenie działania API
       tags:
       - health
+  /auth/google:
+    get:
+      description: Generuje state i PKCE, a następnie przekierowuje do Google OAuth2.
+      responses:
+        "302":
+          description: Found
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logowanie przez Google
+      tags:
+      - auth
+  /auth/google/callback:
+    get:
+      description: Weryfikuje odpowiedź Google, tworzy lub łączy konto i zwraca użytkownika
+        z lokalnym JWT.
+      parameters:
+      - description: Authorization code
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: OAuth state
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: RefreshToken
+              type: string
+          schema:
+            $ref: '#/definitions/server.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Callback Google OAuth2
+      tags:
+      - auth
   /auth/revoke:
     post:
       description: Weryfikuje access token z nagłówka Authorization i unieważnia refresh

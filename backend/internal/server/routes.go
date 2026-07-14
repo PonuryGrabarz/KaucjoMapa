@@ -55,6 +55,8 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	s.Post("/users", s.CreateUserHandler)
 	s.Put("/kaucjomaty/:id", middleware.RequireJWT(JWTSecret), s.UpdateKaucjomatHandler)
 	s.Post("/login", s.LoginUserHandler)
+	s.Get("/auth/google", s.GoogleLoginHandler)
+	s.Get("/auth/google/callback", s.GoogleCallbackHandler)
 	s.Post("/auth/token", middleware.RequireJWT(JWTSecret), s.refreshTokenHandler)
 	s.Post("/auth/revoke", middleware.RequireJWT(JWTSecret), s.revokeTokenHandler)
 }

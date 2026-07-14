@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"os"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
@@ -54,59 +54,50 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
 	}
 
-	expTime := time.Second * 3600
+	return s.issueSession(c, user)
+}
 
-	if isPasswordValid {
-		loggedInUser := User{
-			ID:         user.ID,
-			CreatedAt:  user.CreatedAt.String(),
-			UpdatedAt:  user.UpdatedAt.String(),
-			Email:      user.Email,
-			Username:   user.Username,
-			Reputation: user.Reputation,
-			IsAdmin:    user.IsAdmin,
-			IsBanned:   user.IsBanned,
-		}
-
-		token, err := auth.MakeJWT(loggedInUser.ID, user.Username, user.Email, JWTSecret, expTime)
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate JWT token")
-		}
-
-		refreshToken := auth.MakeRefreshToken()
-
-		dbRefreshToken, err := s.db.Queries.CreateRefreshToken(c.Context(), database.CreateRefreshTokenParams{
-			ID:        uuid.New(),
-			Token:     refreshToken,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			UserID:    loggedInUser.ID,
-			ExpiresAt: time.Now().Add(time.Hour * 24 * 60),
-			RevokedAt: sql.NullTime{},
-		})
-		if err != nil {
-			//respondWithError(w, 500, "server error")
-			return err
-		}
-
-		loggedInUser.Token = token
-
-		cookie := new(fiber.Cookie)
-		cookie.Name = "RefreshToken"
-		cookie.Value = dbRefreshToken.Token
-		cookie.Path = "/auth"
-		cookie.Expires = dbRefreshToken.ExpiresAt
-		cookie.HTTPOnly = true
-		cookie.SameSite = "strict"
-		// TODO: Uncomment the following line if using HTTPS
-		// cookie.Secure = true // Set to true if using HTTPS
-
-		fmt.Println(cookie)
-		c.Cookie(cookie)
-		return c.JSON(loggedInUser)
+func (s *FiberServer) issueSession(c fiber.Ctx, user database.User) error {
+	accessToken, err := auth.MakeJWT(user.ID, user.Username, user.Email, JWTSecret, time.Hour)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate JWT token")
 	}
 
-	return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
+	now := time.Now()
+	dbRefreshToken, err := s.db.Queries.CreateRefreshToken(c.Context(), database.CreateRefreshTokenParams{
+		ID:        uuid.New(),
+		Token:     auth.MakeRefreshToken(),
+		CreatedAt: now,
+		UpdatedAt: now,
+		UserID:    user.ID,
+		ExpiresAt: now.Add(60 * 24 * time.Hour),
+		RevokedAt: sql.NullTime{},
+	})
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create refresh token")
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "RefreshToken",
+		Value:    dbRefreshToken.Token,
+		Path:     "/auth",
+		Expires:  dbRefreshToken.ExpiresAt,
+		HTTPOnly: true,
+		Secure:   os.Getenv("APP_ENV") == "production",
+		SameSite: "Lax",
+	})
+
+	return c.JSON(User{
+		ID:         user.ID,
+		Email:      user.Email,
+		Username:   user.Username,
+		Token:      accessToken,
+		Reputation: user.Reputation,
+		IsAdmin:    user.IsAdmin,
+		IsBanned:   user.IsBanned,
+		CreatedAt:  user.CreatedAt.String(),
+		UpdatedAt:  user.UpdatedAt.String(),
+	})
 }
 
 // refreshTokenHandler godoc
@@ -122,7 +113,7 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 //	@Failure		500				{object}	map[string]string	"Błąd generowania access tokenu"
 //	@Router			/auth/token [post]
 func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
-	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
+	refreshToken := c.Cookies("RefreshToken")
 	if refreshToken == "" {
 		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not provided")
 	}
@@ -182,7 +173,7 @@ func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 //	@Failure		500				{object}	map[string]string
 //	@Router			/auth/revoke [post]
 func (s *FiberServer) revokeTokenHandler(c fiber.Ctx) error {
-	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
+	refreshToken := c.Cookies("RefreshToken")
 	if refreshToken == "" {
 		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not provided")
 	}
