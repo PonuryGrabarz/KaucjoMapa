@@ -1,0 +1,688 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "To jest serwer API dla aplikacji KaucjoMapa.",
+        "title": "KaucjoMapa API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Wsparcie Techniczne",
+            "email": "support@kaucjomapa.pl"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/",
+    "paths": {
+        "/": {
+            "get": {
+                "description": "Zwraca prostą wiadomość potwierdzającą, że API działa.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Sprawdzenie działania API",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/revoke": {
+            "post": {
+                "description": "Weryfikuje access token z nagłówka Authorization i unieważnia refresh token przekazany w cookie.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Unieważnienie refresh tokenu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RefreshToken=\u003crefresh_token\u003e",
+                        "name": "Cookie",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/token": {
+            "post": {
+                "description": "Weryfikuje access token z nagłówka Authorization i refresh token z cookie, a następnie zwraca nowy access token.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Odświeżenie tokenu JWT",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RefreshToken=\u003crefresh_token\u003e",
+                        "name": "Cookie",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Nowy access token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak, nieprawidłowy lub wygasły token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Błąd generowania access tokenu",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/kaucjomaty": {
+            "get": {
+                "description": "Zwraca punkty zwrotu do wyświetlenia na mapie.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kaucjomaty"
+                ],
+                "summary": "Lista kaucjomatów",
+                "parameters": [
+                    {
+                        "enum": [
+                            "butelkomat",
+                            "sklep",
+                            "punkt_skupu",
+                            "inny"
+                        ],
+                        "type": "string",
+                        "description": "Typ punktu",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "dostepny",
+                            "zapelniony",
+                            "nieczynny",
+                            "awaria",
+                            "brak_informacji",
+                            "do_weryfikacji"
+                        ],
+                        "type": "string",
+                        "description": "Status punktu",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/server.MapPoint"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.\nDozwolone wartości type: butelkomat, sklep, punkt_skupu, inny.\nDozwolone wartości current_status: dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kaucjomaty"
+                ],
+                "summary": "Dodanie kaucjomatu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Dane kaucjomatu",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.CreateKaucjomatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Utworzony kaucjomat",
+                        "schema": {
+                            "$ref": "#/definitions/server.MapPoint"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe dane wejściowe",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Błąd serwera",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/kaucjomaty/{id}": {
+            "put": {
+                "description": "Aktualizuje dane punktu zwrotu dla zalogowanego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kaucjomaty"
+                ],
+                "summary": "Aktualizacja kaucjomatu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator kaucjomatu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dane kaucjomatu",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.UpdateKaucjomatHandler.UpdateKaucjomatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowany kaucjomat",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator lub body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Nie znaleziono kaucjomatu lub błąd serwera",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Usuwa punkt zwrotu. Operacja jest dostępna wyłącznie dla administratora.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kaucjomaty"
+                ],
+                "summary": "Usunięcie kaucjomatu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator kaucjomatu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator kaucjomatu",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Użytkownik nie jest administratorem",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Błąd serwera",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem i zapisuje refresh token w cookie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logowanie użytkownika",
+                "parameters": [
+                    {
+                        "description": "Dane logowania",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.LoginUserHandler.parameters"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.User"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "RefreshToken=\u003ctoken\u003e; Path=/auth; HttpOnly; SameSite=Strict"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "description": "Tworzy nowe konto użytkownika i zwraca dane utworzonego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Rejestracja użytkownika",
+                "parameters": [
+                    {
+                        "description": "Dane rejestracji użytkownika",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.CreateUserHandler.parameters"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "server.CreateKaucjomatRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "current_status": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "opening_hours": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.CreateUserHandler.parameters": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.LoginUserHandler.parameters": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.MapPoint": {
+            "type": "object",
+            "properties": {
+                "bg_color": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "return_point_id": {
+                    "type": "string"
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "text_color": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.UpdateKaucjomatHandler.UpdateKaucjomatRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "can": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "glass": {
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "opening_hours": {
+                    "type": "string"
+                },
+                "pet": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_admin": {
+                    "type": "boolean"
+                },
+                "is_banned": {
+                    "type": "boolean"
+                },
+                "reputation": {
+                    "type": "integer"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

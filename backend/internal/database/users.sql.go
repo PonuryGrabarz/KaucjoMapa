@@ -154,3 +154,51 @@ func (q *Queries) ResetUsers(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, resetUsers)
 	return err
 }
+
+const upsertAdminUser = `-- name: UpsertAdminUser :exec
+INSERT INTO users (
+    id,
+    email,
+    username,
+    password_hash,
+    reputation,
+    is_admin,
+    is_banned,
+    created_at,
+    updated_at
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    0,
+    TRUE,
+    FALSE,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (username) DO UPDATE SET
+    email = EXCLUDED.email,
+    password_hash = EXCLUDED.password_hash,
+    is_admin = TRUE,
+    is_banned = FALSE,
+    updated_at = NOW()
+`
+
+type UpsertAdminUserParams struct {
+	ID           uuid.UUID
+	Email        string
+	Username     string
+	PasswordHash string
+}
+
+func (q *Queries) UpsertAdminUser(ctx context.Context, arg UpsertAdminUserParams) error {
+	_, err := q.db.ExecContext(ctx, upsertAdminUser,
+		arg.ID,
+		arg.Email,
+		arg.Username,
+		arg.PasswordHash,
+	)
+	return err
+}
