@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"os"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
@@ -43,14 +41,12 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 	for _, kaucjomat := range kaucjomatyList {
 		style := ResolvePointStyle(kaucjomat.Name)
 		if pointType != "" {
-			fmt.Println(kaucjomat.Type)
 			if kaucjomat.Type != database.PointType(pointType) {
 				continue
 			}
 		}
 
 		if pointStatus != "" {
-			fmt.Println(kaucjomat.CurrentStatus)
 			if kaucjomat.CurrentStatus != database.PointStatus(pointStatus) {
 				continue
 			}
@@ -87,19 +83,14 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 // @Failure      500            {object}  map[string]string               "Błąd serwera"
 // @Router       /kaucjomaty [post]
 func (s *FiberServer) CreateKaucjomatHandler(c fiber.Ctx) error {
+	claims, ok := c.Locals("claims").(*auth.JWTClaims)
+	if !ok {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
+	}
+
 	var params CreateKaucjomatRequest
 
 	err := json.Unmarshal(c.Body(), &params)
-	if err != nil {
-		return err
-	}
-
-	token, err := auth.GetBearerToken(c.GetReqHeaders())
-	if err != nil {
-		return err
-	}
-
-	claims, err := auth.ValidateJWT(token, os.Getenv("JWT_SECRET"))
 	if err != nil {
 		return err
 	}
@@ -108,7 +99,6 @@ func (s *FiberServer) CreateKaucjomatHandler(c fiber.Ctx) error {
 		LlToEarth:   params.Latitude,
 		LlToEarth_2: params.Longitude,
 	})
-	fmt.Println("point", point)
 	if errors.Is(err, pgx.ErrNoRows) || point.ID != uuid.Nil {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 			"error": "Point already exists at this location",

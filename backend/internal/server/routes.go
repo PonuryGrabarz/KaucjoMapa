@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/server/middleware"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/yokeTH/gofiber-scalar/scalar/v3"
@@ -49,7 +50,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	))
 
 	s.Get("/kaucjomaty", s.GetKaucjomatyHandler)
-	s.Post("/kaucjomaty", s.CreateKaucjomatHandler)
+	s.Post("/kaucjomaty", middleware.RequireJWT(JWTSecret), s.CreateKaucjomatHandler)
 	s.Post("/users", s.CreateUserHandler)
 	s.Post("/login", s.LoginUserHandler)
 	s.Post("/auth/token", s.refreshTokenHandler)

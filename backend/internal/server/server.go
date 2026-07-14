@@ -4,11 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/database"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/kaucjomatapi"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/server/middleware"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/encryptcookie"
+	"github.com/gofiber/fiber/v3/middleware/helmet"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/google/uuid"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -24,11 +31,22 @@ func New() *FiberServer {
 		App: fiber.New(fiber.Config{
 			ServerHeader: "KaucjoMapa",
 			AppName:      "KaucjoMapa",
+			ErrorHandler: middleware.ErrorHandler,
 		}),
 
 		db: database.NewConn(),
 	}
 
+	server.Use(recover.New())
+	server.Use(encryptcookie.New(encryptcookie.Config{
+		Key: os.Getenv("COOKIE_SECRET"),
+	}))
+	server.Use(helmet.New())
+	server.Use(requestid.New())
+
+	server.Use(logger.New(logger.Config{
+		Format: "${requestid} [${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
 	return server
 }
 
