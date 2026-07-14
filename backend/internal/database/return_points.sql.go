@@ -121,6 +121,15 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 	return i, err
 }
 
+const deletePointById = `-- name: DeletePointById :exec
+DELETE FROM return_points WHERE id = $1
+`
+
+func (q *Queries) DeletePointById(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deletePointById, id)
+	return err
+}
+
 const getAllReturnPoints = `-- name: GetAllReturnPoints :many
 SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at FROM return_points
 `
@@ -191,5 +200,136 @@ func (q *Queries) GetPointByDistance(ctx context.Context, arg GetPointByDistance
 	row := q.db.QueryRowContext(ctx, getPointByDistance, arg.LlToEarth, arg.LlToEarth_2)
 	var i GetPointByDistanceRow
 	err := row.Scan(&i.ID, &i.Name, &i.Address)
+	return i, err
+}
+
+const getPointById = `-- name: GetPointById :one
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at FROM return_points WHERE id = $1
+`
+
+func (q *Queries) GetPointById(ctx context.Context, id uuid.UUID) (ReturnPoint, error) {
+	row := q.db.QueryRowContext(ctx, getPointById, id)
+	var i ReturnPoint
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Type,
+		&i.Address,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Pet,
+		&i.Can,
+		&i.Glass,
+		&i.OpeningHours,
+		&i.Description,
+		&i.CurrentStatus,
+		&i.ConfirmationsCount,
+		&i.RejectionsCount,
+		&i.IsVerified,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updatePointById = `-- name: UpdatePointById :one
+UPDATE return_points AS rp
+SET
+    name = COALESCE(
+        $1::VARCHAR(255),
+        rp.name
+    ),
+    type = COALESCE(
+        $2::point_type,
+        rp.type
+    ),
+    address = COALESCE(
+        $3::TEXT,
+        rp.address
+    ),
+    latitude = COALESCE(
+        $4::DOUBLE PRECISION,
+        rp.latitude
+    ),
+    longitude = COALESCE(
+        $5::DOUBLE PRECISION,
+        rp.longitude
+    ),
+    opening_hours = COALESCE(
+        $6::TEXT,
+        rp.opening_hours
+    ),
+    description = COALESCE(
+        $7::TEXT,
+        rp.description
+    ),
+    pet = COALESCE(
+        $8::BOOLEAN,
+        rp.pet
+    ),
+    can = COALESCE(
+        $9::BOOLEAN,
+        rp.can
+    ),
+    glass = COALESCE(
+        $10::BOOLEAN,
+        rp.glass
+    ),
+    is_verified = false,
+    updated_at = NOW()
+WHERE rp.id = $11::UUID
+RETURNING rp.id, rp.user_id, rp.name, rp.type, rp.address, rp.latitude, rp.longitude, rp.pet, rp.can, rp.glass, rp.opening_hours, rp.description, rp.current_status, rp.confirmations_count, rp.rejections_count, rp.is_verified, rp.created_at, rp.updated_at
+`
+
+type UpdatePointByIdParams struct {
+	Name         sql.NullString
+	Type         NullPointType
+	Address      sql.NullString
+	Latitude     sql.NullFloat64
+	Longitude    sql.NullFloat64
+	OpeningHours sql.NullString
+	Description  sql.NullString
+	Pet          sql.NullBool
+	Can          sql.NullBool
+	Glass        sql.NullBool
+	ID           uuid.UUID
+}
+
+func (q *Queries) UpdatePointById(ctx context.Context, arg UpdatePointByIdParams) (ReturnPoint, error) {
+	row := q.db.QueryRowContext(ctx, updatePointById,
+		arg.Name,
+		arg.Type,
+		arg.Address,
+		arg.Latitude,
+		arg.Longitude,
+		arg.OpeningHours,
+		arg.Description,
+		arg.Pet,
+		arg.Can,
+		arg.Glass,
+		arg.ID,
+	)
+	var i ReturnPoint
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Type,
+		&i.Address,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Pet,
+		&i.Can,
+		&i.Glass,
+		&i.OpeningHours,
+		&i.Description,
+		&i.CurrentStatus,
+		&i.ConfirmationsCount,
+		&i.RejectionsCount,
+		&i.IsVerified,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }

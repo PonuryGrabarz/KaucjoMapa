@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
@@ -15,17 +14,19 @@ import (
 )
 
 // LoginUserHandler godoc
-// @Summary      Logowanie użytkownika
-// @Description  Weryfikuje dane logowania i zwraca dane użytkownika z tokenem JWT oraz tokenem odświeżającym.
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        request  body      server.LoginUserHandler.parameters  true  "Dane logowania"
-// @Success      200      {object}  User
-// @Failure      401      {object}  map[string]string
-// @Failure      500      {object}  map[string]string
-// @Failure      400      {object}  map[string]string
-// @Router       /login [post]
+//
+//	@Summary		Logowanie użytkownika
+//	@Description	Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem i zapisuje refresh token w cookie.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		server.LoginUserHandler.parameters	true	"Dane logowania"
+//	@Success		200		{object}	User
+//	@Header			200		{string}	Set-Cookie	"RefreshToken=<token>; Path=/auth; HttpOnly; SameSite=Strict"
+//	@Failure		401		{object}	map[string]string
+//	@Failure		500		{object}	map[string]string
+//	@Failure		400		{object}	map[string]string
+//	@Router			/login [post]
 func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 	type parameters struct {
 		Password string `json:"password"`
@@ -36,25 +37,21 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 
 	err := json.Unmarshal(c.Request().Body(), &params)
 	if err != nil {
-		//respondWithError(w, 400, "Something went wrong")
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
 	user, err := s.db.Queries.GetUserByUsername(context.Background(), params.Username)
 	if err != nil {
-		//respondWithError(w, 401, "User not found")
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "User not found")
 	}
 
 	isPasswordValid, err := auth.CheckPasswordHash(params.Password, user.PasswordHash)
 	if err != nil {
-		//respondWithError(w, 401, "Unauthorized")
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, "Invalid credentials")
 	}
 
 	if !isPasswordValid {
-		//respondWithError(w, 401, "Unauthorized")
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
 	}
 
 	expTime := time.Second * 3600
@@ -73,8 +70,7 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 
 		token, err := auth.MakeJWT(loggedInUser.ID, user.Username, user.Email, JWTSecret, expTime)
 		if err != nil {
-			//respondWithError(w, 500, "server error")
-			return err
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate JWT token")
 		}
 
 		refreshToken := auth.MakeRefreshToken()
@@ -107,44 +103,38 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 
 		fmt.Println(cookie)
 		c.Cookie(cookie)
-		//respondWithJSON(w, 200, loggedInUser)
 		return c.JSON(loggedInUser)
 	}
 
-	return c.Err()
+	return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
 }
 
 // refreshTokenHandler godoc
-// @Summary      Odświeżenie tokenu JWT
-// @Description  Przyjmuje refresh token w nagłówku Authorization Bearer i zwraca nowy token JWT.
-// @Tags         auth
-// @Produce      json
-// @Param        Authorization  header    string  true  "Bearer refresh_token"
-// @Success      200            {object}  map[string]string
-// @Failure      401            {object}  map[string]string
-// @Router       /auth/token [post]
+//
+//	@Summary		Odświeżenie tokenu JWT
+//	@Description	Weryfikuje access token z nagłówka Authorization i refresh token z cookie, a następnie zwraca nowy access token.
+//	@Tags			auth
+//	@Produce		json
+//	@Param			Authorization	header		string				true	"Bearer access token"
+//	@Param			Cookie			header		string				true	"RefreshToken=<refresh_token>"
+//	@Success		200				{object}	map[string]string	"Nowy access token"
+//	@Failure		401				{object}	map[string]string	"Brak, nieprawidłowy lub wygasły token"
+//	@Failure		500				{object}	map[string]string	"Błąd generowania access tokenu"
+//	@Router			/auth/token [post]
 func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
-	token, err := auth.GetBearerToken(c.GetReqHeaders())
 	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
 	if refreshToken == "" {
-		return c.Status(401).JSON(fiber.Map{
-			"error": "Unauthorized: Refresh token not provided",
-		})
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not provided")
 	}
 
-	if err != nil {
-		//respondWithError(w, 401, err.Error())
-		return err
-	}
-
-	claims, err := auth.ValidateJWT(token, os.Getenv("JWT_SECRET"))
-	if err != nil {
-		return err
+	claims, ok := c.Locals("claims").(*auth.JWTClaims)
+	if !ok {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
 	}
 
 	userID, err := uuid.Parse(claims.Subject)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid user ID in JWT claims")
 	}
 
 	userToken, err := s.db.Queries.GetUserRefreshToken(c.Context(), database.GetUserRefreshTokenParams{
@@ -152,24 +142,22 @@ func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 		Token:  refreshToken,
 	})
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not found")
 	}
 
 	if userToken.RevokedAt.Valid || time.Now().Compare(userToken.ExpiresAt) != -1 {
-		//respondWithError(w, 401, "Unauthorized")
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token is revoked or expired")
 	}
 
 	user, err := s.db.Queries.GetUserById(c.Context(), userID)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: User not found")
 	}
 
 	expTime := time.Second * 3600
 	newToken, err := auth.MakeJWT(user.ID, user.Username, user.Email, JWTSecret, expTime)
 	if err != nil {
-		//respondWithError(w, 401, err.Error())
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate new JWT token")
 	}
 
 	return c.JSON(
@@ -182,35 +170,31 @@ func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 }
 
 // revokeTokenHandler godoc
-// @Summary      Unieważnienie refresh tokenu
-// @Description  Unieważnia refresh token przekazany w nagłówku Authorization Bearer.
-// @Tags         auth
-// @Param        Authorization  header  string  true  "Bearer access_token"
-// @Success      204            "No Content"
-// @Failure      401            {object}  map[string]string
-// @Failure      500            {object}  map[string]string
-// @Router       /auth/revoke [post]
+//
+//	@Summary		Unieważnienie refresh tokenu
+//	@Description	Weryfikuje access token z nagłówka Authorization i unieważnia refresh token przekazany w cookie.
+//	@Tags			auth
+//	@Produce		json
+//	@Param			Authorization	header	string	true	"Bearer access token"
+//	@Param			Cookie			header	string	true	"RefreshToken=<refresh_token>"
+//	@Success		204				"No Content"
+//	@Failure		401				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/auth/revoke [post]
 func (s *FiberServer) revokeTokenHandler(c fiber.Ctx) error {
-	token, err := auth.GetBearerToken(c.GetReqHeaders())
-	if err != nil {
-		//respondWithError(w, 401, err.Error())
-		return err
-	}
-
 	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
 	if refreshToken == "" {
-		return c.Status(401).JSON(fiber.Map{
-			"error": "Unauthorized: Refresh token not provided",
-		})
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not provided")
 	}
 
-	claims, err := auth.ValidateJWT(token, os.Getenv("JWT_SECRET"))
-	if err != nil {
-		return err
+	claims, ok := c.Locals("claims").(*auth.JWTClaims)
+	if !ok {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
 	}
+
 	userID, err := uuid.Parse(claims.Subject)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid user ID in JWT claims")
 	}
 
 	userToken, err := s.db.Queries.GetUserRefreshToken(c.Context(), database.GetUserRefreshTokenParams{
@@ -218,16 +202,13 @@ func (s *FiberServer) revokeTokenHandler(c fiber.Ctx) error {
 		Token:  refreshToken,
 	})
 	if err != nil {
-		//respondWithError(w, 401, err.Error())
-		return err
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not found")
 	}
 
 	err = s.db.Queries.RevokeToken(c.Context(), userToken.Token)
 	if err != nil {
-		//respondWithError(w, 500, err.Error())
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to revoke refresh token")
 	}
 
-	//respondWithJSON(w, 204, nil)
 	return c.SendStatus(204)
 }

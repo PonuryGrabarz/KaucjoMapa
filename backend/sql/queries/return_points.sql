@@ -49,3 +49,56 @@ WHERE earth_distance(
     ll_to_earth($1, $2)
 ) < 25
 LIMIT 1;
+
+-- name: GetPointById :one
+SELECT * FROM return_points WHERE id = $1;
+
+-- name: DeletePointById :exec
+DELETE FROM return_points WHERE id = $1;
+-- name: UpdatePointById :one
+UPDATE return_points AS rp
+SET
+    name = COALESCE(
+        sqlc.narg('name')::VARCHAR(255),
+        rp.name
+    ),
+    type = COALESCE(
+        sqlc.narg('type')::point_type,
+        rp.type
+    ),
+    address = COALESCE(
+        sqlc.narg('address')::TEXT,
+        rp.address
+    ),
+    latitude = COALESCE(
+        sqlc.narg('latitude')::DOUBLE PRECISION,
+        rp.latitude
+    ),
+    longitude = COALESCE(
+        sqlc.narg('longitude')::DOUBLE PRECISION,
+        rp.longitude
+    ),
+    opening_hours = COALESCE(
+        sqlc.narg('opening_hours')::TEXT,
+        rp.opening_hours
+    ),
+    description = COALESCE(
+        sqlc.narg('description')::TEXT,
+        rp.description
+    ),
+    pet = COALESCE(
+        sqlc.narg('pet')::BOOLEAN,
+        rp.pet
+    ),
+    can = COALESCE(
+        sqlc.narg('can')::BOOLEAN,
+        rp.can
+    ),
+    glass = COALESCE(
+        sqlc.narg('glass')::BOOLEAN,
+        rp.glass
+    ),
+    is_verified = false,
+    updated_at = NOW()
+WHERE rp.id = sqlc.arg('id')::UUID
+RETURNING rp.*;

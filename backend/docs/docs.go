@@ -48,7 +48,10 @@ const docTemplate = `{
         },
         "/auth/revoke": {
             "post": {
-                "description": "Unieważnia refresh token przekazany w nagłówku Authorization Bearer.",
+                "description": "Weryfikuje access token z nagłówka Authorization i unieważnia refresh token przekazany w cookie.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "auth"
                 ],
@@ -56,8 +59,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer access_token",
+                        "description": "Bearer access token",
                         "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RefreshToken=\u003crefresh_token\u003e",
+                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }
@@ -89,7 +99,7 @@ const docTemplate = `{
         },
         "/auth/token": {
             "post": {
-                "description": "Przyjmuje refresh token w nagłówku Authorization Bearer i zwraca nowy token JWT.",
+                "description": "Weryfikuje access token z nagłówka Authorization i refresh token z cookie, a następnie zwraca nowy access token.",
                 "produces": [
                     "application/json"
                 ],
@@ -100,15 +110,22 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer refresh_token",
+                        "description": "Bearer access token",
                         "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RefreshToken=\u003crefresh_token\u003e",
+                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Nowy access token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -117,7 +134,16 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Brak, nieprawidłowy lub wygasły token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Błąd generowania access tokenu",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -138,6 +164,34 @@ const docTemplate = `{
                     "kaucjomaty"
                 ],
                 "summary": "Lista kaucjomatów",
+                "parameters": [
+                    {
+                        "enum": [
+                            "butelkomat",
+                            "sklep",
+                            "punkt_skupu",
+                            "inny"
+                        ],
+                        "type": "string",
+                        "description": "Typ punktu",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "dostepny",
+                            "zapelniony",
+                            "nieczynny",
+                            "awaria",
+                            "brak_informacji",
+                            "do_weryfikacji"
+                        ],
+                        "type": "string",
+                        "description": "Status punktu",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -160,12 +214,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.",
+                "description": "Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.\nDozwolone wartości type: butelkomat, sklep, punkt_skupu, inny.\nDozwolone wartości current_status: dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji.",
                 "consumes": [
                     "application/json"
                 ],
@@ -179,7 +228,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer JWT token",
+                        "description": "Bearer access token",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -211,7 +260,152 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Brak lub nieprawidłowy token JWT",
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Błąd serwera",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/kaucjomaty/{id}": {
+            "put": {
+                "description": "Aktualizuje dane punktu zwrotu dla zalogowanego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kaucjomaty"
+                ],
+                "summary": "Aktualizacja kaucjomatu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator kaucjomatu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dane kaucjomatu",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.UpdateKaucjomatHandler.UpdateKaucjomatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowany kaucjomat",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator lub body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Nie znaleziono kaucjomatu lub błąd serwera",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Usuwa punkt zwrotu. Operacja jest dostępna wyłącznie dla administratora.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kaucjomaty"
+                ],
+                "summary": "Usunięcie kaucjomatu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator kaucjomatu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator kaucjomatu",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Użytkownik nie jest administratorem",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -233,7 +427,7 @@ const docTemplate = `{
         },
         "/login": {
             "post": {
-                "description": "Weryfikuje dane logowania i zwraca dane użytkownika z tokenem JWT oraz tokenem odświeżającym.",
+                "description": "Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem i zapisuje refresh token w cookie.",
                 "consumes": [
                     "application/json"
                 ],
@@ -260,6 +454,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/server.User"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "RefreshToken=\u003ctoken\u003e; Path=/auth; HttpOnly; SameSite=Strict"
+                            }
                         }
                     },
                     "400": {
@@ -419,6 +619,41 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "text_color": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.UpdateKaucjomatHandler.UpdateKaucjomatRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "can": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "glass": {
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "opening_hours": {
+                    "type": "string"
+                },
+                "pet": {
+                    "type": "boolean"
+                },
+                "type": {
                     "type": "string"
                 }
             }

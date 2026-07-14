@@ -36,14 +36,12 @@ func (s *FiberServer) CreateUserHandler(c fiber.Ctx) error {
 
 	err := json.Unmarshal(c.Request().Body(), &params)
 	if err != nil {
-		//respondWithError(w, 400, "Something went wrong")
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
 	hashpassword, err := auth.HashPassword(params.Password)
 	if err != nil {
-		//respondWithError(w, 500, "something went wrong")
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to hash password")
 	}
 
 	user, err := s.db.Queries.CreateUser(context.Background(), database.CreateUserParams{
@@ -58,8 +56,7 @@ func (s *FiberServer) CreateUserHandler(c fiber.Ctx) error {
 		UpdatedAt:    time.Now(),
 	})
 	if err != nil {
-		//respondWithError(w, 500, "something went wrong")
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create user")
 	}
 
 	newUser := User{
@@ -73,6 +70,5 @@ func (s *FiberServer) CreateUserHandler(c fiber.Ctx) error {
 		UpdatedAt:  user.UpdatedAt.String(),
 	}
 
-	//respondWithJson(w, 201, newUser)
 	return c.JSON(newUser)
 }

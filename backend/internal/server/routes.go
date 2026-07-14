@@ -51,10 +51,12 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	s.Get("/kaucjomaty", s.GetKaucjomatyHandler)
 	s.Post("/kaucjomaty", middleware.RequireJWT(JWTSecret), s.CreateKaucjomatHandler)
+	s.Delete("/kaucjomaty/:id", middleware.RequireJWT(JWTSecret), s.DeleteKaucjomatHandler)
 	s.Post("/users", s.CreateUserHandler)
+	s.Put("/kaucjomaty/:id", middleware.RequireJWT(JWTSecret), s.UpdateKaucjomatHandler)
 	s.Post("/login", s.LoginUserHandler)
-	s.Post("/auth/token", s.refreshTokenHandler)
-	s.Post("/auth/revoke", s.revokeTokenHandler)
+	s.Post("/auth/token", middleware.RequireJWT(JWTSecret), s.refreshTokenHandler)
+	s.Post("/auth/revoke", middleware.RequireJWT(JWTSecret), s.revokeTokenHandler)
 }
 
 // HelloWorldHandler godoc

@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"fmt"
+
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
 	"github.com/gofiber/fiber/v3"
 )
@@ -13,11 +15,12 @@ func RequireJWT(secret string) fiber.Handler {
 		}
 
 		claims, err := auth.ValidateJWT(token, secret)
+		fmt.Println("Claims:", claims) // Debugging line to print claims
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnauthorized, "Invalid token")
 		}
 
-		c.Locals("claims", claims)
+		c.Locals("claims", &claims)
 		return c.Next()
 	}
 }
