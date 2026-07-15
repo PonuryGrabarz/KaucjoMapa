@@ -1,191 +1,178 @@
 ---
 import "./main-layout.sass";
 
+import { SITE_URL } from "astro:env/server";
 import { ClientRouter } from "astro:transitions";
 
-type MetaTag = {
-  name?: string;
-  property?: string;
-  content: string;
-};
-
-type LinkTag = {
-  rel: string;
-  href: string;
-  as?: string;
-  type?: string;
-  sizes?: string;
-  media?: string;
-};
-
-type JsonObject = { [key: string]: unknown };
-
-export interface Props {
-  title?: string;
-  description?: string;
-  canonical?: string | URL;
-
-  image?: string;
-  imageAlt?: string;
-
-  type?: "website" | "article";
-  publishedTime?: string | Date;
-  modifiedTime?: string | Date;
-  tags?: string[];
-
-  noindex?: boolean;
-  themeColor?: string;
-
-  meta?: MetaTag[];
-  links?: LinkTag[];
-  jsonLd?: JsonObject | JsonObject[];
-
-  bodyClass?: string;
+interface Props {
+    title?: string;
+    description?: string;
+    canonical?: string | URL;
+    image?: string | URL | false;
+    imageAlt?: string;
+    imageWidth?: number;
+    imageHeight?: number;
+    imageType?: string;
+    noIndex?: boolean;
+    openGraphType?: "website" | "article";
+    structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
-
-// const isProduction = import.meta.env.PROD;
 
 const SITE_NAME = "KaucjoMapa";
 
+const DEFAULT_TITLE = "KaucjoMapa – mapa punktów zwrotu opakowań kaucyjnych";
+
 const DEFAULT_DESCRIPTION =
-  "KaucjoMapa pomaga znaleźć najbliższe punkty zwrotu opakowań kaucyjnych, butelkomaty i sklepy przyjmujące opakowania.";
-
-const DEFAULT_THEME_COLOR = "#34b85a";
-const DEFAULT_IMAGE = "/og-image.png";
-
-const SITE_URL = Astro.site ?? new URL("http://localhost:4321/");
+    "Znajdź najbliższy punkt zwrotu butelek i puszek objętych systemem kaucyjnym. KaucjoMapa pomaga szybko zlokalizować automat lub punkt odbioru opakowań.";
 
 const {
-  title = SITE_NAME,
-  description = DEFAULT_DESCRIPTION,
-  canonical,
-
-  image = DEFAULT_IMAGE,
-  imageAlt = "KaucjoMapa — mapa punktów zwrotu opakowań kaucyjnych",
-
-  type = "website",
-  publishedTime,
-  modifiedTime,
-  tags = [],
-
-  noindex = false,
-  themeColor = DEFAULT_THEME_COLOR,
-
-  meta = [],
-  links = [],
-  jsonLd,
-
-  bodyClass,
+    title = DEFAULT_TITLE,
+    description = DEFAULT_DESCRIPTION,
+    canonical,
+    image = "/social-card.png",
+    imageAlt = "KaucjoMapa – mapa punktów zwrotu opakowań kaucyjnych",
+    imageWidth = 1200,
+    imageHeight = 630,
+    imageType = "image/png",
+    noIndex = false,
+    openGraphType = "website",
+    structuredData,
 } = Astro.props;
 
-const fullTitle = title === SITE_NAME ? SITE_NAME : `${title} | ${SITE_NAME}`;
+const baseUrl = SITE_URL ? new URL(SITE_URL) : Astro.site ?? Astro.url;
 
-const canonicalUrl = canonical
-  ? new URL(canonical.toString(), SITE_URL)
-  : new URL(Astro.url.pathname, SITE_URL);
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, baseUrl);
+canonicalUrl.hash = "";
 
-const imageUrl = new URL(image, SITE_URL);
+if (canonical === undefined) canonicalUrl.search = "";
 
-const robots = noindex
-  ? "noindex, nofollow"
-  : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
+const siteUrl = new URL(import.meta.env.BASE_URL, baseUrl);
+siteUrl.hash = "";
+siteUrl.search = "";
 
-const jsonLdItems = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
+const imageUrl = image ? new URL(image, baseUrl) : undefined;
 
-const toIso = (date: string | Date) => date instanceof Date ? date.toISOString() : date;
+const robots = noIndex
+    ? "noindex, nofollow"
+    : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
+
+const defaultStructuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "WebSite",
+            "@id": `${siteUrl.href}#website`,
+            url: siteUrl.href,
+            name: SITE_NAME,
+            description: DEFAULT_DESCRIPTION,
+            inLanguage: "pl-PL",
+        },
+        {
+            "@type": "WebPage",
+            "@id": `${canonicalUrl.href}#webpage`,
+            url: canonicalUrl.href,
+            name: title,
+            description,
+            inLanguage: "pl-PL",
+            isPartOf: {
+                "@id": `${siteUrl.href}#website`,
+            },
+            ...(imageUrl && {
+                primaryImageOfPage: {
+                    "@type": "ImageObject",
+                    url: imageUrl.href,
+                    contentUrl: imageUrl.href,
+                    width: imageWidth,
+                    height: imageHeight,
+                    caption: imageAlt,
+                },
+            }),
+        },
+    ],
+};
+
+const serializedStructuredData = JSON.stringify(
+    structuredData ?? defaultStructuredData,
+).replace(/</g, "\\u003c");
 ---
 
-<!doctype html>
-<html lang="pl" transition:name="root" transition:animate="none">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<html lang="pl">
+    <head>
+        <meta charset="utf-8" />
 
-    <title>{fullTitle}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content={Astro.generator} />
+        <meta name="application-name" content={SITE_NAME} />
+        <meta name="theme-color" content="#1aa149" />
 
-    <meta name="description" content={description} />
-    <meta name="robots" content={robots} />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta name="robots" content={robots} />
+        <meta name="googlebot" content={robots} />
+        <link rel="canonical" href={canonicalUrl} />
 
-    {!noindex && <link rel="canonical" href={canonicalUrl.href} />}
+        <meta property="og:site_name" content={SITE_NAME} />
+        <meta property="og:locale" content="pl_PL" />
+        <meta property="og:type" content={openGraphType} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
 
-    <meta name="theme-color" content={themeColor} />
-
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <!-- <link rel="manifest" href="/manifest.webmanifest" /> -->
-    <link rel="sitemap" href="/sitemap-index.xml" />
-
-    <meta property="og:site_name" content={SITE_NAME} />
-    <meta property="og:locale" content="pl_PL" />
-    <meta property="og:type" content={type} />
-    <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonicalUrl.href} />
-    <meta property="og:image" content={imageUrl.href} />
-    <meta property="og:image:alt" content={imageAlt} />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={imageUrl.href} />
-
-    <ClientRouter />
-
-    {
-      type === "article" && publishedTime && (
-        <meta property="article:published_time" content={toIso(publishedTime)} />
-      )
-    }
-
-    {
-      type === "article" && modifiedTime && (
-        <meta property="article:modified_time" content={toIso(modifiedTime)} />
-      )
-    }
-
-    {
-      type === "article" &&
-        tags.map((tag) => <meta property="article:tag" content={tag} />)
-    }
-
-    {
-      meta.map((tag) =>
-        tag.name ? (
-          <meta name={tag.name} content={tag.content} />
-        ) : tag.property ? (
-          <meta property={tag.property} content={tag.content} />
-        ) : null
-      )
-    }
-
-    {links.map((link) => <link {...link} />)}
-
-    {
-      jsonLdItems.map((item) => (
-        <script
-          is:inline
-          type="application/ld+json"
-          set:html={JSON.stringify(item)}
+        <meta
+            name="twitter:card"
+            content={imageUrl ? "summary_large_image" : "summary"}
         />
-      ))
-    }
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        {
+            imageUrl && (
+                <>
+                    <meta property="og:image" content={imageUrl} />
+                    {imageUrl.protocol === "https:" && (
+                        <meta
+                            property="og:image:secure_url"
+                            content={imageUrl}
+                        />
+                    )}
+                    <meta property="og:image:type" content={imageType} />
+                    <meta
+                        property="og:image:width"
+                        content={String(imageWidth)}
+                    />
+                    <meta
+                        property="og:image:height"
+                        content={String(imageHeight)}
+                    />
+                    <meta property="og:image:alt" content={imageAlt} />
+                    <meta name="twitter:image" content={imageUrl} />
+                    <meta name="twitter:image:alt" content={imageAlt} />
+                </>
+            )
+        }
 
-    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
-    <script is:inline src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js" defer></script>
+        <script
+            is:inline
+            type="application/ld+json"
+            set:html={serializedStructuredData}
+        />
 
-    <slot name="head" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" href="/favicon.ico" />
 
-    <meta name="generator" content={Astro.generator} />
-  </head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
 
-  <body class={bodyClass}>
-    <slot />
+        <ClientRouter />
 
-    <!-- {isProduction && <script is:inline src="/registerSW.js"></script>} -->
-  </body>
+        <slot name="head" />
+    </head>
+
+    <body transition:name="root">
+        <slot />
+    </body>
 </html>
