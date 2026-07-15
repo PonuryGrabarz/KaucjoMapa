@@ -1,5 +1,5 @@
 {
-  "extends": "astro/tsconfigs/strict",
+  "extends": "astro/tsconfigs/base",
   "include": [
     ".astro/types.d.ts",
     "**/*"
@@ -8,21 +8,24 @@
     "dist"
   ],
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "paths": {
-      "@features/*": [
-        "./src/features/*"
-      ],
-      "@shared/*": [
-        "./src/shared/*"
+      "@/*": [
+        "./src/*"
       ],
       "@layouts/*": [
         "./src/shared/layouts/*"
       ],
       "@components/*": [
         "./src/shared/components/*"
-      ]
-    },
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+      ],
+      "@features/*": [
+        "./src/features/*"
+      ],
+      "@api/*": [
+        "./src/shared/api/*"
+      ],
+    }
   }
 }

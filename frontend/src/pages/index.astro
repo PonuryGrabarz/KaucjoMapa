@@ -1,13 +1,14 @@
 ---
+import Topbar from "@components/topbar/topbar.astro";
+import AppLayout from "@layouts/app_layout/app-layout.astro";
+import MainLayout from "@layouts/main_layout/main-layout.astro";
 import HomePageView from "@features/return_points/views/home_page_view/home-page-view.astro";
-import Topbar from "@shared/components/topbar/topbar.astro";
-import AppLayout from "@shared/layouts/app_layout/app-layout.astro";
-import MainLayout from "@shared/layouts/main_layout/main-layout.astro";
 ---
 
 <MainLayout>
-  <AppLayout>
-    <Topbar />
-    <HomePageView />
-  </AppLayout>
+    <AppLayout>
+        <Topbar />
+
+        <HomePageView />
+    </AppLayout>
 </MainLayout>

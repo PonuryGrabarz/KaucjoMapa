@@ -14,7 +14,6 @@ type MapPointDto = {
 };
 
 export class ApiClient extends ApiClientBase {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async getMapPoints(_request: GetMapPointsRequest): Promise<GetMapPointsResponse> {
     const points = await ky.get('kaucjomaty', { prefix: this.getApiUrl() }).json<MapPointDto[]>();
 

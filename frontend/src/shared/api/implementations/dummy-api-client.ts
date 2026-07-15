@@ -10,7 +10,6 @@ export class DummyApiClient extends ApiClientBase {
     super("")
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected getMapPoints(request: GetMapPointsRequest): Promise<GetMapPointsResponse> {
     const dummyMapPoint1: MapPoint = {
       returnPointId: "1",

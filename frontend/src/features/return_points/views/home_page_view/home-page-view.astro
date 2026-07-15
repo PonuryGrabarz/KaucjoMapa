@@ -1,34 +1,26 @@
 ---
-import Button from "@shared/components/button/button";
-import Input from "@shared/components/input/input";
-import Switch from "@shared/components/switch/switch";
-import MapPin from "../../components/map_pin/map-pin.astro";
-import ReturnPointsMap from "../../components/return_points_map/return-points-map.astro";
 import Styles from "./home-page-view.module.sass";
+import Map from "../../components/map/map";
+import Toolbar from "../../components/toolbar/toolbar";
 
-import { apiClient } from "@shared/api/api-client-factory";
-import { GetMapPointsRequest } from "@shared/api/requests";
-import Filters from "@features/return_points/components/filters/filters";
-
+import { apiClient } from "@api/api-client-factory";
+import { GetMapPointsRequest } from "@api/requests";
 
 const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
 ---
 
-<home-page-view class:list={Styles["home-page-view"]}>
-  <div class:list={Styles["home-page-view__header"]}>
-    <div class:list={Styles["home-page-view__header__search"]}>
-      <Input startAdornment="material-symbols:search" placeholder="Wyszukaj punkty zwrotu — możesz podać nazwę, adres lub kod pocztowy" />
-      <Button startIcon="majesticons:map-marker-area-line">5 km</Button>
-      <Filters client:load />
-    </div>
-    <div class:list={Styles["home-page-view__header__gps-toogle"]}>
-      <Button startIcon="mdi:crosshairs-gps">Lokalizacja</Button>
-      <Switch client:load />
-    </div>
-  </div>
+<section
+    class:list={Styles["home-page-view"]}
+    aria-labelledby="return-points-page-title"
+>
+    <h1
+        id="return-points-page-title"
+        class={Styles["home-page-view__title"]}
+    >
+        Mapa punktów zwrotu opakowań kaucyjnych
+    </h1>
 
-  <MapPin />
-  <ReturnPointsMap initialReturnPoints={initialReturnPoints} />
-</home-page-view>
+    <Toolbar client:load />
 
-<script src="./home-page-view.ts"></script>
+    <Map client:load initialReturnPoints={initialReturnPoints} />
+</section>

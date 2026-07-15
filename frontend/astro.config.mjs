@@ -1,17 +1,26 @@
 // @ts-check
-import { defineConfig, envField } from 'astro/config';
+import { defineConfig, envField } from "astro/config";
 
-import preact from '@astrojs/preact';
+import preact from "@astrojs/preact";
+
+import node from "@astrojs/node";
 
 // https://astro.build/config
 export default defineConfig({
+  integrations: [preact()],
+
   env: {
     validateSecrets: true,
     schema: {
-      API_URL: envField.string({ context: 'client', access: 'public', optional: true }),
-      USE_DUMMY_API: envField.boolean({ context: 'client', access: 'public', default: false}),
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      USE_DUMMY_API: envField.boolean({ context: "client", access: "public", default: false}),
+      SITE_URL: envField.string({ context: "server", access: "public", optional: true }),
     }
   },
 
-  integrations: [preact()]
+  output: "server",
+
+  adapter: node({
+    mode: "standalone",
+  }),
 });
