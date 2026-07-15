@@ -5,6 +5,7 @@
 	border-radius: inherit
 	overflow: hidden
 	pointer-events: none
+
 	.ripple
 		position: absolute
 		background: var(--ripple-color, currentColor)
@@ -12,10 +13,17 @@
 		opacity: var(--ripple-opacity, 0.2)
 		transform: translate(-50%, -50%) scale(0)
 		transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1)
-		animation: ripple-enter var(--ripple-duration, 550ms) cubic-bezier(0.4, 0, 0.2, 1) forwards
+		animation: ripple-enter 550ms cubic-bezier(0.4, 0, 0.2, 1) forwards
+
 		&.ripple--exit
 			opacity: 0
 
 @keyframes ripple-enter
 	to
 		transform: translate(-50%, -50%) scale(1)
+
+@media (prefers-reduced-motion: reduce)
+	.ripple-container .ripple
+		animation: none
+		transform: translate(-50%, -50%) scale(1)
+		transition-duration: 1ms

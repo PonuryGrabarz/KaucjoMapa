@@ -1,122 +1,140 @@
-import Styles from './switch.module.sass';
+import Styles from "./switch.module.sass";
 
-import { useRef, useState } from 'preact/hooks';
+import { useState } from "preact/hooks";
 
-import type { ButtonHTMLAttributes, CSSProperties, JSX, TargetedMouseEvent } from 'preact';
+import type {
+	ButtonHTMLAttributes,
+	ComponentChildren,
+	CSSProperties,
+	JSX,
+	Ref,
+	TargetedMouseEvent,
+} from "preact";
 
-export const SWITCH_CHANGE_EVENT = 'switch-change';
+export const SWITCH_CHANGE_EVENT = "switch-change";
 
 export type SwitchChangeEvent = CustomEvent<{ checked: boolean }>;
+
 export type SwitchChangeHandler = (
-  checked: boolean,
-  event: TargetedMouseEvent<HTMLButtonElement>,
+	checked: boolean,
+	event: TargetedMouseEvent<HTMLButtonElement>,
 ) => void;
 
 export type SwitchProps = Omit<
-  ButtonHTMLAttributes<HTMLButtonElement>,
-  | 'aria-checked'
-  | 'checked'
-  | 'children'
-  | 'class'
-  | 'defaultChecked'
-  | 'disabled'
-  | 'onChange'
-  | 'role'
-  | 'style'
+	ButtonHTMLAttributes<HTMLButtonElement>,
+	| "aria-checked"
+	| "aria-pressed"
+	| "checked"
+	| "children"
+	| "class"
+	| "className"
+	| "dangerouslySetInnerHTML"
+	| "defaultChecked"
+	| "disabled"
+	| "onChange"
+	| "ref"
+	| "role"
+	| "style"
 > & {
-  checked?: boolean;
-  defaultChecked?: boolean;
-  disabled?: boolean;
-  onChange?: SwitchChangeHandler;
-  class?: string;
-  trackClass?: string;
-  style?: string | CSSProperties;
-  trackStyle?: string | CSSProperties;
-};
-
-type SwitchRipple = {
-  id: number;
-  turnsOn: boolean;
+	checked?: boolean;
+	defaultChecked?: boolean;
+	disabled?: boolean;
+	onChange?: SwitchChangeHandler;
+	children?: ComponentChildren;
+	class?: string;
+	className?: string;
+	trackClass?: string;
+	style?: string | CSSProperties;
+	trackStyle?: string | CSSProperties;
+	buttonRef?: Ref<HTMLButtonElement>;
 };
 
 export default function Switch(props: SwitchProps): JSX.Element {
-  const {
-    checked,
-    defaultChecked = false,
-    disabled,
-    onChange,
-    onClick,
-    class: className,
-    trackClass,
-    style,
-    trackStyle,
-    type = 'button',
-    ...buttonProps
-  } = props;
+	const {
+		checked,
+		defaultChecked = false,
+		disabled = false,
+		onChange,
+		onClick,
+		children,
+		class: className,
+		className: nativeClassName,
+		trackClass,
+		style,
+		trackStyle,
+		buttonRef,
+		type = "button",
+		...buttonProps
+	} = props;
 
-  const [internalChecked, setInternalChecked] = useState(defaultChecked);
-  const [ripples, setRipples] = useState<SwitchRipple[]>([]);
-  const rippleIdRef = useRef(0);
+	const [internalChecked, setInternalChecked] = useState(defaultChecked);
 
-  const isControlled = checked !== undefined;
-  const isChecked = checked ?? internalChecked;
+	const isControlled = checked !== undefined;
 
-  const rootClasses = [Styles['switch'], className].filter(Boolean).join(' ');
-  const trackClasses = [Styles['switch__track'], trackClass].filter(Boolean).join(' ');
+	const isChecked = checked ?? internalChecked;
 
-  const removeRipple = (id: number): void => {
-    setRipples((current) => current.filter((ripple) => ripple.id !== id));
-  };
+	const hasLabel = children !== undefined && children !== null && children !== false;
 
-  const handleClick = (event: TargetedMouseEvent<HTMLButtonElement>): void => {
-    onClick?.(event);
+	const rootClasses = [
+		Styles["switch"],
+		className,
+		nativeClassName,
+	].filter(Boolean).join(" ");
 
-    if (event.defaultPrevented || disabled) return;
+	const trackClasses = [Styles["switch__track"], trackClass].filter(Boolean).join(" ");
 
-    const nextChecked = !isChecked;
+	const handleClick = (event: TargetedMouseEvent<HTMLButtonElement>): void => {
+		onClick?.(event);
 
-    setRipples((current) => [...current, { id: ++rippleIdRef.current, turnsOn: nextChecked }]);
+		if (event.defaultPrevented || disabled) return;
 
-    if (!isControlled) setInternalChecked(nextChecked);
+		const nextChecked = !isChecked;
 
-    onChange?.(nextChecked, event);
+		if (!isControlled) setInternalChecked(nextChecked);
 
-    const switchChangeEvent: SwitchChangeEvent = new CustomEvent(SWITCH_CHANGE_EVENT, {
-      detail: { checked: nextChecked },
-      bubbles: true,
-      composed: true,
-    });
+		onChange?.(nextChecked, event);
 
-    event.currentTarget.dispatchEvent(switchChangeEvent);
-  };
+		const switchChangeEvent: SwitchChangeEvent = new CustomEvent(SWITCH_CHANGE_EVENT, {
+			detail: { checked: nextChecked },
+			bubbles: true,
+			composed: true,
+		});
 
-  return (
-    <span class={rootClasses} style={style}>
-      <button
-        {...buttonProps}
-        class={trackClasses}
-        style={trackStyle}
-        type={type}
-        role="switch"
-        aria-checked={isChecked}
-        disabled={disabled}
-        onClick={handleClick}
-      >
-        <span class={Styles['switch__thumb']}>
-          {ripples.map((ripple) => (
-            <span
-              key={ripple.id}
-              class={[
-                Styles['switch__ripple'],
-                ripple.turnsOn ? Styles['switch__ripple--on'] : undefined,
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              onAnimationEnd={() => removeRipple(ripple.id)}
-            />
-          ))}
-        </span>
-      </button>
-    </span>
-  );
+		event.currentTarget.dispatchEvent(switchChangeEvent);
+	};
+
+	return (
+		<button
+			{...buttonProps}
+			ref={buttonRef}
+			class={rootClasses}
+			style={style}
+			type={type}
+			role="switch"
+			aria-checked={isChecked}
+			disabled={disabled}
+			onClick={handleClick}
+			data-switch=""
+			data-state={isChecked ? "on" : "off"}
+			data-on={isChecked ? "true" : undefined}
+			data-off={isChecked ? undefined : "true"}
+			data-disabled={disabled ? "true" : undefined}
+			data-has-label={hasLabel ? "true" : undefined}
+		>
+			<span
+				class={trackClasses}
+				style={trackStyle}
+				aria-hidden="true"
+				data-switch-track=""
+			>
+				<span class={Styles["switch__thumb"]} data-switch-thumb="" />
+			</span>
+
+			{hasLabel && (
+				<span class={Styles["switch__label"]} data-switch-label="">
+					{children}
+				</span>
+			)}
+		</button>
+	);
 }

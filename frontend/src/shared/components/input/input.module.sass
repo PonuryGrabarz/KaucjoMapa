@@ -3,69 +3,97 @@
 	display: inline-flex
 	align-items: center
 	vertical-align: middle
-	width: var(--input-width, auto)
+	box-sizing: border-box
+	width: auto
+	max-width: 100%
 	min-width: 0
-	margin: var(--input-margin, 0)
-	background: var(--input-bg, #1c1f28)
-	color: var(--input-color, #e8eaf0)
-	font-size: var(--input-font-size, 1rem)
-	font-family: inherit
-	border: 1px solid var(--input-border-color, #383c4a)
-	border-radius: var(--input-radius, 6px)
-	outline: none
-	transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), border-color 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms cubic-bezier(0.4, 0, 0.2, 1)
-	&:hover:not(.input--disabled)
-		border-color: var(--input-hover-border-color, #6b7185)
+	margin: 0
+	background: var(--input-background, transparent)
+	color: var(--input-text-color, inherit)
+	font: inherit
+	border: var(--input-border-width, 1px) solid var(--input-border-color, currentColor)
+	border-radius: var(--input-border-radius, 6px)
+	outline: transparent
+	transition: background-color var(--input-transition-duration, 160ms) ease, border-color var(--input-transition-duration, 160ms) ease, color var(--input-transition-duration, 160ms) ease, outline-color var(--input-transition-duration, 160ms) ease
+
+	&:hover:not([data-disabled="true"])
+		border-color: var(--input-hover-border-color, var(--input-border-color, currentColor))
+
 	&:focus-within
-		border-color: var(--input-focus-color, #dc143c)
-		box-shadow: 0 0 0 var(--input-focus-ring-width, 2px) var(--input-focus-ring-color, rgba(220 20 60 / 0.25))
-	.input__start-adornment
+		border-color: var(--input-focus-border-color, var(--input-border-color, currentColor))
+		outline: var(--input-focus-outline-width, 2px) solid var(--input-focus-outline-color, currentColor)
+		outline-offset: var(--input-focus-outline-offset, 2px)
+
+	&[data-adorned-start="true"]
+		.input__control
+			padding-inline-start: var(--input-adorned-padding, 8px)
+
+	&[data-adorned-end="true"]
+		.input__control
+			padding-inline-end: var(--input-adorned-padding, 8px)
+
+	&[data-full-width="true"]
+		display: flex
+		width: 100%
+
+		.input__control
+			width: 100%
+
+	&[data-disabled="true"]
+		background: var(--input-disabled-background, var(--input-background, transparent))
+		color: var(--input-disabled-text-color, var(--input-text-color, inherit))
+		border-color: var(--input-disabled-border-color, var(--input-border-color, currentColor))
+		cursor: not-allowed
+		opacity: var(--input-disabled-opacity, 0.6)
+
+		.input__start-adornment, .input__end-adornment
+			color: inherit
+
+	&[data-error="true"]
+		border-color: var(--input-error-border-color, var(--input-border-color, currentColor))
+
+		&:focus-within
+			border-color: var(--input-error-focus-border-color, var(--input-error-border-color, currentColor))
+			outline-color: var(--input-error-focus-outline-color, var(--input-focus-outline-color, currentColor))
+
+	.input__start-adornment, .input__end-adornment
 		display: inline-flex
 		align-items: center
 		justify-content: center
 		flex: 0 0 auto
-		margin-left: var(--input-adornment-margin-left, 12px)
-		color: var(--input-adornment-color, #9197a6)
+		color: var(--input-adornment-color, currentColor)
 		font-size: var(--input-adornment-size, 1.25em)
 		line-height: 1
-		.input__icon
-			--iconify-icon-width: 1em
-			--iconify-icon-height: 1em
+
+	.input__start-adornment
+		margin-inline-start: var(--input-adornment-offset, 12px)
+
+	.input__end-adornment
+		margin-inline-end: var(--input-adornment-offset, 12px)
+
 	.input__control
 		flex: 1 1 auto
-		width: var(--input-control-width, 20ch)
+		box-sizing: border-box
+		width: var(--input-width, 20ch)
 		min-width: 0
-		padding: var(--input-padding, 8px 12px)
+		padding: var(--input-padding-block, 8px) var(--input-padding-inline, 12px)
 		background: transparent
-		color: inherit
+		color: var(--input-control-color, inherit)
+		caret-color: var(--input-caret-color, auto)
 		font: inherit
-		line-height: 1.5
+		line-height: var(--input-line-height, 1.5)
 		letter-spacing: inherit
 		border: 0
 		border-radius: inherit
 		outline: 0
-		appearance: none
+
 		&::placeholder
-			color: var(--input-placeholder-color, #6b7185)
-			opacity: 1
+			color: var(--input-placeholder-color, currentColor)
+			opacity: var(--input-placeholder-opacity, 0.6)
+
 		&:disabled
 			cursor: not-allowed
-	&.input--adorned-start
-		.input__control
-			padding-left: var(--input-adorned-padding-left, 8px)
-	&.input--full-width
-		display: flex
-		width: 100%
-		.input__control
-			width: 100%
-	&.input--disabled
-		background: var(--input-disabled-bg, color-mix(in srgb, #1c1f28 70%, transparent))
-		color: var(--input-disabled-color, #6b7185)
-		border-color: var(--input-disabled-border-color, #2e3240)
-		cursor: not-allowed
-		.input__start-adornment
-			color: inherit
-	&.input--error
-		border-color: var(--input-error-color, #dc143c)
-		&:focus-within
-			box-shadow: 0 0 0 var(--input-focus-ring-width, 2px) var(--input-error-ring-color, rgba(220 20 60 / 0.25))
+
+@media (prefers-reduced-motion: reduce)
+	.input
+		transition: none

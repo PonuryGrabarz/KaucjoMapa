@@ -5,24 +5,64 @@
 	justify-content: center
 	box-sizing: border-box
 	flex: 0 0 auto
+	min-inline-size: var(--icon-button-size, 40px)
+	min-block-size: var(--icon-button-size, 40px)
 	margin: 0
-	padding: var(--icon-btn-padding, 8px)
-	background: var(--icon-btn-bg, transparent)
-	color: var(--icon-btn-color, currentColor)
-	font-size: var(--icon-btn-font-size, unset)
-	font-family: inherit
+	padding: var(--icon-button-padding, 8px)
+	background: var(--icon-button-background, transparent)
+	color: var(--icon-button-color, inherit)
+	font: inherit
+	font-size: var(--icon-button-icon-size, 1.25em)
+	line-height: 1
 	text-align: center
 	text-decoration: none
-	border: var(--icon-btn-border, none)
-	border-radius: var(--icon-btn-border-radius, 50%)
+	border: var(--icon-button-border-width, 0) solid var(--icon-button-border-color, transparent)
+	border-radius: var(--icon-button-border-radius, 50%)
 	outline: none
 	cursor: pointer
 	overflow: hidden
 	user-select: none
 	-webkit-tap-highlight-color: transparent
-	transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1)
-	--ripple-color: var(--icon-btn-ripple-color, currentColor)
-	--ripple-opacity: 0.3
+	transition: background-color var(--icon-button-transition-duration, 160ms) ease, border-color var(--icon-button-transition-duration, 160ms) ease, color var(--icon-button-transition-duration, 160ms) ease, outline-color var(--icon-button-transition-duration, 160ms) ease
+	--ripple-color: var(--icon-button-ripple-color, currentColor)
+	--ripple-opacity: var(--icon-button-ripple-opacity, 0.2)
+
+	&:hover:not([data-disabled="true"])
+		background: var(--icon-button-hover-background, color-mix(in srgb, currentColor 8%, transparent))
+		color: var(--icon-button-hover-color, var(--icon-button-color, inherit))
+		border-color: var(--icon-button-hover-border-color, var(--icon-button-border-color, transparent))
+
+	&:active:not([data-disabled="true"])
+		background: var(--icon-button-active-background, color-mix(in srgb, currentColor 12%, transparent))
+		color: var(--icon-button-active-color, var(--icon-button-hover-color, inherit))
+		border-color: var(--icon-button-active-border-color, var(--icon-button-hover-border-color, transparent))
+
+	&:focus-visible
+		outline: var(--icon-button-focus-outline-width, 2px) solid var(--icon-button-focus-outline-color, currentColor)
+		outline-offset: var(--icon-button-focus-outline-offset, 2px)
+
+	&[data-edge="start"]
+		margin-inline-start: var(--icon-button-edge-offset, -12px)
+
+	&[data-edge="end"]
+		margin-inline-end: var(--icon-button-edge-offset, -12px)
+
+	&[data-disabled="true"]
+		cursor: not-allowed
+
+		&:not([data-loading="true"])
+			background: var(--icon-button-disabled-background, var(--icon-button-background, transparent))
+			color: var(--icon-button-disabled-color, var(--icon-button-color, inherit))
+			border-color: var(--icon-button-disabled-border-color, var(--icon-button-border-color, transparent))
+			opacity: var(--icon-button-disabled-opacity, 0.5)
+
+	&[data-loading="true"]
+		background: var(--icon-button-loading-background, var(--icon-button-background, transparent))
+		color: var(--icon-button-loading-color, var(--icon-button-color, inherit))
+		border-color: var(--icon-button-loading-border-color, var(--icon-button-border-color, transparent))
+		cursor: default
+		opacity: var(--icon-button-loading-opacity, 1)
+
 	.icon-btn__content
 		display: inline-flex
 		align-items: center
@@ -33,36 +73,24 @@
 
 		--iconify-icon-width: 1em
 		--iconify-icon-height: 1em
+
 		.icon-btn__spinner
 			display: inline-block
-			width: 1em
-			height: 1em
-			border: 2px solid currentColor
-			border-right-color: transparent
+			width: var(--icon-button-spinner-size, 1em)
+			height: var(--icon-button-spinner-size, 1em)
+			border: var(--icon-button-spinner-border-width, 2px) solid var(--icon-button-spinner-color, currentColor)
+			border-inline-end-color: transparent
 			border-radius: 50%
 			animation: icon-btn-spin 750ms linear infinite
-	&.icon-btn--edge-start
-		margin-left: -12px
-	&.icon-btn--edge-end
-		margin-right: -12px
-	&.icon-btn--disabled
-		background: transparent
-		color: var(--icon-btn-disabled-color, color-mix(in srgb, currentColor 30%, transparent))
-	&.icon-btn--disabled, &.icon-btn--loading
-		cursor: default
-		pointer-events: none
-	&:hover
-		background: var(--icon-btn-hover-bg, color-mix(in srgb, currentColor 8%, transparent))
-		border: var(--icon-btn-hover-border, var(--icon-btn-border, none))
-		color: var(--icon-btn-hover-color, var(--icon-btn-color, currentColor))
-	&:active
-		background: var(--icon-btn-active-bg, color-mix(in srgb, currentColor 12%, transparent))
-		border: var(--icon-btn-active-border, var(--icon-btn-border, none))
-		color: var(--icon-btn-active-color, var(--icon-btn-color, currentColor))
-	&:focus-visible
-		outline: 2px solid var(--icon-btn-focus-color, currentColor)
-		outline-offset: 2px
 
 @keyframes icon-btn-spin
 	to
 		transform: rotate(360deg)
+
+@media (prefers-reduced-motion: reduce)
+	.icon-btn
+		transition: none
+
+		.icon-btn__content
+			.icon-btn__spinner
+				animation: none
