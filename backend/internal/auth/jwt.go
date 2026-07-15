@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -20,10 +21,10 @@ func MakeJWT(userID uuid.UUID, username string, email string, tokenSecret string
 		Username: username,
 		Email:    email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "chirpy-access",
+			Issuer:    "KaucjoMapa",
 			IssuedAt:  issuedAt,
 			ExpiresAt: expiresAt,
-			ID:        userID.String(),
+			Subject:   userID.String(),
 		},
 	}
 
@@ -37,25 +38,33 @@ func MakeJWT(userID uuid.UUID, username string, email string, tokenSecret string
 	return tokenString, nil
 }
 
-func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
+func ValidateJWT(tokenString, tokenSecret string) (JWTClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (any, error) {
 		return []byte(tokenSecret), nil
 	})
 	if err != nil {
-		return uuid.UUID{}, err
+		fmt.Println("Error parsing token:", err)
+		return JWTClaims{}, err
 	}
 
 	sub, err := token.Claims.GetSubject()
 	if err != nil {
-		return uuid.UUID{}, err
+		return JWTClaims{}, err
 	}
 
-	userID, err := uuid.Parse(sub)
+	_, err = uuid.Parse(sub)
 	if err != nil {
-		return uuid.UUID{}, err
+		return JWTClaims{}, err
 	}
 
-	return userID, nil
+	claims, ok := token.Claims.(*JWTClaims)
+	if !ok {
+		return JWTClaims{}, errors.New("invalid token claims")
+	}
+
+	fmt.Println(claims.Username)
+
+	return *claims, nil
 }
 
 func GetBearerToken(headers map[string][]string) (string, error) {

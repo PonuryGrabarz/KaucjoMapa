@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/server/middleware"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/yokeTH/gofiber-scalar/scalar/v3"
@@ -26,6 +27,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 			"Accept",
 			"Authorization",
 			"Content-Type",
+			"Set-Cookie",
 		},
 		AllowCredentials: false,
 		MaxAge:           300,
@@ -48,11 +50,13 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	))
 
 	s.Get("/kaucjomaty", s.GetKaucjomatyHandler)
-	s.Post("/kaucjomaty", s.CreateKaucjomatHandler)
+	s.Post("/kaucjomaty", middleware.RequireJWT(JWTSecret), s.CreateKaucjomatHandler)
+	s.Delete("/kaucjomaty/:id", middleware.RequireJWT(JWTSecret), s.DeleteKaucjomatHandler)
 	s.Post("/users", s.CreateUserHandler)
+	s.Put("/kaucjomaty/:id", middleware.RequireJWT(JWTSecret), s.UpdateKaucjomatHandler)
 	s.Post("/login", s.LoginUserHandler)
-	s.Post("/auth/token", s.refreshTokenHandler)
-	s.Post("/auth/revoke", s.revokeTokenHandler)
+	s.Post("/auth/token", middleware.RequireJWT(JWTSecret), s.refreshTokenHandler)
+	s.Post("/auth/revoke", middleware.RequireJWT(JWTSecret), s.revokeTokenHandler)
 }
 
 // HelloWorldHandler godoc

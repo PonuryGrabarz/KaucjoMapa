@@ -20,8 +20,8 @@ INSERT INTO refresh_tokens (
 -- name: GetUserTokens :many
 SELECT * FROM refresh_tokens WHERE user_id = $1;
 
--- name: GetUserToken :one
-SELECT * FROM refresh_tokens WHERE token = $1;
+-- name: GetUserRefreshToken :one
+SELECT * FROM refresh_tokens WHERE user_id = $1 AND token = $2 ORDER BY created_at DESC LIMIT 1;
 
 -- name: RevokeToken :exec
 UPDATE refresh_tokens

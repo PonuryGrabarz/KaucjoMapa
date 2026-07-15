@@ -1,5 +1,24 @@
 basePath: /
 definitions:
+  server.CreateKaucjomatRequest:
+    properties:
+      address:
+        type: string
+      current_status:
+        type: string
+      description:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      opening_hours:
+        type: string
+      type:
+        type: string
+    type: object
   server.CreateUserHandler.parameters:
     properties:
       email:
@@ -31,6 +50,29 @@ definitions:
       text_color:
         type: string
     type: object
+  server.UpdateKaucjomatHandler.UpdateKaucjomatRequest:
+    properties:
+      address:
+        type: string
+      can:
+        type: boolean
+      description:
+        type: string
+      glass:
+        type: boolean
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      opening_hours:
+        type: string
+      pet:
+        type: boolean
+      type:
+        type: string
+    type: object
   server.User:
     properties:
       created_at:
@@ -43,8 +85,6 @@ definitions:
         type: boolean
       is_banned:
         type: boolean
-      refresh_token:
-        type: string
       reputation:
         type: integer
       token:
@@ -84,13 +124,21 @@ paths:
       - health
   /auth/revoke:
     post:
-      description: Unieważnia refresh token przekazany w nagłówku Authorization Bearer.
+      description: Weryfikuje access token z nagłówka Authorization i unieważnia refresh
+        token przekazany w cookie.
       parameters:
-      - description: Bearer refresh_token
+      - description: Bearer access token
         in: header
         name: Authorization
         required: true
         type: string
+      - description: RefreshToken=<refresh_token>
+        in: header
+        name: Cookie
+        required: true
+        type: string
+      produces:
+      - application/json
       responses:
         "204":
           description: No Content
@@ -111,25 +159,36 @@ paths:
       - auth
   /auth/token:
     post:
-      description: Przyjmuje refresh token w nagłówku Authorization Bearer i zwraca
-        nowy token JWT.
+      description: Weryfikuje access token z nagłówka Authorization i refresh token
+        z cookie, a następnie zwraca nowy access token.
       parameters:
-      - description: Bearer refresh_token
+      - description: Bearer access token
         in: header
         name: Authorization
+        required: true
+        type: string
+      - description: RefreshToken=<refresh_token>
+        in: header
+        name: Cookie
         required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Nowy access token
           schema:
             additionalProperties:
               type: string
             type: object
         "401":
-          description: Unauthorized
+          description: Brak, nieprawidłowy lub wygasły token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Błąd generowania access tokenu
           schema:
             additionalProperties:
               type: string
@@ -140,6 +199,27 @@ paths:
   /kaucjomaty:
     get:
       description: Zwraca punkty zwrotu do wyświetlenia na mapie.
+      parameters:
+      - description: Typ punktu
+        enum:
+        - butelkomat
+        - sklep
+        - punkt_skupu
+        - inny
+        in: query
+        name: type
+        type: string
+      - description: Status punktu
+        enum:
+        - dostepny
+        - zapelniony
+        - nieczynny
+        - awaria
+        - brak_informacji
+        - do_weryfikacji
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -161,26 +241,154 @@ paths:
     post:
       consumes:
       - application/json
-      description: Przyjmuje dane punktu zwrotu do dodania.
+      description: |-
+        Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.
+        Dozwolone wartości type: butelkomat, sklep, punkt_skupu, inny.
+        Dozwolone wartości current_status: dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji.
       parameters:
+      - description: Bearer access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Dane kaucjomatu
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/server.MapPoint'
+          $ref: '#/definitions/server.CreateKaucjomatRequest'
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Utworzony kaucjomat
+          schema:
+            $ref: '#/definitions/server.MapPoint'
+        "400":
+          description: Nieprawidłowe dane wejściowe
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Błąd serwera
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Dodanie kaucjomatu
+      tags:
+      - kaucjomaty
+  /kaucjomaty/{id}:
+    delete:
+      description: Usuwa punkt zwrotu. Operacja jest dostępna wyłącznie dla administratora.
+      parameters:
+      - description: Bearer access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Identyfikator kaucjomatu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator kaucjomatu
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Użytkownik nie jest administratorem
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Błąd serwera
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Usunięcie kaucjomatu
+      tags:
+      - kaucjomaty
+    put:
+      consumes:
+      - application/json
+      description: Aktualizuje dane punktu zwrotu dla zalogowanego użytkownika.
+      parameters:
+      - description: Bearer access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Identyfikator kaucjomatu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dane kaucjomatu
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.UpdateKaucjomatHandler.UpdateKaucjomatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowany kaucjomat
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Nieprawidłowy identyfikator lub body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Nie znaleziono kaucjomatu lub błąd serwera
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Aktualizacja kaucjomatu
       tags:
       - kaucjomaty
   /login:
     post:
       consumes:
       - application/json
-      description: Weryfikuje dane logowania i zwraca dane użytkownika z tokenem JWT
-        oraz tokenem odświeżającym.
+      description: Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem
+        i zapisuje refresh token w cookie.
       parameters:
       - description: Dane logowania
         in: body
@@ -193,6 +401,10 @@ paths:
       responses:
         "200":
           description: OK
+          headers:
+            Set-Cookie:
+              description: RefreshToken=<token>; Path=/auth; HttpOnly; SameSite=Strict
+              type: string
           schema:
             $ref: '#/definitions/server.User'
         "400":

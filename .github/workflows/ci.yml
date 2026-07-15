@@ -21,7 +21,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Pobierz repozytorium
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -43,7 +43,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Pobierz repozytorium
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Konfiguracja Node.js
         uses: actions/setup-node@v6
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pobierz repozytorium
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Konfiguracja Node.js
         uses: actions/setup-node@v6
