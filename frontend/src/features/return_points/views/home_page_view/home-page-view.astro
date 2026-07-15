@@ -1,0 +1,26 @@
+---
+import Styles from "./home-page-view.module.sass";
+import Map from "../../components/map/map";
+import Toolbar from "../../components/toolbar/toolbar";
+
+import { apiClient } from "@api/api-client-factory";
+import { GetMapPointsRequest } from "@api/requests";
+
+const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
+---
+
+<section
+    class:list={Styles["home-page-view"]}
+    aria-labelledby="return-points-page-title"
+>
+    <h1
+        id="return-points-page-title"
+        class={Styles["home-page-view__title"]}
+    >
+        Mapa punktów zwrotu opakowań kaucyjnych
+    </h1>
+
+    <Toolbar client:load />
+
+    <Map client:load initialReturnPoints={initialReturnPoints} />
+</section>

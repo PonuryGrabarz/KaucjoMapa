@@ -1,0 +1,22 @@
+---
+import Styles from "./app-layout.module.sass";
+import Navigation, { type Link } from "@components/navigation/navigation.astro";
+
+const links: Link[] = [
+    { href: "/", label: "Mapa", icon: "fa7-regular:map" },
+    { href: "/punkty", label: "Punkty", icon: "fa7-solid:list" },
+    { href: "/kalkulator", label: "Kalkulator", icon: "fa7-solid:calculator" },
+    { href: "/logowanie", label: "Logowanie", icon: "fa7-solid:sign-in-alt" },
+    // { href: "/historia", label: "Historia", icon: "fa7-solid:history" },
+    // { href: "/alerty", label: "Alerty", icon: "fa7-regular:bell" },
+    // { href: "/profil", label: "Profil", icon: "fa7-regular:user" },
+];
+---
+
+<div class:list={[Styles["app-layout"]]}>
+    <Navigation class={Styles["app-layout__navigation"]} links={links} />
+
+    <main id="main-content" class:list={[Styles["app-layout__main"]]} tabindex="-1">
+        <slot />
+    </main>
+</div>

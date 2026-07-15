@@ -1,0 +1,109 @@
+.map
+    position: relative
+    display: block
+    flex: 1 1 320px
+    width: auto
+    min-width: 0
+    min-height: clamp(240px, 42vh, 420px)
+    margin: 0 clamp(12px, 2.2vw, 28px) clamp(12px, 2.2vw, 24px)
+    background: var(--paper-100)
+    border: 1px solid var(--ink-200)
+    border-radius: clamp(14px, 1.8vw, 20px)
+    box-shadow: var(--shadow-sm)
+    overflow: hidden
+    isolation: isolate
+
+    .map__canvas
+        position: absolute
+        inset: 0
+
+        :global(.maplibregl-map),
+        :global(.maplibregl-canvas-container),
+        :global(.maplibregl-canvas)
+            width: 100%
+            height: 100%
+
+        :global(.maplibregl-canvas:focus-visible)
+            outline: 3px solid var(--grass-700)
+            outline-offset: -3px
+
+        :global(.maplibregl-ctrl-attrib)
+            color: var(--muted-500)
+            font-size: 10px
+
+    .map__controls
+        position: absolute
+        z-index: 3
+        display: grid
+        background: var(--paper-50)
+        border: 1px solid var(--ink-200)
+        border-radius: 12px
+        box-shadow: var(--shadow-md)
+        overflow: hidden
+
+    .map__controls--zoom
+        inset-inline-start: clamp(10px, 1.5vw, 16px)
+        inset-block-end: clamp(10px, 1.5vw, 16px)
+
+        .map__control-button + .map__control-button
+            border-block-start: 1px solid var(--ink-200)
+
+    .map__controls--location
+        inset-inline-end: clamp(10px, 1.5vw, 16px)
+        inset-block-end: clamp(38px, 4vw, 46px)
+
+    .map__control-button
+        --icon-button-size: 44px
+        --icon-button-padding: 10px
+        --icon-button-background: var(--paper-50)
+        --icon-button-color: var(--ink-900)
+        --icon-button-hover-background: var(--paper-100)
+        --icon-button-active-background: var(--grass-100)
+        --icon-button-focus-outline-color: var(--grass-700)
+        --icon-button-focus-outline-offset: -3px
+        --icon-button-border-radius: 0
+        --icon-button-icon-size: 1.25rem
+
+    .map__message
+        position: absolute
+        z-index: 2
+        inset-block-start: 50%
+        inset-inline-start: 50%
+        width: min(calc(100% - 32px), 420px)
+        padding: 12px 16px
+        background: color-mix(in srgb, var(--paper-50) 92%, transparent)
+        color: var(--ink-900)
+        font-size: 14px
+        font-weight: 700
+        line-height: 1.45
+        text-align: center
+        border: 1px solid var(--ink-200)
+        border-radius: 12px
+        box-shadow: var(--shadow-md)
+        transform: translate(-50%, -50%)
+        pointer-events: none
+
+    .map__results-status
+        position: absolute
+        width: 1px
+        height: 1px
+        padding: 0
+        margin: -1px
+        border: 0
+        clip: rect(0 0 0 0)
+        clip-path: inset(50%)
+        overflow: hidden
+        white-space: nowrap
+
+    &[data-map-status="loading"]
+        .map__canvas
+            opacity: .72
+
+@media (min-width: 1024px)
+    .map
+        .map__control-button
+            --icon-button-size: 46px
+
+@media (prefers-reduced-motion: reduce)
+    .map .map__canvas
+        scroll-behavior: auto

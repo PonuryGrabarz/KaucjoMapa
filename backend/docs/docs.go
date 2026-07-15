@@ -48,10 +48,7 @@ const docTemplate = `{
         },
         "/auth/revoke": {
             "post": {
-                "description": "Weryfikuje access token z nagłówka Authorization i unieważnia refresh token przekazany w cookie.",
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Unieważnia refresh token przekazany w nagłówku Authorization Bearer.",
                 "tags": [
                     "auth"
                 ],
@@ -59,15 +56,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer access token",
+                        "description": "Bearer refresh_token",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "RefreshToken=\u003crefresh_token\u003e",
-                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }

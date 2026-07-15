@@ -1,0 +1,105 @@
+.switch
+	position: relative
+	display: inline-flex
+	align-items: center
+	justify-content: flex-start
+	vertical-align: middle
+	box-sizing: border-box
+	min-width: 0
+	min-height: var(--switch-hit-size, 44px)
+	gap: var(--switch-label-gap, 8px)
+	padding: 0
+	margin: 0
+	background: transparent
+	color: var(--switch-color, inherit)
+	font: inherit
+	line-height: var(--switch-label-line-height, 1.5)
+	text-align: start
+	appearance: none
+	border: 0
+	border-radius: var(--switch-focus-border-radius, 999px)
+	outline: none
+	cursor: pointer
+	user-select: none
+	-webkit-tap-highlight-color: transparent
+
+	&:focus-visible
+		outline: var(--switch-focus-outline-width, 2px) solid var(--switch-focus-outline-color, currentColor)
+		outline-offset: var(--switch-focus-outline-offset, 2px)
+
+	&:hover:not([data-disabled="true"])
+		.switch__track
+			background: var(--switch-track-off-hover-background, var(--switch-track-off-background, transparent))
+			border-color: var(--switch-track-off-hover-border-color, var(--switch-track-off-border-color, currentColor))
+
+	&:active:not([data-disabled="true"])
+		.switch__thumb::after
+			opacity: var(--switch-press-opacity, 0.18)
+			transform: scale(var(--switch-press-scale, 1.45))
+
+	&[data-on="true"]
+		.switch__track
+			background: var(--switch-track-on-background, currentColor)
+			border-color: var(--switch-track-on-border-color, currentColor)
+
+		.switch__thumb
+			inset-inline-start: calc(100% - var(--switch-border-width, 1px) - var(--switch-inset, 3px) - var(--switch-thumb-size, 18px))
+			background: var(--switch-thumb-on-background, Canvas)
+
+		&:hover:not([data-disabled="true"])
+			.switch__track
+				background: var(--switch-track-on-hover-background, var(--switch-track-on-background, currentColor))
+				border-color: var(--switch-track-on-hover-border-color, var(--switch-track-on-border-color, currentColor))
+
+	&[data-disabled="true"]
+		cursor: not-allowed
+		opacity: var(--switch-disabled-opacity, 0.5)
+
+	.switch__track
+		position: relative
+		display: inline-block
+		flex: 0 0 auto
+		box-sizing: border-box
+		inline-size: var(--switch-width, 44px)
+		block-size: var(--switch-height, 24px)
+		background: var(--switch-track-off-background, transparent)
+		border: var(--switch-border-width, 1px) solid var(--switch-track-off-border-color, currentColor)
+		border-radius: var(--switch-track-radius, 999px)
+		box-shadow: var(--switch-track-shadow, none)
+		pointer-events: none
+		transition: background-color var(--switch-transition-duration, 180ms) var(--switch-transition-easing, cubic-bezier(0.4, 0, 0.2, 1)), border-color var(--switch-transition-duration, 180ms) var(--switch-transition-easing, cubic-bezier(0.4, 0, 0.2, 1)), box-shadow var(--switch-transition-duration, 180ms) var(--switch-transition-easing, cubic-bezier(0.4, 0, 0.2, 1))
+
+	.switch__thumb
+		position: absolute
+		inset-block-start: 50%
+		inset-inline-start: calc(var(--switch-border-width, 1px) + var(--switch-inset, 3px))
+		box-sizing: border-box
+		inline-size: var(--switch-thumb-size, 18px)
+		block-size: var(--switch-thumb-size, 18px)
+		background: var(--switch-thumb-off-background, currentColor)
+		border: var(--switch-thumb-border-width, 0) solid var(--switch-thumb-border-color, transparent)
+		border-radius: var(--switch-thumb-radius, 50%)
+		box-shadow: var(--switch-thumb-shadow, none)
+		transform: translateY(-50%)
+		pointer-events: none
+		transition: inset-inline-start var(--switch-transition-duration, 180ms) var(--switch-transition-easing, cubic-bezier(0.4, 0, 0.2, 1)), background-color var(--switch-transition-duration, 180ms) var(--switch-transition-easing, cubic-bezier(0.4, 0, 0.2, 1)), box-shadow var(--switch-transition-duration, 180ms) var(--switch-transition-easing, cubic-bezier(0.4, 0, 0.2, 1))
+
+		&::after
+			position: absolute
+			inset: var(--switch-press-inset, -5px)
+			background: var(--switch-press-color, currentColor)
+			border-radius: inherit
+			content: ""
+			opacity: 0
+			transform: scale(0.75)
+			transition: opacity var(--switch-press-duration, 160ms) ease, transform var(--switch-press-duration, 160ms) ease
+
+	.switch__label
+		min-width: 0
+		color: var(--switch-label-color, inherit)
+		pointer-events: none
+
+@media (prefers-reduced-motion: reduce)
+	.switch
+		.switch__track, .switch__thumb, .switch__thumb::after
+			transition: none

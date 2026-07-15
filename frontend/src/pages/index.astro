@@ -1,25 +1,14 @@
 ---
-const isProduction = import.meta.env.PROD;
+import Topbar from "@components/topbar/topbar.astro";
+import AppLayout from "@layouts/app_layout/app-layout.astro";
+import MainLayout from "@layouts/main_layout/main-layout.astro";
+import HomePageView from "@features/return_points/views/home_page_view/home-page-view.astro";
 ---
 
-<html lang="pl">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="theme-color" content="#16a34a" />
-    <meta
-      name="description"
-      content="KaucjoMapa pomaga znaleźć najbliższe punkty zwrotu opakowań kaucyjnych."
-    />
-    <meta name="generator" content={Astro.generator} />
-    <title>KaucjoMapa</title>
-  </head>
-  <body>
-    <h1>KaucjoMapa</h1>
-    {isProduction && <script is:inline src="/registerSW.js" />}
-  </body>
-</html>
+<MainLayout>
+    <AppLayout>
+        <Topbar />
+
+        <HomePageView />
+    </AppLayout>
+</MainLayout>
