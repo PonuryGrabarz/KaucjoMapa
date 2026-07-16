@@ -42,6 +42,23 @@ INSERT INTO return_points (
 -- name: GetAllReturnPoints :many
 SELECT * FROM return_points;
 
+-- name: ListReturnPoints :many
+SELECT *
+FROM return_points
+WHERE (
+    sqlc.narg('query')::TEXT IS NULL
+    OR name ILIKE '%' || sqlc.narg('query') || '%'
+    OR COALESCE(address, '') ILIKE '%' || sqlc.narg('query') || '%'
+)
+AND (
+    sqlc.narg('point_type')::point_type IS NULL
+    OR type = sqlc.narg('point_type')::point_type
+)
+AND (
+    sqlc.narg('point_status')::point_status IS NULL
+    OR current_status = sqlc.narg('point_status')::point_status
+);
+
 -- name: GetPointByDistance :one
 SELECT id, name, address FROM return_points
 WHERE earth_distance(
