@@ -150,7 +150,7 @@ func (s *FiberServer) ScrapPoints() error {
 		newPoint := database.CreatePointParams{
 			ID:           uuid.New(),
 			UserID:       userID,
-			Name:         "zabka",
+			Name:         "Żabka",
 			Type:         database.PointTypeSklep,
 			Address:      address,
 			Latitude:     point.Properties.Lat,

@@ -207,6 +207,12 @@
                         "description": "Liczba punktów na stronie (używana dla details=true)",
                         "name": "page_size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nazwa sklepu lub adres",
+                        "name": "query",
+                        "in": "query"
                     }
                 ],
                 "responses": {

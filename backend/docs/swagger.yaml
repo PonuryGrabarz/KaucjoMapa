@@ -238,6 +238,10 @@ paths:
         minimum: 1
         name: page_size
         type: integer
+      - description: Nazwa sklepu lub adres
+        in: query
+        name: query
+        type: string
       produces:
       - application/json
       responses:

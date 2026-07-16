@@ -233,6 +233,72 @@ func (q *Queries) GetPointById(ctx context.Context, id uuid.UUID) (ReturnPoint, 
 	return i, err
 }
 
+const listReturnPoints = `-- name: ListReturnPoints :many
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at
+FROM return_points
+WHERE (
+    $1::TEXT IS NULL
+    OR name ILIKE '%' || $1 || '%'
+    OR COALESCE(address, '') ILIKE '%' || $1 || '%'
+)
+AND (
+    $2::point_type IS NULL
+    OR type = $2::point_type
+)
+AND (
+    $3::point_status IS NULL
+    OR current_status = $3::point_status
+)
+`
+
+type ListReturnPointsParams struct {
+	Query       sql.NullString
+	PointType   NullPointType
+	PointStatus NullPointStatus
+}
+
+func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsParams) ([]ReturnPoint, error) {
+	rows, err := q.db.QueryContext(ctx, listReturnPoints, arg.Query, arg.PointType, arg.PointStatus)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReturnPoint
+	for rows.Next() {
+		var i ReturnPoint
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Type,
+			&i.Address,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Pet,
+			&i.Can,
+			&i.Glass,
+			&i.OpeningHours,
+			&i.Description,
+			&i.CurrentStatus,
+			&i.ConfirmationsCount,
+			&i.RejectionsCount,
+			&i.IsVerified,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updatePointById = `-- name: UpdatePointById :one
 UPDATE return_points AS rp
 SET

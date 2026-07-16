@@ -1,12 +1,12 @@
 package server
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
@@ -27,6 +27,7 @@ import (
 // @Param        details    query  bool    false  "Zwróć szczegółowe dane punktów"  default(false)
 // @Param        page       query  int     false  "Numer strony (używany dla details=true)"  minimum(1)  default(1)
 // @Param        page_size  query  int     false  "Liczba punktów na stronie (używana dla details=true)"  minimum(1)  default(10)
+// @Param        query      query  string  false  "Nazwa sklepu lub adres"
 // @Success      200  {array}   MapPoint           "Lista punktów; dla details=true zwracany jest model MapPointDetails"
 // @Failure      400  {object}  map[string]string  "Nieprawidłowy numer strony lub rozmiar strony"
 // @Failure      500  {object}  map[string]string  "Błąd pobierania punktów zwrotu"
@@ -37,6 +38,8 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 	details := c.Query("details")
 	pageQuery := c.Query("page", "1")
 	pageSizeQuery := c.Query("page_size", "10")
+	query := strings.TrimSpace(c.Query("query", ""))
+
 	page, err := strconv.Atoi(pageQuery)
 	if err != nil || page < 1 {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid page number")
@@ -45,13 +48,21 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 	if err != nil || pageSize < 1 {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid page size")
 	}
-	// pet := c.Query("pet")
-	// can := c.Query("can")
-	// glass := c.Query(
-	// 	"glass",
-	// )
 
-	kaucjomatyList, err := s.db.Queries.GetAllReturnPoints(context.Background())
+	kaucjomatyList, err := s.db.Queries.ListReturnPoints(c.Context(), database.ListReturnPointsParams{
+		Query: sql.NullString{
+			String: query,
+			Valid:  query != "",
+		},
+		PointType: database.NullPointType{
+			PointType: database.PointType(pointType),
+			Valid:     pointType != "",
+		},
+		PointStatus: database.NullPointStatus{
+			PointStatus: database.PointStatus(pointStatus),
+			Valid:       pointStatus != "",
+		},
+	})
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return points")
 	}
@@ -61,17 +72,6 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 
 	for _, kaucjomat := range kaucjomatyList {
 		style := ResolvePointStyle(kaucjomat.Name)
-		if pointType != "" {
-			if kaucjomat.Type != database.PointType(pointType) {
-				continue
-			}
-		}
-
-		if pointStatus != "" {
-			if kaucjomat.CurrentStatus != database.PointStatus(pointStatus) {
-				continue
-			}
-		}
 
 		if details == "true" {
 			mapPointDetails := MapPointDetails{
@@ -107,7 +107,9 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 
 	}
 
-	if details == "true" {
+	maxPage := len(mapPointsDetails) / pageSize
+
+	if details == "true" && maxPage > 0 && page <= maxPage {
 		return c.JSON(mapPointsDetails[pageSize*(page-1) : min(pageSize*page, len(mapPointsDetails))])
 	}
 
