@@ -98,8 +98,7 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 		cookie.Expires = dbRefreshToken.ExpiresAt
 		cookie.HTTPOnly = true
 		cookie.SameSite = "strict"
-		// TODO: Uncomment the following line if using HTTPS
-		// cookie.Secure = true // Set to true if using HTTPS
+		cookie.Secure = true
 
 		fmt.Println(cookie)
 		c.Cookie(cookie)

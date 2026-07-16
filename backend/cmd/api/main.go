@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/server"
@@ -21,6 +24,7 @@ import (
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 // @host      localhost:3000
 // @BasePath  /
+// @schemes   https
 func main() {
 	server := server.New()
 
@@ -32,11 +36,32 @@ func main() {
 		fmt.Printf("scrap points error: %s", err)
 	}
 
+	certsDir, err := filepath.Abs("certs")
+	if err != nil {
+		log.Fatalf("resolve certs directory: %v", err)
+	}
+
+	log.Printf("certs directory: %s", certsDir)
+
+	certPath := filepath.Join(certsDir, "ssl.cert")
+	keyPath := filepath.Join(certsDir, "ssl.key")
+
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	if err != nil {
+		fmt.Printf("Error loading TLS certificate: %v\n", err)
+	}
+	config := &tls.Config{Certificates: []tls.Certificate{cert}}
+
 	server.RegisterFiberRoutes()
 
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 
-	err := server.Listen(fmt.Sprintf(":%d", port))
+	ln, err := tls.Listen("tcp", fmt.Sprintf(":%v", port), config)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = server.Listener(ln)
 	if err != nil {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}

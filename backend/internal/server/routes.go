@@ -14,7 +14,7 @@ var adminUsername = os.Getenv("ADMIN_USERNAME")
 
 func (s *FiberServer) RegisterFiberRoutes() {
 	s.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
+		AllowOrigins: []string{"http://127.0.0.1:4322", "http://127.0.0.1:3000", "http://localhost:4321", "https://localhost:3000", "https://localhost:3000", "https://kaucjomapa.pl", "https://www.kaucjomapa.pl"},
 		AllowMethods: []string{
 			"GET",
 			"POST",
@@ -29,7 +29,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 			"Content-Type",
 			"Set-Cookie",
 		},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300,
 	}))
 
