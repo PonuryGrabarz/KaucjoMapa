@@ -198,7 +198,8 @@ paths:
       - auth
   /kaucjomaty:
     get:
-      description: Zwraca punkty zwrotu do wyświetlenia na mapie.
+      description: Zwraca punkty zwrotu do wyświetlenia na mapie. Parametr details=true
+        rozszerza odpowiedź o szczegóły punktów.
       parameters:
       - description: Typ punktu
         enum:
@@ -220,17 +221,40 @@ paths:
         in: query
         name: status
         type: string
+      - default: false
+        description: Zwróć szczegółowe dane punktów
+        in: query
+        name: details
+        type: boolean
+      - default: 1
+        description: Numer strony (używany dla details=true)
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Liczba punktów na stronie (używana dla details=true)
+        in: query
+        minimum: 1
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Lista punktów; dla details=true zwracany jest model MapPointDetails
           schema:
             items:
               $ref: '#/definitions/server.MapPoint'
             type: array
+        "400":
+          description: Nieprawidłowy numer strony lub rozmiar strony
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
-          description: Internal Server Error
+          description: Błąd pobierania punktów zwrotu
           schema:
             additionalProperties:
               type: string

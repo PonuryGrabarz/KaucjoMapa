@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
@@ -17,18 +18,33 @@ import (
 
 // GetKaucjomatyHandler godoc
 //
-//	@Summary		Lista kaucjomatów
-//	@Description	Zwraca punkty zwrotu do wyświetlenia na mapie.
-//	@Tags			kaucjomaty
-//	@Produce		json
-//	@Param			type	query		string	false	"Typ punktu"	Enums(butelkomat, sklep, punkt_skupu, inny)
-//	@Param			status	query		string	false	"Status punktu"	Enums(dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji)
-//	@Success		200		{array}		MapPoint
-//	@Failure		500		{object}	map[string]string
-//	@Router			/kaucjomaty [get]
+// @Summary      Lista kaucjomatów
+// @Description  Zwraca punkty zwrotu do wyświetlenia na mapie. Parametr details=true rozszerza odpowiedź o szczegóły punktów.
+// @Tags         kaucjomaty
+// @Produce      json
+// @Param        type       query  string  false  "Typ punktu"     Enums(butelkomat, sklep, punkt_skupu, inny)
+// @Param        status     query  string  false  "Status punktu"  Enums(dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji)
+// @Param        details    query  bool    false  "Zwróć szczegółowe dane punktów"  default(false)
+// @Param        page       query  int     false  "Numer strony (używany dla details=true)"  minimum(1)  default(1)
+// @Param        page_size  query  int     false  "Liczba punktów na stronie (używana dla details=true)"  minimum(1)  default(10)
+// @Success      200  {array}   MapPoint           "Lista punktów; dla details=true zwracany jest model MapPointDetails"
+// @Failure      400  {object}  map[string]string  "Nieprawidłowy numer strony lub rozmiar strony"
+// @Failure      500  {object}  map[string]string  "Błąd pobierania punktów zwrotu"
+// @Router       /kaucjomaty [get]
 func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 	pointType := c.Query("type")
 	pointStatus := c.Query("status")
+	details := c.Query("details")
+	pageQuery := c.Query("page", "1")
+	pageSizeQuery := c.Query("page_size", "10")
+	page, err := strconv.Atoi(pageQuery)
+	if err != nil || page < 1 {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid page number")
+	}
+	pageSize, err := strconv.Atoi(pageSizeQuery)
+	if err != nil || pageSize < 1 {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid page size")
+	}
 	// pet := c.Query("pet")
 	// can := c.Query("can")
 	// glass := c.Query(
@@ -41,6 +57,7 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 	}
 
 	mapPoints := []MapPoint{}
+	mapPointsDetails := []MapPointDetails{}
 
 	for _, kaucjomat := range kaucjomatyList {
 		style := ResolvePointStyle(kaucjomat.Name)
@@ -56,17 +73,42 @@ func (s *FiberServer) GetKaucjomatyHandler(c fiber.Ctx) error {
 			}
 		}
 
-		mapPoint := MapPoint{
-			ReturnPointID: kaucjomat.ID,
-			ShortName:     style.ShortName,
-			BgColor:       style.BgColor,
-			TextColor:     style.TextColor,
-			Latitude:      kaucjomat.Latitude,
-			Longitude:     kaucjomat.Longitude,
+		if details == "true" {
+			mapPointDetails := MapPointDetails{
+				ReturnPointID: kaucjomat.ID,
+				Name:          kaucjomat.Name,
+				ShortName:     style.ShortName,
+				BgColor:       style.BgColor,
+				TextColor:     style.TextColor,
+				Latitude:      kaucjomat.Latitude,
+				Longitude:     kaucjomat.Longitude,
+				Address:       kaucjomat.Address.String,
+				Pet:           kaucjomat.Pet,
+				Can:           kaucjomat.Can,
+				Glass:         kaucjomat.Glass,
+				OpeningHours:  kaucjomat.OpeningHours.String,
+				Description:   kaucjomat.Description.String,
+				CurrentStatus: string(kaucjomat.CurrentStatus),
+			}
+
+			mapPointsDetails = append(mapPointsDetails, mapPointDetails)
+		} else {
+			mapPoint := MapPoint{
+				ReturnPointID: kaucjomat.ID,
+				ShortName:     style.ShortName,
+				BgColor:       style.BgColor,
+				TextColor:     style.TextColor,
+				Latitude:      kaucjomat.Latitude,
+				Longitude:     kaucjomat.Longitude,
+			}
+
+			mapPoints = append(mapPoints, mapPoint)
 		}
 
-		mapPoints = append(mapPoints, mapPoint)
+	}
 
+	if details == "true" {
+		return c.JSON(mapPointsDetails[pageSize*(page-1) : min(pageSize*page, len(mapPointsDetails))])
 	}
 
 	return c.JSON(mapPoints)
@@ -125,7 +167,7 @@ func (s *FiberServer) CreateKaucjomatHandler(c fiber.Ctx) error {
 		String: params.OpeningHours,
 	}
 
-	mapPoint, err := s.db.Queries.CreatePoint(context.Background(), database.CreatePointParams{
+	mapPoint, err := s.db.Queries.CreatePoint(c.Context(), database.CreatePointParams{
 		ID: uuid.New(),
 		UserID: uuid.NullUUID{
 			UUID:  userID,

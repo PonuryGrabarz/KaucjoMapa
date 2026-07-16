@@ -48,7 +48,10 @@ const docTemplate = `{
         },
         "/auth/revoke": {
             "post": {
-                "description": "Unieważnia refresh token przekazany w nagłówku Authorization Bearer.",
+                "description": "Weryfikuje access token z nagłówka Authorization i unieważnia refresh token przekazany w cookie.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "auth"
                 ],
@@ -56,8 +59,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer refresh_token",
+                        "description": "Bearer access token",
                         "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RefreshToken=\u003crefresh_token\u003e",
+                        "name": "Cookie",
                         "in": "header",
                         "required": true
                     }
@@ -146,7 +156,7 @@ const docTemplate = `{
         },
         "/kaucjomaty": {
             "get": {
-                "description": "Zwraca punkty zwrotu do wyświetlenia na mapie.",
+                "description": "Zwraca punkty zwrotu do wyświetlenia na mapie. Parametr details=true rozszerza odpowiedź o szczegóły punktów.",
                 "produces": [
                     "application/json"
                 ],
@@ -180,11 +190,34 @@ const docTemplate = `{
                         "description": "Status punktu",
                         "name": "status",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Zwróć szczegółowe dane punktów",
+                        "name": "details",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Numer strony (używany dla details=true)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Liczba punktów na stronie (używana dla details=true)",
+                        "name": "page_size",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Lista punktów; dla details=true zwracany jest model MapPointDetails",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -192,8 +225,17 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "400": {
+                        "description": "Nieprawidłowy numer strony lub rozmiar strony",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Błąd pobierania punktów zwrotu",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

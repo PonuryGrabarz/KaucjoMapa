@@ -11,6 +11,23 @@ type MapPoint struct {
 	Longitude     float64   `json:"longitude"`
 }
 
+type MapPointDetails struct {
+	ReturnPointID uuid.UUID `json:"return_point_id"`
+	Name          string    `json:"name"`
+	ShortName     string    `json:"short_name"`
+	BgColor       string    `json:"bg_color"`
+	TextColor     string    `json:"text_color"`
+	Latitude      float64   `json:"latitude"`
+	Longitude     float64   `json:"longitude"`
+	Address       string    `json:"address"`
+	Pet           bool      `json:"pet"`
+	Can           bool      `json:"can"`
+	Glass         bool      `json:"glass"`
+	OpeningHours  string    `json:"opening_hours"`
+	Description   string    `json:"description"`
+	CurrentStatus string    `json:"current_status"`
+}
+
 type User struct {
 	ID         uuid.UUID `json:"id"`
 	Email      string    `json:"email"`

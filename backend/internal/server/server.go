@@ -55,10 +55,17 @@ func (s *FiberServer) SeedAdminUser(ctx context.Context) error {
 }
 
 func (s *FiberServer) ScrapPoints() error {
-	kaucjomatyList, err := kaucjomatapi.GetKaucjomaty("data/kaucjomaty_polska.json")
+	kaucjomatyList, err := kaucjomatapi.GetKaucjomaty[[]kaucjomatapi.Kaucjomat](
+		"data/kaucjomaty_polska.json",
+	)
 	if err != nil {
 		return err
 	}
+	zabkaGeoJSON, err := kaucjomatapi.GetKaucjomaty[kaucjomatapi.FeatureCollection[kaucjomatapi.MapPoint]]("data/zabka_sklepy.geojson")
+	if err != nil {
+		return err
+	}
+	zabkaMapPoints := zabkaGeoJSON.Features
 
 	user, err := s.db.Queries.GetUserByUsername(context.Background(), adminUsername)
 	if err != nil {
@@ -77,7 +84,7 @@ func (s *FiberServer) ScrapPoints() error {
 
 	for _, kaucjomat := range kaucjomatyList {
 		address := sql.NullString{
-			String: kaucjomat.Address,
+			String: fmt.Sprintf("%s %s", kaucjomat.City, kaucjomat.Address),
 		}
 
 		if kaucjomat.Address == "" {
@@ -116,6 +123,58 @@ func (s *FiberServer) ScrapPoints() error {
 			fmt.Printf("Error creating point for kaucjomat %s: %v\n", kaucjomat.Brand, err)
 		}
 
+	}
+
+	for _, point := range zabkaMapPoints {
+
+		address := sql.NullString{
+			String: fmt.Sprintf("%s %s", point.Properties.Town, point.Properties.Street),
+		}
+		if point.Properties.Street == "" {
+			address.Valid = false
+		} else {
+			address.Valid = true
+		}
+
+		openingHours := sql.NullString{}
+		if point.Properties.OpeningHours.MonSun != "" {
+			openingHours.String = point.Properties.OpeningHours.MonSun
+			openingHours.Valid = true
+		}
+
+		if point.Properties.OpeningHours.MonSat != "" {
+			openingHours.String = point.Properties.OpeningHours.MonSat
+			openingHours.Valid = true
+		}
+
+		newPoint := database.CreatePointParams{
+			ID:           uuid.New(),
+			UserID:       userID,
+			Name:         "zabka",
+			Type:         database.PointTypeSklep,
+			Address:      address,
+			Latitude:     point.Properties.Lat,
+			Longitude:    point.Properties.Lon,
+			Pet:          true,
+			Can:          true,
+			Glass:        false,
+			OpeningHours: openingHours,
+			Description: sql.NullString{
+				String: "Automat do zwrotu butelek i puszek",
+				Valid:  true,
+			},
+			CurrentStatus:      database.PointStatusBrakInformacji,
+			ConfirmationsCount: 0,
+			RejectionsCount:    0,
+			IsVerified:         true,
+			CreatedAt:          time.Now(),
+			UpdatedAt:          time.Now(),
+		}
+
+		_, err := s.db.Queries.CreatePoint(context.Background(), newPoint)
+		if err != nil {
+			fmt.Printf("Error creating point for kaucjomat %s: %v\n", point.Properties.StoreID, err)
+		}
 	}
 
 	return nil
