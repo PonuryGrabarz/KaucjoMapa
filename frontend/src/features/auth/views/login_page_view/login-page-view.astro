@@ -1,0 +1,11 @@
+---
+import Styles from "./login-page-view.module.sass";
+import LoginForm from "../../components/login_form/login-form";
+import AuthHero from "../../components/auth_hero/auth-hero.astro";
+---
+
+<AuthHero />
+
+<section class:list={Styles["auth-body"]} aria-labelledby="login-form-title">
+  <LoginForm client:load />
+</section>

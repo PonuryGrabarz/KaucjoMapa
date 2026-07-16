@@ -1,0 +1,16 @@
+---
+import AuthLayout from "@layouts/auth_layout/auth-layout.astro";
+import MainLayout from "@layouts/main_layout/main-layout.astro";
+import RegisterPageView from "@features/auth/views/register_page_view/register-page-view.astro";
+---
+
+<MainLayout
+  title="KaucjoMapa – Rejestracja"
+  description="Załóż konto w KaucjoMapie, aby dodawać punkty zwrotu, aktualizować ich statusy i współtworzyć mapę."
+  canonical="/rejestracja"
+  noIndex
+>
+  <AuthLayout>
+    <RegisterPageView />
+  </AuthLayout>
+</MainLayout>

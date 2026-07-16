@@ -1,0 +1,27 @@
+.form-field
+  display: grid
+  gap: 7px
+  margin-bottom: 14px
+
+  label
+    color: var(--ink-800)
+    font-size: 13px
+    font-weight: 700
+
+  .form-field__input
+    --input-background: var(--paper-50)
+    --input-border-color: var(--ink-200)
+    --input-border-radius: 12px
+    --input-adornment-color: var(--muted-400)
+    --input-focus-outline-width: 4px
+    --input-focus-outline-offset: 0px
+    --input-focus-outline-color: color-mix(in srgb, var(--grass-800) 80%, transparent)
+    --input-error-border-color: var(--danger-500)
+    --input-error-focus-border-color: var(--danger-500)
+    --input-error-focus-outline-color: color-mix(in srgb, var(--danger-500) 30%, transparent)
+
+  .form-field__error
+    display: block
+    color: var(--danger-500)
+    font-size: 12px
+    line-height: 1.4

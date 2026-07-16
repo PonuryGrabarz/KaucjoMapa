@@ -1,0 +1,11 @@
+---
+import Styles from "./register-page-view.module.sass";
+import AuthHero from "../../components/auth_hero/auth-hero.astro";
+import RegisterForm from "../../components/register_form/register-form";
+---
+
+<AuthHero />
+
+<section class:list={Styles["auth-body"]} aria-labelledby="register-form-title">
+  <RegisterForm client:load />
+</section>
