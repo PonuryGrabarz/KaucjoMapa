@@ -3,8 +3,8 @@ import { Result } from "../result";
 export class LoginRequest {
   private readonly requestType = "login";
 
-  username: string;
-  password: string;
+  readonly username: string;
+  readonly password: string;
 
   private constructor(username: string, password: string) {
     this.username = username;
