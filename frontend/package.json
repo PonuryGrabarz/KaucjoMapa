@@ -10,9 +10,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "NODE_EXTRA_CA_CERTS=../.docker/nginx-proxy-manager/certs/kaucjo-mapa-ca.crt astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "NODE_EXTRA_CA_CERTS=../.docker/nginx-proxy-manager/certs/kaucjo-mapa-ca.crt astro preview",
     "astro": "astro",
     "lint": "eslint \"src/**/*.{js,mjs,cjs,jsx,ts,tsx,astro}\" \"*.{js,mjs,cjs,ts}\"",
     "lint:fix": "eslint \"src/**/*.{js,mjs,cjs,jsx,ts,tsx,astro}\" \"*.{js,mjs,cjs,ts}\" --fix"

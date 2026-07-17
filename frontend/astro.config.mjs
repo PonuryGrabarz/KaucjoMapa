@@ -9,6 +9,12 @@ import node from "@astrojs/node";
 export default defineConfig({
   integrations: [preact()],
 
+  server: {
+    host: true,
+    port: 4321,
+    allowedHosts: ["kaucjo-mapa.pl"],
+  },
+
   env: {
     validateSecrets: true,
     schema: {
