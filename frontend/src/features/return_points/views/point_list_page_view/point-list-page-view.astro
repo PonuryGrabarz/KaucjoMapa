@@ -1,0 +1,138 @@
+---
+import Styles from "./point-list-page-view.module.sass";
+import PointListItem from "../../components/point_list_item/point-list-item.astro";
+import PointListToolbar from "../../components/point_list_toolbar/point-list-toolbar.astro";
+import PointListPagination from "../../components/point_list_pagination/point-list-pagination.astro";
+
+import { apiClient } from "@api/api-client-factory";
+import { GetMapPointsRequest, type MapPointType, type MapPointStatus } from "@api/requests";
+
+import type { MapPointDetails } from "@api/responses/get-map-points-response";
+
+const PAGE_SIZE = 12;
+
+const POINT_TYPES: readonly MapPointType[] = ["butelkomat", "sklep", "punkt_skupu", "inny"];
+
+const POINT_STATUSES: readonly MapPointStatus[] = [
+    "dostepny",
+    "zapelniony",
+    "nieczynny",
+    "awaria",
+    "brak_informacji",
+    "do_weryfikacji",
+];
+
+const readEnum = <Value extends string>(
+    value: string | null,
+    allowedValues: readonly Value[],
+): Value | undefined => {
+    return value !== null && allowedValues.some((allowedValue) => allowedValue === value)
+        ? value as Value
+        : undefined;
+};
+
+const rawPage = Number(Astro.url.searchParams.get("page") ?? "1");
+const page = Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
+const pointType = readEnum(Astro.url.searchParams.get("type"), POINT_TYPES);
+const pointStatus = readEnum(Astro.url.searchParams.get("status"), POINT_STATUSES);
+const query = Astro.url.searchParams.get("query")?.trim() || undefined;
+
+const getMapPointsRequestResult = GetMapPointsRequest.create({
+    details: true,
+    mapPointType: pointType,
+    mapPointStatus: pointStatus,
+    page,
+    pageSize: PAGE_SIZE,
+    query,
+});
+
+const getMapPointsCountRequestResult = GetMapPointsRequest.create({
+    mapPointType: pointType,
+    mapPointStatus: pointStatus,
+    query,
+});
+
+if (getMapPointsRequestResult.isError) {
+    throw getMapPointsRequestResult.firstError;
+}
+
+if (getMapPointsCountRequestResult.isError) {
+    throw getMapPointsCountRequestResult.firstError;
+}
+
+const [getMapPointsResponseResult, getMapPointsCountResponseResult] = await Promise.all([
+    apiClient.send(getMapPointsRequestResult.value),
+    apiClient.send(getMapPointsCountRequestResult.value),
+]);
+
+if (getMapPointsResponseResult.isError) {
+    throw getMapPointsResponseResult.firstError;
+}
+
+if (getMapPointsCountResponseResult.isError) {
+    throw getMapPointsCountResponseResult.firstError;
+}
+
+const mapPoints = getMapPointsResponseResult.value.points as MapPointDetails[];
+const totalPointCount = getMapPointsCountResponseResult.value.points.length;
+const totalPages = Math.max(1, Math.ceil(totalPointCount / PAGE_SIZE));
+const paginationSearchParams = new URLSearchParams();
+
+const getPointCountLabel = (count: number): string => {
+    if (count === 1) return "punkt";
+
+    const lastTwoDigits = count % 100;
+    const lastDigit = count % 10;
+
+    return lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)
+        ? "punkty"
+        : "punktów";
+};
+
+if (query) paginationSearchParams.set("query", query);
+if (pointType) paginationSearchParams.set("type", pointType);
+if (pointStatus) paginationSearchParams.set("status", pointStatus);
+---
+
+<section
+    class={Styles["point-list"]}
+    aria-labelledby="point-list-page-title"
+    data-page={page}
+>
+    <h1 id="point-list-page-title" class={Styles["point-list__title"]}>
+        Lista punktów zwrotu opakowań kaucyjnych
+    </h1>
+
+    <PointListToolbar query={query ?? ""} pointType={pointType} pointStatus={pointStatus} />
+
+    <p class={Styles["point-list__summary"]}>
+        {mapPoints.length === 0
+            ? "Brak wyników na tej stronie"
+            : `Wyświetlono ${mapPoints.length} z ${totalPointCount} ${getPointCountLabel(totalPointCount)}`}
+    </p>
+
+    <div
+        class={Styles["point-list__scrollable"]}
+        role="region"
+        aria-label="Wyniki wyszukiwania punktów zwrotu"
+        tabindex="0"
+    >
+        {mapPoints.length > 0 ? (
+            <ul class={Styles["point-list__grid"]}>
+                {mapPoints.map((point) => <PointListItem point={point} />)}
+            </ul>
+        ) : (
+            <div class={Styles["point-list__empty"]}>
+                <h2>Nie znaleziono punktów</h2>
+                <p>Zmień wyszukiwaną frazę lub filtry i spróbuj ponownie.</p>
+                <a href="/punkty">Wyczyść wyszukiwanie i filtry</a>
+            </div>
+        )}
+    </div>
+
+    <PointListPagination
+        page={page}
+        totalPages={totalPages}
+        searchParams={paginationSearchParams.toString()}
+    />
+</section>

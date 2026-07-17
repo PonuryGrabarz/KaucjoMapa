@@ -1,0 +1,106 @@
+---
+import Styles from "./point-list-toolbar.module.sass";
+
+import Button from "@components/button/button";
+import Input from "@components/input/input";
+
+import type { MapPointStatus, MapPointType } from "@api/requests";
+
+interface Props {
+    query: string;
+    pointType?: MapPointType;
+    pointStatus?: MapPointStatus;
+}
+
+const POINT_TYPE_OPTIONS: ReadonlyArray<{ value: MapPointType; label: string }> = [
+    { value: "butelkomat", label: "Butelkomat" },
+    { value: "sklep", label: "Sklep" },
+    { value: "punkt_skupu", label: "Punkt skupu" },
+    { value: "inny", label: "Inny typ" },
+];
+
+const POINT_STATUS_OPTIONS: ReadonlyArray<{ value: MapPointStatus; label: string }> = [
+    { value: "dostepny", label: "Dostępny" },
+    { value: "zapelniony", label: "Zapełniony" },
+    { value: "nieczynny", label: "Nieczynny" },
+    { value: "awaria", label: "Awaria" },
+    { value: "brak_informacji", label: "Brak informacji" },
+    { value: "do_weryfikacji", label: "Do weryfikacji" },
+];
+
+const { query, pointType, pointStatus } = Astro.props;
+
+const hasActiveCriteria = Boolean(query || pointType || pointStatus);
+---
+
+<section class={Styles["point-list-toolbar"]} aria-label="Narzędzia listy punktów zwrotu">
+    <form
+        class={Styles["point-list-toolbar__form"]}
+        method="get"
+        action="/punkty"
+        role="search"
+        aria-label="Wyszukiwanie i filtrowanie punktów zwrotu"
+    >
+        <div class={Styles["point-list-toolbar__search"]}>
+            <label class={Styles["point-list-toolbar__visually-hidden"]} for="point-list-query">
+                Wyszukaj punkt zwrotu
+            </label>
+
+            <Input
+                id="point-list-query"
+                name="query"
+                type="search"
+                defaultValue={query}
+                fullWidth
+                autoComplete="off"
+                enterKeyHint="search"
+                startAdornment="material-symbols:search"
+                placeholder="Nazwa, adres lub kod pocztowy"
+            />
+        </div>
+
+        <label class={Styles["point-list-toolbar__filter"]}>
+            <span>Typ punktu</span>
+            <select name="type">
+                <option value="" selected={!pointType}>Wszystkie typy</option>
+                {POINT_TYPE_OPTIONS.map(({ value, label }) => (
+                    <option value={value} selected={pointType === value}>{label}</option>
+                ))}
+            </select>
+        </label>
+
+        <label class={Styles["point-list-toolbar__filter"]}>
+            <span>Status punktu</span>
+            <select name="status">
+                <option value="" selected={!pointStatus}>Wszystkie statusy</option>
+                {POINT_STATUS_OPTIONS.map(({ value, label }) => (
+                    <option value={value} selected={pointStatus === value}>{label}</option>
+                ))}
+            </select>
+        </label>
+
+        <div class={Styles["point-list-toolbar__actions"]}>
+            <Button
+                client:load
+                class={Styles["point-list-toolbar__submit"]}
+                type="submit"
+                variant="contained"
+                startIcon="material-symbols:search"
+            >
+                Pokaż wyniki
+            </Button>
+
+            {hasActiveCriteria && (
+                <Button
+                    client:load
+                    class={Styles["point-list-toolbar__clear"]}
+                    href="/punkty"
+                    variant="outlined"
+                    startIcon="mdi:filter-off-outline"
+                >
+                    Wyczyść
+                </Button>
+            )}
+        </div>
+    </form>
+</section>
