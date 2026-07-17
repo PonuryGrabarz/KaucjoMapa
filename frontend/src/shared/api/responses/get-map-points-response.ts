@@ -7,6 +7,23 @@ export class MapPoint {
   longitude!: number;
 }
 
+export class MapPointDetails extends MapPoint {
+  name!: string;
+  address!: string;
+  pet!: boolean;
+  can!: boolean;
+  glass!: boolean;
+  openingHours!: string;
+  description!: string;
+  currentStatus!:
+    | "dostepny"
+    | "zapelniony"
+    | "nieczynny"
+    | "awaria"
+    | "brak_informacji"
+    | "do_weryfikacji";
+}
+
 export class GetMapPointsResponse {
-  points!: MapPoint[];
+  points!: MapPoint[] | MapPointDetails[];
 }

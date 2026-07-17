@@ -5,10 +5,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export class RegisterRequest {
   private readonly requestType = "register";
 
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
+  readonly username: string;
+  readonly email: string;
+  readonly password: string;
+  readonly confirmPassword: string;
 
   private constructor(
     username: string,
