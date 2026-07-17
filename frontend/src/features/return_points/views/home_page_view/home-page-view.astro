@@ -6,7 +6,19 @@ import Toolbar from "../../components/toolbar/toolbar";
 import { apiClient } from "@api/api-client-factory";
 import { GetMapPointsRequest } from "@api/requests";
 
-const initialReturnPoints = await apiClient.send<GetMapPointsRequest>(new GetMapPointsRequest());
+const getMapPointsRequestResult = GetMapPointsRequest.create();
+
+if (getMapPointsRequestResult.isError) {
+    throw getMapPointsRequestResult.firstError;
+}
+
+const getMapPointsResponseResult = await apiClient.send(getMapPointsRequestResult.value);
+
+if (getMapPointsResponseResult.isError) {
+    throw getMapPointsResponseResult.firstError;
+}
+
+const initialReturnPoints = getMapPointsResponseResult.value;
 ---
 
 <section

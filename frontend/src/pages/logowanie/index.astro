@@ -1,0 +1,16 @@
+---
+import MainLayout from "@layouts/main_layout/main-layout.astro";
+import AuthLayout from "@layouts/auth_layout/auth-layout.astro";
+import LoginPageView from "@features/auth/views/login_page_view/login-page-view.astro";
+---
+
+<MainLayout
+  title="KaucjoMapa – Logowanie"
+  description="Zaloguj się do KaucjoMapy, aby zarządzać swoim kontem i korzystać z funkcji społecznościowych mapy punktów zwrotu."
+  canonical="/logowanie"
+  noIndex
+>
+  <AuthLayout>
+    <LoginPageView />
+  </AuthLayout>
+</MainLayout>

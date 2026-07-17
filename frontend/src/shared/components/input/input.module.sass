@@ -69,7 +69,37 @@
 		margin-inline-start: var(--input-adornment-offset, 12px)
 
 	.input__end-adornment
+		gap: var(--input-end-adornment-gap, 4px)
 		margin-inline-end: var(--input-adornment-offset, 12px)
+
+	.input__password-toggle
+		display: inline-grid
+		place-items: center
+		flex: 0 0 auto
+		width: var(--input-password-toggle-size, 1.875rem)
+		height: var(--input-password-toggle-size, 1.875rem)
+		padding: 0
+		margin: 0
+		background: transparent
+		color: var(--input-password-toggle-color, var(--input-adornment-color, currentColor))
+		font: inherit
+		font-size: var(--input-password-toggle-icon-size, 1.125rem)
+		line-height: 1
+		border: 0
+		border-radius: var(--input-password-toggle-border-radius, 50%)
+		outline: none
+		cursor: pointer
+
+		&:hover:not(:disabled)
+			background: var(--input-password-toggle-hover-background, color-mix(in srgb, currentColor 8%, transparent))
+
+		&:focus-visible
+			outline: var(--input-password-toggle-focus-outline-width, 2px) solid var(--input-password-toggle-focus-outline-color, currentColor)
+			outline-offset: var(--input-password-toggle-focus-outline-offset, 1px)
+
+		&:disabled
+			cursor: not-allowed
+			opacity: var(--input-password-toggle-disabled-opacity, 0.55)
 
 	.input__control
 		flex: 1 1 auto

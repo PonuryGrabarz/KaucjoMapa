@@ -53,7 +53,7 @@ siteUrl.search = "";
 const imageUrl = image ? new URL(image, baseUrl) : undefined;
 
 const robots = noIndex
-    ? "noindex, nofollow"
+    ? "noindex, follow"
     : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
 
 const defaultStructuredData = {
@@ -172,7 +172,7 @@ const serializedStructuredData = JSON.stringify(
         <slot name="head" />
     </head>
 
-    <body transition:name="root">
+    <body>
         <slot />
     </body>
 </html>

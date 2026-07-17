@@ -23,13 +23,15 @@ export type ButtonProps = ButtonNativeProps & {
 	loadingPosition?: ButtonLoadingPosition;
 	fullWidth?: boolean;
 	startIcon?: string | ComponentChildren;
+  startIconColored?: boolean;
 	endIcon?: string | ComponentChildren;
+  endIconColored?: boolean;
 	children?: ComponentChildren;
 };
 
-const renderIcon = (icon: string | ComponentChildren): ComponentChildren => {
+const renderIcon = (icon: string | ComponentChildren, colored?: boolean): ComponentChildren => {
 	return typeof icon === "string"
-		? <IconifyIcon class={Styles["btn__icon"]} icon={icon} aria-hidden="true" />
+		? <IconifyIcon class={Styles["btn__icon"]} icon={icon} colored={colored} aria-hidden="true" />
 		: icon;
 };
 
@@ -39,7 +41,9 @@ export default function Button({
 	loadingPosition = "center",
 	fullWidth = false,
 	startIcon,
+	startIconColored,
 	endIcon,
+	endIconColored,
 	children,
 	...buttonBaseProps
 }: ButtonProps) {
@@ -59,7 +63,7 @@ export default function Button({
 			data-full-width={fullWidth ? "true" : undefined}
 			data-disabled={isDisabled ? "true" : undefined}
 		>
-			{loading && loadingPosition === "start" ? spinner : renderIcon(startIcon)}
+			{loading && loadingPosition === "start" ? spinner : renderIcon(startIcon, startIconColored)}
 
 			<span class={Styles["btn__label"]}>{children}</span>
 
@@ -67,7 +71,7 @@ export default function Button({
 				<span class={Styles["btn__loading-center"]}>{spinner}</span>
 			)}
 
-			{loading && loadingPosition === "end" ? spinner : renderIcon(endIcon)}
+			{loading && loadingPosition === "end" ? spinner : renderIcon(endIcon, endIconColored)}
 		</ButtonBase>
 	);
 }

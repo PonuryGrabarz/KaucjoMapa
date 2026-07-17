@@ -1,6 +1,8 @@
 import Styles from "./input.module.sass";
 import IconifyIcon from "@components/iconify_icon/iconify-icon";
 
+import { useState } from "preact/hooks";
+
 import type { ComponentChildren, CSSProperties, InputHTMLAttributes, JSX, Ref } from "preact";
 
 type NativeInputProps = Omit<
@@ -19,6 +21,7 @@ export type InputProps = NativeInputProps & {
 	error?: boolean;
 	startAdornment?: string | ComponentChildren;
 	endAdornment?: string | ComponentChildren;
+	showPasswordToggle?: boolean;
 };
 
 const hasAdornment = (adornment: ComponentChildren): boolean => {
@@ -45,6 +48,7 @@ export default function Input({
 	error = false,
 	startAdornment,
 	endAdornment,
+	showPasswordToggle = false,
 	class: className,
 	className: nativeClassName,
 	inputClass,
@@ -53,9 +57,9 @@ export default function Input({
 	inputRef,
 	...inputProps
 }: InputProps): JSX.Element {
-	const hasStartAdornment = hasAdornment(startAdornment);
+	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-	const hasEndAdornment = hasAdornment(endAdornment);
+	const hasStartAdornment = hasAdornment(startAdornment);
 
 	const hasError = error || isAriaInvalid(inputProps["aria-invalid"]);
 
@@ -68,6 +72,14 @@ export default function Input({
 	const inputType = typeof inputProps.type === "string" && inputProps.type
 		? inputProps.type
 		: "text";
+
+	const hasPasswordToggle = showPasswordToggle && inputType === "password";
+
+	const hasEndAdornment = hasAdornment(endAdornment) || hasPasswordToggle;
+
+	const renderedInputType = hasPasswordToggle && isPasswordVisible
+		? "text"
+		: inputProps.type;
 
 	const rootClasses = [
 		Styles["input"],
@@ -90,6 +102,7 @@ export default function Input({
 			data-full-width={fullWidth ? "true" : undefined}
 			data-adorned-start={hasStartAdornment ? "true" : undefined}
 			data-adorned-end={hasEndAdornment ? "true" : undefined}
+			data-password-visible={hasPasswordToggle && isPasswordVisible ? "true" : undefined}
 		>
 			{hasStartAdornment && (
 				<span class={Styles["input__start-adornment"]}>
@@ -99,6 +112,7 @@ export default function Input({
 
 			<input
 				{...inputProps}
+				type={renderedInputType}
 				ref={inputRef}
 				class={controlClasses}
 				style={inputStyle}
@@ -107,7 +121,24 @@ export default function Input({
 
 			{hasEndAdornment && (
 				<span class={Styles["input__end-adornment"]}>
-					{renderAdornment(endAdornment)}
+					{hasAdornment(endAdornment) && renderAdornment(endAdornment)}
+
+					{hasPasswordToggle && (
+						<button
+							class={Styles["input__password-toggle"]}
+							type="button"
+							disabled={isDisabled}
+							aria-label={isPasswordVisible ? "Ukryj hasło" : "Pokaż hasło"}
+							aria-pressed={isPasswordVisible}
+							aria-controls={typeof inputProps.id === "string" ? inputProps.id : undefined}
+							onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+						>
+							<IconifyIcon
+								icon={isPasswordVisible ? "mdi:eye-off-outline" : "mdi:eye-outline"}
+								aria-hidden="true"
+							/>
+						</button>
+					)}
 				</span>
 			)}
 		</span>

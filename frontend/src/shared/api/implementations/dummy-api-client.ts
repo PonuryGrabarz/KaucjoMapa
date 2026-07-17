@@ -1,9 +1,56 @@
 import ApiClientBase from "../abstractions/api-client-base";
 
-import type { GetMapPointsRequest } from "../requests/get-map-points-request";
+import { JwtToken } from "../jwt-token";
+
+import type { GetMapPointsRequest, LoginRequest, RegisterRequest } from "../requests";
+import type { LoginResponse, RegisterResponse } from "../responses";
 import type { GetMapPointsResponse, MapPoint } from "../responses/get-map-points-response";
 
 const WAIT_TIME = 2500;
+const DUMMY_USER_ID = "00000000-0000-4000-8000-000000000001";
+const DUMMY_TIMESTAMP = "2026-07-16 09:15:38.93382 +0000 UTC";
+
+const encodeJwtPart = (value: Record<string, unknown>): string => {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+
+  return btoa(binary)
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/u, "");
+};
+
+const createDummyToken = (username: string, email: string): JwtToken => {
+  const issuedAt = Math.floor(Date.now() / 1_000);
+  const expiresAt = issuedAt + 3_600;
+  const header = encodeJwtPart({ alg: "HS256", typ: "JWT" });
+  const claims = encodeJwtPart({
+    iss: "KaucjoMapa",
+    sub: DUMMY_USER_ID,
+    username,
+    email,
+    iat: issuedAt,
+    exp: expiresAt,
+  });
+
+  return new JwtToken(`${header}.${claims}.dummy-signature`);
+};
+
+const createDummyAuthResponse = <TResponse extends LoginResponse | RegisterResponse>(
+  username: string,
+  email: string,
+): TResponse =>
+  ({
+    createdAt: DUMMY_TIMESTAMP,
+    email,
+    id: DUMMY_USER_ID,
+    isAdmin: false,
+    isBanned: false,
+    reputation: 1,
+    token: createDummyToken(username, email),
+    updatedAt: DUMMY_TIMESTAMP,
+    username,
+  }) as TResponse;
 
 export class DummyApiClient extends ApiClientBase {
   constructor() {
@@ -81,5 +128,27 @@ export class DummyApiClient extends ApiClientBase {
     return new Promise((resolve) => setTimeout(() => {
       resolve(dummyResponse);
     }, WAIT_TIME))
+  }
+
+  protected login(request: LoginRequest): Promise<LoginResponse> {
+    const response = createDummyAuthResponse<LoginResponse>(
+      request.username,
+      `${request.username}@example.local`,
+    );
+
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(response), WAIT_TIME);
+    });
+  }
+
+  protected register(request: RegisterRequest): Promise<RegisterResponse> {
+    const response = createDummyAuthResponse<RegisterResponse>(
+      request.username,
+      request.email,
+    );
+
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(response), WAIT_TIME);
+    });
   }
 }

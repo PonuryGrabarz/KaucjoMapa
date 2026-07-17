@@ -490,4 +490,6 @@ paths:
       summary: Rejestracja użytkownika
       tags:
       - users
+schemes:
+- https
 swagger: "2.0"

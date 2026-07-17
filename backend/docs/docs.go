@@ -736,7 +736,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:3000",
 	BasePath:         "/",
-	Schemes:          []string{},
+	Schemes:          []string{"https"},
 	Title:            "KaucjoMapa API",
 	Description:      "To jest serwer API dla aplikacji KaucjoMapa.",
 	InfoInstanceName: "swagger",
