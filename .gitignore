@@ -9,4 +9,3 @@ coverage/
 *.log
 .DS_Store
 /.docker/
-/backend/certs/
