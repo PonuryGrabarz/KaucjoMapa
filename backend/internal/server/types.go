@@ -1,6 +1,13 @@
 package server
 
-import "github.com/google/uuid"
+import (
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+)
+
+type structValidator struct {
+	validate *validator.Validate
+}
 
 type MapPoint struct {
 	ReturnPointID uuid.UUID `json:"return_point_id"`

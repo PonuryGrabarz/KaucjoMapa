@@ -13,13 +13,15 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-func MakeJWT(userID uuid.UUID, username string, email string, tokenSecret string, expiresIn time.Duration) (string, error) {
+func MakeJWT(userID uuid.UUID, expiresIn time.Duration, isAdmin bool, reputation int32, username, email, tokenSecret string) (string, error) {
 	issuedAt := jwt.NewNumericDate(time.Now())
 	expiresAt := jwt.NewNumericDate(time.Now().Add(expiresIn))
 
 	claims := JWTClaims{
-		Username: username,
-		Email:    email,
+		Username:   username,
+		Email:      email,
+		IsAdmin:    isAdmin,
+		Reputation: reputation,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "KaucjoMapa",
 			IssuedAt:  issuedAt,

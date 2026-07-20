@@ -1,0 +1,23 @@
+package auth
+
+import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+)
+
+type JWTClaims struct {
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	IsAdmin    bool   `json:"is_admin"`
+	Reputation int32  `json:"reputation"`
+	jwt.RegisteredClaims
+}
+
+type ITokenSigner interface {
+	MakeJWT(userID uuid.UUID, expiresIn time.Duration, isAdmin bool, reputation int32, username, email, tokenSecret string) (string, error)
+	MakeRefreshToken() string
+	ValidateJWT(tokenString, tokenSecret string) (JWTClaims, error)
+	GetBearerToken(headers map[string][]string) (string, error)
+}

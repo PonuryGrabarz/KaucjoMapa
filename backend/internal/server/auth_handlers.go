@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
@@ -21,7 +20,7 @@ import (
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		server.LoginUserHandler.parameters	true	"Dane logowania"
-//	@Success		200		{object}	User
+//	@Success		200		{object}	server.LoginUserHandler.res
 //	@Header			200		{string}	Set-Cookie	"RefreshToken=<token>; Path=/auth; HttpOnly; SameSite=Strict"
 //	@Failure		401		{object}	map[string]string
 //	@Failure		500		{object}	map[string]string
@@ -31,6 +30,10 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 	type parameters struct {
 		Password string `json:"password"`
 		Username string `json:"username"`
+	}
+
+	type res struct {
+		Token string `json:"token"`
 	}
 
 	params := parameters{}
@@ -68,7 +71,7 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 			IsBanned:   user.IsBanned,
 		}
 
-		token, err := auth.MakeJWT(loggedInUser.ID, user.Username, user.Email, JWTSecret, expTime)
+		token, err := auth.MakeJWT(loggedInUser.ID, expTime, loggedInUser.IsAdmin, loggedInUser.Reputation, loggedInUser.Username, loggedInUser.Email, JWTSecret)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate JWT token")
 		}
@@ -85,8 +88,7 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 			RevokedAt: sql.NullTime{},
 		})
 		if err != nil {
-			//respondWithError(w, 500, "server error")
-			return err
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to create refresh token")
 		}
 
 		loggedInUser.Token = token
@@ -100,9 +102,10 @@ func (s *FiberServer) LoginUserHandler(c fiber.Ctx) error {
 		cookie.SameSite = "strict"
 		cookie.Secure = true
 
-		fmt.Println(cookie)
 		c.Cookie(cookie)
-		return c.JSON(loggedInUser)
+		return c.JSON(res{
+			Token: token,
+		})
 	}
 
 	return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
@@ -154,7 +157,7 @@ func (s *FiberServer) refreshTokenHandler(c fiber.Ctx) error {
 	}
 
 	expTime := time.Second * 3600
-	newToken, err := auth.MakeJWT(user.ID, user.Username, user.Email, JWTSecret, expTime)
+	newToken, err := auth.MakeJWT(user.ID, expTime, user.IsAdmin, user.Reputation, user.Username, user.Email, JWTSecret)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate new JWT token")
 	}

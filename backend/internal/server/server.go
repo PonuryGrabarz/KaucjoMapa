@@ -10,6 +10,7 @@ import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/database"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/kaucjomatapi"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/server/middleware"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/encryptcookie"
 	"github.com/gofiber/fiber/v3/middleware/helmet"
@@ -26,12 +27,18 @@ type FiberServer struct {
 	db database.Service
 }
 
+// Validator needs to implement the Validate method
+func (v *structValidator) Validate(out any) error {
+	return v.validate.Struct(out)
+}
+
 func New() *FiberServer {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
-			ServerHeader: "KaucjoMapa",
-			AppName:      "KaucjoMapa",
-			ErrorHandler: middleware.ErrorHandler,
+			ServerHeader:    "KaucjoMapa",
+			AppName:         "KaucjoMapa",
+			ErrorHandler:    middleware.ErrorHandler,
+			StructValidator: &structValidator{validate: validator.New()},
 		}),
 
 		db: database.NewConn(),

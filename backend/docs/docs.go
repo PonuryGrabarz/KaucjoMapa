@@ -491,7 +491,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.User"
+                            "$ref": "#/definitions/server.LoginUserHandler.res"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -634,6 +634,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.LoginUserHandler.res": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }

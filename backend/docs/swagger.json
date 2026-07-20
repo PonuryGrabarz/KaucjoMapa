@@ -488,7 +488,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.User"
+                            "$ref": "#/definitions/server.LoginUserHandler.res"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -631,6 +631,14 @@
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.LoginUserHandler.res": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }

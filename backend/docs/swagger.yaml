@@ -35,6 +35,11 @@ definitions:
       username:
         type: string
     type: object
+  server.LoginUserHandler.res:
+    properties:
+      token:
+        type: string
+    type: object
   server.MapPoint:
     properties:
       bg_color:
@@ -434,7 +439,7 @@ paths:
               description: RefreshToken=<token>; Path=/auth; HttpOnly; SameSite=Strict
               type: string
           schema:
-            $ref: '#/definitions/server.User'
+            $ref: '#/definitions/server.LoginUserHandler.res'
         "400":
           description: Bad Request
           schema:

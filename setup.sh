@@ -9,6 +9,9 @@ readonly HOST_IP="127.0.0.1"
 readonly HOSTS_FILE="/etc/hosts"
 readonly HOSTS_MARKER="# kaucjomapa-dev"
 readonly HOSTS_ENTRY="${HOST_IP} ${DOMAIN} ${HOSTS_MARKER}"
+readonly PROXY_BRIDGE_INTERFACE="kaucjomapa0"
+readonly FIREWALL_RULE_COMMENT="kaucjomapa-dev"
+readonly PROXY_UPSTREAM_PORTS=(4321 3000)
 readonly CERTIFICATES_DIR="${SCRIPT_DIR}/.docker/nginx-proxy-manager/certs"
 readonly CERTIFICATE_FILE="${CERTIFICATES_DIR}/kaucjo-mapa.crt"
 readonly CERTIFICATE_KEY_FILE="${CERTIFICATES_DIR}/kaucjo-mapa.key"
@@ -99,6 +102,34 @@ remove_host_entry() {
 	printf 'Removed the managed %s entry from %s.\n' "${DOMAIN}" "${HOSTS_FILE}"
 }
 
+ufw_is_active() {
+	command -v ufw >/dev/null 2>&1 && run_as_root ufw status | grep -q '^Status: active$'
+}
+
+add_firewall_rules() {
+	local port
+
+	if ! ufw_is_active; then
+		return
+	fi
+
+	for port in "${PROXY_UPSTREAM_PORTS[@]}"; do
+		run_as_root ufw allow in on "${PROXY_BRIDGE_INTERFACE}" to any port "${port}" proto tcp comment "${FIREWALL_RULE_COMMENT}"
+	done
+}
+
+remove_firewall_rules() {
+	local port
+
+	if ! ufw_is_active; then
+		return
+	fi
+
+	for port in "${PROXY_UPSTREAM_PORTS[@]}"; do
+		run_as_root ufw --force delete allow in on "${PROXY_BRIDGE_INTERFACE}" to any port "${port}" proto tcp comment "${FIREWALL_RULE_COMMENT}" || true
+	done
+}
+
 certificate_is_valid() {
 	local certificate_public_key
 	local private_key_public_key
@@ -164,6 +195,7 @@ start() {
 	ensure_local_certificate
 	PUID="$(id -u)" PGID="$(id -g)" \
 		docker compose -f "${COMPOSE_FILE}" up -d --wait --wait-timeout 120 nginx-proxy-manager
+	add_firewall_rules
 	add_host_entry
 	printf 'Nginx Proxy Manager: http://localhost:81\n'
 	printf 'KaucjoMapa: https://%s (HTTP/2 and HTTP/3)\n' "${DOMAIN}"
@@ -172,6 +204,7 @@ start() {
 
 stop() {
 	require_hosts_access
+	remove_firewall_rules
 	docker compose -f "${COMPOSE_FILE}" down
 	remove_host_entry
 }
