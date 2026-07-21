@@ -13,13 +13,23 @@ import (
 	"github.com/google/uuid"
 )
 
-type TokenSigner struct{}
+type TokenSigner struct {
+	JWTSecret      string
+	ExpirationTime time.Duration
+}
 
 var _ auth.ITokenSigner = (*TokenSigner)(nil)
 
-func (t *TokenSigner) MakeJWT(userID uuid.UUID, expiresIn time.Duration, isAdmin bool, reputation int32, username, email, tokenSecret string) (string, error) {
+func NewTokenSigner(jwtSecret string, expTime time.Duration) *TokenSigner {
+	return &TokenSigner{
+		JWTSecret:      jwtSecret,
+		ExpirationTime: expTime,
+	}
+}
+
+func (t *TokenSigner) MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, username, email string) (string, error) {
 	issuedAt := jwt.NewNumericDate(time.Now())
-	expiresAt := jwt.NewNumericDate(time.Now().Add(expiresIn))
+	expiresAt := jwt.NewNumericDate(time.Now().Add(t.ExpirationTime))
 
 	claims := auth.JWTClaims{
 		Username:   username,
@@ -36,7 +46,7 @@ func (t *TokenSigner) MakeJWT(userID uuid.UUID, expiresIn time.Duration, isAdmin
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString([]byte(tokenSecret))
+	tokenString, err := token.SignedString([]byte(t.JWTSecret))
 	if err != nil {
 		return "", err
 	}
@@ -51,9 +61,9 @@ func (t *TokenSigner) MakeRefreshToken() string {
 	return hex.EncodeToString(refreshToken[:])
 }
 
-func (t *TokenSigner) ValidateJWT(tokenString, tokenSecret string) (auth.JWTClaims, error) {
+func (t *TokenSigner) ValidateJWT(tokenString string) (auth.JWTClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &auth.JWTClaims{}, func(token *jwt.Token) (any, error) {
-		return []byte(tokenSecret), nil
+		return []byte(t.JWTSecret), nil
 	})
 	if err != nil {
 		return auth.JWTClaims{}, err

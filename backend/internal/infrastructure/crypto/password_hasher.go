@@ -9,6 +9,10 @@ type PasswordHasher struct{}
 
 var _ auth.IPasswordHasher = (*PasswordHasher)(nil)
 
+func NewHasher() *PasswordHasher {
+	return &PasswordHasher{}
+}
+
 func (p *PasswordHasher) CheckPasswordHash(password, hash string) (bool, error) {
 	match, err := argon2id.ComparePasswordAndHash(password, hash)
 	if err != nil {

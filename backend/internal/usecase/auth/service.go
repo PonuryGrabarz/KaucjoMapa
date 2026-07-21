@@ -18,7 +18,7 @@ type refreshTokenService struct {
 	refreshTokenRepo IRefreshTokenRepository
 }
 
-func NewService(refreshTokenRepo IRefreshTokenRepository) IRefreshTokenService {
+func NewRefreshTokenService(refreshTokenRepo IRefreshTokenRepository) IRefreshTokenService {
 	return &refreshTokenService{
 		refreshTokenRepo: refreshTokenRepo,
 	}
