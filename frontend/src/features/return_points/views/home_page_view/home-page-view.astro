@@ -19,6 +19,7 @@ if (getMapPointsResponseResult.isError) {
 }
 
 const initialReturnPoints = getMapPointsResponseResult.value;
+const selectedPointId = Astro.url.searchParams.get("selectedPointId") ?? undefined;
 ---
 
 <section
@@ -34,5 +35,5 @@ const initialReturnPoints = getMapPointsResponseResult.value;
 
     <Toolbar client:load />
 
-    <Map client:load initialReturnPoints={initialReturnPoints} />
+    <Map client:load initialReturnPoints={initialReturnPoints} selectedPoint={selectedPointId} />
 </section>
