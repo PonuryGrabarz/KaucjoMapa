@@ -1,10 +1,19 @@
 ---
+import Topbar from "@components/topbar/topbar.astro";
 import AppLayout from "@layouts/app_layout/app-layout.astro";
 import MainLayout from "@layouts/main_layout/main-layout.astro";
+import HistoryPageView from "@features/user_activity/views/history_page_view/history-page-view.astro";
 ---
 
-<MainLayout>
+<MainLayout
+    title="Historia zwrotów | KaucjoMapa"
+    description="Sprawdź historię swoich zwrotów opakowań kaucyjnych, statystyki i odzyskaną kaucję w KaucjoMapie."
+    canonical="/historia"
+    noIndex
+>
     <AppLayout>
+      <Topbar title="Historia zwrotów" />
 
+      <HistoryPageView />
     </AppLayout>
 </MainLayout>

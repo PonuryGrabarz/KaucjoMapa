@@ -1,0 +1,32 @@
+---
+import Styles from "./history-activity-item.module.sass";
+import IconifyIcon from "@components/iconify_icon/iconify-icon";
+
+import type { HistoryActivityItem } from "../../lib/history-mock-data";
+
+type Props = HistoryActivityItem;
+
+const { icon, title, timestamp, isoTimestamp, pills, amount } = Astro.props;
+---
+
+<li class={Styles["history-activity-item"]}>
+    <span class={Styles["history-activity-item__icon"]} aria-hidden="true">
+        <IconifyIcon icon={icon} />
+    </span>
+
+    <div class={Styles["history-activity-item__content"]}>
+        <strong>{title}</strong>
+
+        <p><time datetime={isoTimestamp}>{timestamp}</time></p>
+
+        <span class={Styles["history-activity-item__content__pills"]}>
+            {pills.map((pill) => (
+                <span class={Styles["history-activity-item__content__pills__pill"]}>{pill}</span>
+            ))}
+        </span>
+    </div>
+
+    <div class={Styles["history-activity-item__amount"]}>
+        <span class={Styles["history-activity-item__amount__value"]}>{amount}</span>
+    </div>
+</li>
