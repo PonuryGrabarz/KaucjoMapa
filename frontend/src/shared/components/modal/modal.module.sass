@@ -42,9 +42,21 @@
 		gap: 16px
 		padding: 0 16px
 
+	.modal__heading
+		flex: 1 1 auto
+		min-width: 0
+
 	.modal__title
+		margin: 0
 		font-size: var(--modal-title-font-size, 20px)
 		line-height: 1.2
+
+	.modal__subtitle
+		margin-top: 4px
+		color: var(--modal-subtitle-color, var(--muted-500))
+		font-size: var(--modal-subtitle-font-size, 13px)
+		font-weight: var(--modal-subtitle-font-weight, 500)
+		line-height: 1.45
 
 	.modal__close
 		display: inline-flex
@@ -86,6 +98,9 @@
 
 		.modal__title
 			font-size: var(--modal-desktop-title-font-size, 24px)
+
+		.modal__subtitle
+			font-size: var(--modal-desktop-subtitle-font-size, 14px)
 
 		.modal__body
 			padding: 12px 24px 24px
