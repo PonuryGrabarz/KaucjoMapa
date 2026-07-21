@@ -1,7 +1,10 @@
-import Styles from "./map.module.sass";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import Styles from "./map.module.sass";
+
+import Modal from "@components/modal/modal";
 import IconButton from "@components/icon_button/icon-button";
+
 import {
     createMapPinImageData,
     getMapPinImageId,
@@ -17,6 +20,7 @@ import {
     userLocation,
     type PointStatus,
     type PointType,
+    type UserLocation,
 } from "../../store";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
@@ -29,12 +33,15 @@ import type {
     MapGeoJSONFeature,
     MapLayerMouseEvent,
 } from "maplibre-gl";
+import Button from "@/shared/components/button/button";
 
 type MapProps = {
     initialReturnPoints: GetMapPointsResponse;
+    selectedPoint?: string;
 };
 
 type MapStatus = "loading" | "ready" | "error";
+type UserLocationMarkerStatus = "hidden" | "updating" | "visible" | "error";
 
 type MapPointMetadata = {
     name: string;
@@ -62,6 +69,18 @@ type MapPointFeatureCollection = {
     }>;
 };
 
+type UserLocationFeatureCollection = {
+    type: "FeatureCollection";
+    features: Array<{
+        type: "Feature";
+        properties: Record<string, never>;
+        geometry: {
+            type: "Point";
+            coordinates: [number, number];
+        };
+    }>;
+};
+
 const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 const DEFAULT_CENTER: [number, number] = [19.1451, 51.9194];
 const EARTH_RADIUS_KM = 6371;
@@ -70,6 +89,9 @@ const CLUSTERS_LAYER_ID = "return-point-clusters";
 const CLUSTER_COUNT_LAYER_ID = "return-point-cluster-count";
 const MAP_PINS_LAYER_ID = "return-point-map-pins";
 const HOVERED_MAP_PIN_LAYER_ID = "return-point-map-pin-hover";
+const USER_LOCATION_SOURCE_ID = "user-location";
+const USER_LOCATION_HALO_LAYER_ID = "user-location-halo";
+const USER_LOCATION_POINT_LAYER_ID = "user-location-point";
 const MAP_PIN_MIN_ZOOM = 9;
 const POLISH_MAP_LABEL_EXPRESSION = [
     "coalesce",
@@ -88,6 +110,37 @@ const normalizeSearchText = (value: string): string => {
 
 const isValidMapPoint = (point: MapPoint): boolean => {
     return Number.isFinite(point.latitude) && Number.isFinite(point.longitude);
+};
+
+const getUserLocationGeoJson = (
+    location: UserLocation | null,
+): UserLocationFeatureCollection => {
+    if (
+        !location
+        || !Number.isFinite(location.latitude)
+        || !Number.isFinite(location.longitude)
+        || location.latitude < -90
+        || location.latitude > 90
+        || location.longitude < -180
+        || location.longitude > 180
+    ) {
+        return {
+            type: "FeatureCollection",
+            features: [],
+        };
+    }
+
+    return {
+        type: "FeatureCollection",
+        features: [{
+            type: "Feature",
+            properties: {},
+            geometry: {
+                type: "Point",
+                coordinates: [location.longitude, location.latitude],
+            },
+        }],
+    };
 };
 
 const getDistanceKm = (
@@ -166,11 +219,45 @@ const fitMapToPoints = (map: MapLibreMap, points: readonly DisplayMapPoint[]): v
     });
 };
 
-export default function Map({ initialReturnPoints }: MapProps) {
+const centerMapOnPoint = (
+    map: MapLibreMap,
+    point: Pick<MapPoint, "latitude" | "longitude">,
+): void => {
+    map.easeTo({
+        center: [point.longitude, point.latitude],
+        zoom: Math.max(map.getZoom(), 20),
+        duration: getAnimationDuration(),
+    });
+};
+
+type DialogData = {
+    isOpen: boolean;
+    pointId: string;
+    title: string;
+    subtitle: string;
+    logoBgColor: string;
+    logoTextColor: string;
+    shortName: string;
+};
+
+export default function Map({ initialReturnPoints, selectedPoint }: MapProps) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MapLibreMap | null>(null);
     const sourceUpdateIdRef = useRef(0);
+    const userLocationUpdateIdRef = useRef(0);
     const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
+    const [userLocationMarkerStatus, setUserLocationMarkerStatus] =
+        useState<UserLocationMarkerStatus>("hidden");
+
+    const [dialogData, setDialogData] = useState<DialogData>({
+        isOpen: false,
+        title: "",
+        pointId: "",
+        subtitle: "",
+        logoBgColor: "",
+        logoTextColor: "",
+        shortName: "",
+    });
 
     const currentSearchQuery = searchQuery.value;
     const currentPointTypes = selectedPointTypes.value;
@@ -182,6 +269,14 @@ export default function Map({ initialReturnPoints }: MapProps) {
     const displayPoints = useMemo(() => {
         return (initialReturnPoints.points ?? []).map(getDisplayMapPoint);
     }, [initialReturnPoints.points]);
+
+    const selectedDisplayPoint = useMemo(() => {
+        if (selectedPoint === undefined) return undefined;
+
+        return displayPoints.find((point) => (
+            point.returnPointId === selectedPoint && isValidMapPoint(point)
+        ));
+    }, [displayPoints, selectedPoint]);
 
     const filterMetadataUnavailable = (
         currentPointTypes.length > 0
@@ -264,6 +359,9 @@ export default function Map({ initialReturnPoints }: MapProps) {
         })),
     }), [filteredPoints]);
 
+    const userLocationGeoJson = useMemo(() => {
+        return getUserLocationGeoJson(localizationEnabled ? currentLocation : null);
+    }, [localizationEnabled, currentLocation]);
 
     const syncRenderedFeatureCounts = useCallback((): void => {
         const map = mapRef.current;
@@ -459,6 +557,40 @@ export default function Map({ initialReturnPoints }: MapProps) {
                         },
                     });
 
+                    map.addSource(USER_LOCATION_SOURCE_ID, {
+                        type: "geojson",
+                        data: {
+                            type: "FeatureCollection",
+                            features: [],
+                        },
+                    });
+
+                    map.addLayer({
+                        id: USER_LOCATION_HALO_LAYER_ID,
+                        type: "circle",
+                        source: USER_LOCATION_SOURCE_ID,
+                        paint: {
+                            "circle-radius": 16,
+                            "circle-color": "#1a73e8",
+                            "circle-opacity": .2,
+                            "circle-stroke-color": "#1a73e8",
+                            "circle-stroke-opacity": .35,
+                            "circle-stroke-width": 1,
+                        },
+                    });
+
+                    map.addLayer({
+                        id: USER_LOCATION_POINT_LAYER_ID,
+                        type: "circle",
+                        source: USER_LOCATION_SOURCE_ID,
+                        paint: {
+                            "circle-radius": 7,
+                            "circle-color": "#1a73e8",
+                            "circle-stroke-color": "#ffffff",
+                            "circle-stroke-width": 3,
+                        },
+                    });
+
                     const handleClusterClick = (event: MapLayerMouseEvent): void => {
                         const cluster = event.features?.[0];
                         if (!cluster || cluster.geometry.type !== "Point") return;
@@ -506,13 +638,31 @@ export default function Map({ initialReturnPoints }: MapProps) {
                     };
                     const handleMapPinClick = (event: MapLayerMouseEvent): void => {
                         const point = getClosestMapPin(event);
+
                         if (!point || point.geometry.type !== "Point") return;
 
-                        map.easeTo({
-                            center: point.geometry.coordinates as [number, number],
-                            zoom: Math.max(map.getZoom(), 15),
-                            duration: getAnimationDuration(),
+                        const [longitude, latitude] = point.geometry.coordinates;
+
+                        centerMapOnPoint(map, {
+                            latitude,
+                            longitude,
                         });
+
+                        setTimeout(() => {
+                            const returnPointId = point.properties?.returnPointId;
+
+                            if (typeof returnPointId !== "string") return;
+
+                            setDialogData({
+                                isOpen: true,
+                                pointId: returnPointId,
+                                title: "Żabka",
+                                subtitle: "ul. Szczecińska 18",
+                                logoBgColor: initialReturnPoints.points.find((p) => p.returnPointId === returnPointId)?.bgColor ?? "#000000",
+                                logoTextColor: initialReturnPoints.points.find((p) => p.returnPointId === returnPointId)?.textColor ?? "#ffffff",
+                                shortName: initialReturnPoints.points.find((p) => p.returnPointId === returnPointId)?.shortName ?? "",
+                            });
+                        }, getAnimationDuration() + 10);
                     };
                     const showInteractiveCursor = (): void => {
                         map.getCanvas().style.cursor = "pointer";
@@ -584,7 +734,7 @@ export default function Map({ initialReturnPoints }: MapProps) {
             mapRef.current?.remove();
             mapRef.current = null;
         };
-    }, [displayPoints, syncRenderedFeatureCounts]);
+    }, [displayPoints, syncRenderedFeatureCounts, initialReturnPoints.points]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -628,6 +778,45 @@ export default function Map({ initialReturnPoints }: MapProps) {
         syncRenderedFeatureCounts,
     ]);
 
+    useEffect(() => {
+        const map = mapRef.current;
+        if (mapStatus !== "ready" || !map || !selectedDisplayPoint) return;
+
+        centerMapOnPoint(map, selectedDisplayPoint);
+    }, [mapStatus, selectedDisplayPoint]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (mapStatus !== "ready" || !map) return;
+
+        const locationSource = map.getSource(USER_LOCATION_SOURCE_ID) as GeoJSONSource | undefined;
+        if (!locationSource) {
+            setUserLocationMarkerStatus("error");
+            return;
+        }
+
+        const updateId = ++userLocationUpdateIdRef.current;
+        setUserLocationMarkerStatus("updating");
+
+        void locationSource.setData(userLocationGeoJson, true)
+            .then(() => {
+                if (
+                    mapRef.current !== map
+                    || updateId !== userLocationUpdateIdRef.current
+                ) return;
+
+                setUserLocationMarkerStatus(
+                    userLocationGeoJson.features.length > 0 ? "visible" : "hidden",
+                );
+            })
+            .catch(() => {
+                if (
+                    mapRef.current === map
+                    && updateId === userLocationUpdateIdRef.current
+                ) setUserLocationMarkerStatus("error");
+            });
+    }, [mapStatus, userLocationGeoJson]);
+
     const handleZoomIn = (): void => {
         mapRef.current?.zoomIn({ duration: getAnimationDuration() });
     };
@@ -663,6 +852,8 @@ export default function Map({ initialReturnPoints }: MapProps) {
             data-map-pin-images="0"
             data-rendered-markers="0"
             data-rendered-clusters="0"
+            data-user-location-status={userLocationMarkerStatus}
+            data-user-location-visible={userLocationMarkerStatus === "visible" ? "true" : "false"}
         >
             <div
                 ref={mapContainerRef}
@@ -730,9 +921,34 @@ export default function Map({ initialReturnPoints }: MapProps) {
                 </div>
             )}
 
-            <p class={Styles["map__results-status"]} aria-live="polite">
-                Widoczne punkty: {filteredPoints.length}.
-            </p>
+            <Modal 
+              bodyClass={Styles["map__modal-body"]}
+              title={dialogData.title} 
+              subtitle={dialogData.subtitle} 
+              open={dialogData.isOpen} 
+              onClose={() => {setDialogData({ ...dialogData, isOpen: false });}}
+            >
+              <div 
+                class={Styles["map__modal-body__card"]}
+                style={{"--brand-bg-color": dialogData.logoBgColor, "--brand-text-color": dialogData.logoTextColor}}
+              >
+                <div class={Styles["map__modal-body__card__header"]}>
+                  <span class={Styles["map__modal-body__card__header__brand"]}>{dialogData.shortName}</span>
+
+                  <div class={Styles["map__modal-body__card__header__content"]}>
+                    <span class={Styles["map__modal-body__card__header__content__badge"]}>Brak informacji</span>
+                    <h4>Żabka</h4>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Perferendis cum, fugit maiores deleniti eveniet, porro rerum sint, alias aliquid asperiores voluptate! Minus cupiditate!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class={Styles["map__modal-body__footer"]}>
+                <Button class={`${Styles["map__modal-body__footer__button"]} ${Styles["map__modal-body__footer__button--navigation"]}`} variant="contained">Wyznacz trasę</Button>
+
+                <Button class={Styles["map__modal-body__footer__button"]} variant="contained">Szczegóły</Button>
+              </div>
+            </Modal>
         </section>
     );
 }

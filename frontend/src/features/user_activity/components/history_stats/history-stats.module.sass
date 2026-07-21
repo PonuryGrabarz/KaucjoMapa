@@ -1,0 +1,56 @@
+.history-stats
+  min-width: 0
+  padding: 14px
+  background: var(--paper-50)
+  border: 1px solid var(--ink-200)
+  border-radius: 20px
+  box-shadow: var(--shadow-sm)
+
+  .history-stats__title
+    padding: 0 0 10px
+    color: var(--muted-500)
+    font-size: 13px
+    font-weight: 800
+    letter-spacing: .06em
+    text-transform: uppercase
+
+  .history-stats__list
+    display: grid
+    margin: 0
+    padding: 0
+    gap: 8px
+    list-style: none
+
+    .history-stats__item
+      display: flex
+      align-items: center
+      width: 100%
+      gap: 12px
+      padding: 13px 14px
+      background: var(--paper-100)
+      border: 1px solid var(--ink-200)
+      border-radius: 12px
+      text-align: left
+
+      .history-stats__item__icon
+        display: grid
+        place-items: center
+        width: 36px
+        height: 36px
+        background: var(--mint-100)
+        border-radius: 11px
+        font-size: 22px
+
+      .history-stats__item__content
+        flex: 1
+        min-width: 0
+
+        strong
+          display: block
+          font-size: 14px
+          font-family: var(--body)
+
+        p
+          margin: 3px 0 0 0
+          color: var(--muted-500)
+          font-size: 12px
