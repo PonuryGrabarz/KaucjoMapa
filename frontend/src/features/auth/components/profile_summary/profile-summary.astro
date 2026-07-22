@@ -1,0 +1,29 @@
+---
+import Styles from "./profile-summary.module.sass";
+import ProfileStats from "../profile_stats/profile-stats.astro";
+
+import type { ProfileStat } from "../../lib/profile-mock-data";
+
+interface Props {
+  user: App.SessionUser;
+  stats: ProfileStat[];
+}
+
+const { user, stats } = Astro.props;
+const userInitial = user.username.charAt(0).toLocaleUpperCase("pl-PL");
+---
+
+<section class={Styles["profile-summary"]} aria-labelledby="profile-summary-title">
+  <header class={Styles["profile-summary__header"]}>
+    <span class={Styles["profile-summary__avatar"]} aria-hidden="true">
+      {userInitial}
+    </span>
+
+    <div class={Styles["profile-summary__identity"]}>
+      <h2 id="profile-summary-title">{user.username}</h2>
+      <p>{user.email}</p>
+    </div>
+  </header>
+
+  <ProfileStats items={stats} />
+</section>

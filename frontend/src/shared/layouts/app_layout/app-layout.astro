@@ -22,8 +22,6 @@ const unauthenticatedLinks: Link[] = [
 
 const user = await Astro.callAction(actions.auth.getSession, { });
 
-console.log("User in app layout:", user);
-
 const links = user.data ? authenticatedLinks : unauthenticatedLinks;
 ---
 
