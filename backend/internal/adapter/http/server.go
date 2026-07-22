@@ -6,9 +6,8 @@ import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/handler"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/middleware"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/config"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/auth"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/returnpoint"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/user"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -21,9 +20,9 @@ import (
 
 type FiberServer struct {
 	*fiber.App
-	ReturnPointSvc returnpoint.IReturnPointService
-	UserSvc        user.IUserService
-	AuthSvc        auth.IRefreshTokenService
+	ReturnPointSvc usecase.IReturnPointService
+	UserSvc        usecase.IUserService
+	AuthSvc        usecase.IAuthService
 	cfg            *config.Config
 }
 
@@ -36,7 +35,7 @@ func (v *structValidator) Validate(out any) error {
 	return v.validate.Struct(out)
 }
 
-func New(returnPointSvc returnpoint.IReturnPointService, userSvc user.IUserService, authSvc auth.IRefreshTokenService, tokenSvc auth.ITokenSigner, hasherSvc auth.IPasswordHasher, cfg *config.Config) *FiberServer {
+func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
@@ -83,7 +82,7 @@ func New(returnPointSvc returnpoint.IReturnPointService, userSvc user.IUserServi
 	api := server.Group("/api")
 	authHandler := handler.NewAuthHandler(server.UserSvc, hasherSvc, tokenSvc, authSvc)
 	returnPointHandler := handler.NewReturnPointHandler(server.ReturnPointSvc, server.UserSvc)
-	userHandler := handler.NewUserHandler(server.UserSvc, hasherSvc, tokenSvc)
+	userHandler := handler.NewUserHandler(server.UserSvc, tokenSvc, server.AuthSvc)
 
 	ReturnPointRouter(api, *returnPointHandler, cfg.JWTSecret, tokenSvc)
 	UsersRouter(api, *userHandler)

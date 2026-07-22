@@ -1,4 +1,4 @@
-package kaucjomatapi
+package mapakaucji
 
 import (
 	"encoding/json"
@@ -6,13 +6,8 @@ import (
 	"net/http"
 )
 
-type FeatureCollection[T any] struct {
-	Type     string `json:"type"`
-	Features []T    `json:"features"`
-}
-
 func GetKaucjomaty[T any](path string) (T, error) {
-	url := fmt.Sprintf("%s/%s", baseUrl, path)
+	url := fmt.Sprintf("%s/%s", baseURL, path)
 	var kaucjomatyList T
 
 	req, err := http.NewRequest("GET", url, nil)

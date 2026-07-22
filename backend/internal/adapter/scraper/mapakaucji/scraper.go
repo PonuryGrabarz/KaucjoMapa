@@ -6,27 +6,30 @@ import (
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/kaucjomatapi"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/seed"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
 )
 
-type Scraper struct { /* baseURL, http.Client */
+type Scraper struct{}
+
+type FeatureCollection[T any] struct {
+	Type     string `json:"type"`
+	Features []T    `json:"features"`
 }
 
-var _ seed.DataSource = (*Scraper)(nil) // gwarancja spełnienia portu
+var _ usecase.DataSource = (*Scraper)(nil) // gwarancja spełnienia portu
 
 func (s *Scraper) FetchReturnPoints(ctx context.Context) ([]entity.ReturnPoint, error) {
 	var returnPoints []entity.ReturnPoint
 
-	kaucjomatyList, err := kaucjomatapi.GetKaucjomaty[[]kaucjomatapi.Kaucjomat](
+	kaucjomatyList, err := GetKaucjomaty[[]Kaucjomat](
 		"data/kaucjomaty_polska.json",
 	)
 	if err != nil {
 		return returnPoints, err
 	}
 
-	zabkaGeoJSON, err := kaucjomatapi.GetKaucjomaty[kaucjomatapi.FeatureCollection[kaucjomatapi.MapPoint]]("data/zabka_sklepy.geojson")
+	zabkaGeoJSON, err := GetKaucjomaty[FeatureCollection[MapPoint]]("data/zabka_sklepy.geojson")
 	if err != nil {
 		return returnPoints, err
 	}

@@ -1,4 +1,4 @@
-package auth
+package usecase
 
 type IPasswordHasher interface {
 	CheckPasswordHash(password, hash string) (bool, error)

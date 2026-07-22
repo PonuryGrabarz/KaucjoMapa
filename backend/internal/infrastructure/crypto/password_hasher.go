@@ -1,13 +1,13 @@
 package crypto
 
 import (
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/auth"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
 	"github.com/alexedwards/argon2id"
 )
 
 type PasswordHasher struct{}
 
-var _ auth.IPasswordHasher = (*PasswordHasher)(nil)
+var _ port.IPasswordHasher = (*PasswordHasher)(nil)
 
 func NewHasher() *PasswordHasher {
 	return &PasswordHasher{}

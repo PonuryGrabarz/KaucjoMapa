@@ -3,10 +3,11 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/returnpoint"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx"
 )
@@ -20,7 +21,7 @@ func NewReturnPointRepo(q *database.Queries) *ReturnPointRepo {
 }
 
 // Kompilacyjna gwarancja, że spełniamy port.
-var _ returnpoint.IReturnPointRepository = (*ReturnPointRepo)(nil)
+var _ usecase.IReturnPointRepository = (*ReturnPointRepo)(nil)
 
 func (r *ReturnPointRepo) ExistsNearby(ctx context.Context, lat, lng float64) (bool, error) {
 	row, err := r.q.GetPointByDistance(ctx, database.GetPointByDistanceParams{
@@ -65,13 +66,19 @@ func (r *ReturnPointRepo) GetByID(ctx context.Context, id uuid.UUID) (entity.Ret
 	return toReturnPointEntity(row), nil
 }
 
-func (r *ReturnPointRepo) List(ctx context.Context, f returnpoint.Filter) ([]entity.ReturnPoint, error) {
+func (r *ReturnPointRepo) List(ctx context.Context, f usecase.Filter) ([]entity.ReturnPoint, error) {
+	var returnPoints []entity.ReturnPoint
 	row, err := r.q.ListReturnPoints(ctx, toListReturnPointsParams(f))
+	fmt.Println("ListReturnPoints error:", err) // Debugging line
+	if errors.Is(err, pgx.ErrNoRows) {
+		return []entity.ReturnPoint{}, nil
+	}
+	fmt.Println("ListReturnPoints row:", row) // Debugging line
+
 	if err != nil {
 		return []entity.ReturnPoint{}, entity.ErrNotFound
 	}
 
-	var returnPoints []entity.ReturnPoint
 	for _, point := range row {
 		returnPoints = append(returnPoints, toReturnPointEntity(point))
 	}
@@ -86,4 +93,13 @@ func (r *ReturnPointRepo) Update(ctx context.Context, p entity.ReturnPoint) (ent
 	}
 
 	return toReturnPointEntity(row), nil
+}
+
+func (r *ReturnPointRepo) ListSize(ctx context.Context, f usecase.Filter) (int64, error) {
+	size, err := r.q.CountReturnPoints(ctx, toCountReturnPointsParams(f))
+	if err != nil {
+		return 0, entity.ErrServerError
+	}
+
+	return size, nil
 }

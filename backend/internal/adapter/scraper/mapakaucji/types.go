@@ -1,4 +1,4 @@
-package kaucjomatapi
+package mapakaucji
 
 type Kaucjomat struct {
 	Brand    string  `json:"brand"`

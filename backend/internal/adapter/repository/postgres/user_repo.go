@@ -5,7 +5,7 @@ import (
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/user"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +19,7 @@ func NewUserRepo(q *database.Queries) *UserRepo {
 	}
 }
 
-var _ user.IUserRepository = (*UserRepo)(nil)
+var _ usecase.IUserRepository = (*UserRepo)(nil)
 
 func (r *UserRepo) Create(ctx context.Context, user entity.User) (entity.User, error) {
 	row, err := r.q.CreateUser(ctx, toCreateUserParams(user))

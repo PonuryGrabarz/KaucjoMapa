@@ -13,6 +13,37 @@ import (
 	"github.com/google/uuid"
 )
 
+const countReturnPoints = `-- name: CountReturnPoints :one
+SELECT COUNT(*)
+FROM return_points
+WHERE (
+    $1::TEXT IS NULL
+    OR name ILIKE '%' || $1::TEXT || '%'
+    OR COALESCE(address, '') ILIKE '%' || $1::TEXT || '%'
+)
+AND (
+    $2::point_type IS NULL
+    OR type = $2::point_type
+)
+AND (
+    $3::point_status IS NULL
+    OR current_status = $3::point_status
+)
+`
+
+type CountReturnPointsParams struct {
+	Query       sql.NullString
+	PointType   NullPointType
+	PointStatus NullPointStatus
+}
+
+func (q *Queries) CountReturnPoints(ctx context.Context, arg CountReturnPointsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countReturnPoints, arg.Query, arg.PointType, arg.PointStatus)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createPoint = `-- name: CreatePoint :one
 INSERT INTO return_points (
   id,
@@ -238,8 +269,8 @@ SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, o
 FROM return_points
 WHERE (
     $1::TEXT IS NULL
-    OR name ILIKE '%' || $1 || '%'
-    OR COALESCE(address, '') ILIKE '%' || $1 || '%'
+    OR name ILIKE '%' || $1::TEXT || '%'
+    OR COALESCE(address, '') ILIKE '%' || $1::TEXT || '%'
 )
 AND (
     $2::point_type IS NULL
@@ -249,16 +280,27 @@ AND (
     $3::point_status IS NULL
     OR current_status = $3::point_status
 )
+ORDER BY id
+LIMIT $5::INT
+OFFSET $4::INT
 `
 
 type ListReturnPointsParams struct {
 	Query       sql.NullString
 	PointType   NullPointType
 	PointStatus NullPointStatus
+	Offset      int32
+	Limit       int32
 }
 
 func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsParams) ([]ReturnPoint, error) {
-	rows, err := q.db.QueryContext(ctx, listReturnPoints, arg.Query, arg.PointType, arg.PointStatus)
+	rows, err := q.db.QueryContext(ctx, listReturnPoints,
+		arg.Query,
+		arg.PointType,
+		arg.PointStatus,
+		arg.Offset,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

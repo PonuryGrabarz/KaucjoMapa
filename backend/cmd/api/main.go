@@ -17,25 +17,28 @@ import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/crypto"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/token"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/auth"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/returnpoint"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/seed"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/user"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/dto"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 )
 
-// @title           KaucjoMapa API
-// @version         1.0
-// @description     To jest serwer API dla aplikacji KaucjoMapa.
-// @termsOfService  http://swagger.io/terms/
-// @contact.name   Wsparcie Techniczne
-// @contact.email  support@kaucjomapa.pl
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
-// @host      localhost:3000
-// @BasePath  /api
-// @schemes   https
+// @title KaucjoMapa API
+// @version 1.0
+// @description API do wyszukiwania i zarządzania punktami zwrotu opakowań kaucyjnych.
+// @contact.name Wsparcie techniczne
+// @contact.email support@kaucjomapa.pl
+// @license.name Apache 2.0
+// @license.url https://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:3000
+// @BasePath /api
+// @schemes https
+// @accept json
+// @produce json
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Wartość w formacie: Bearer <JWT>
 func main() {
 	cfg := config.NewConfig()
 	db := database.NewConn(cfg)
@@ -48,21 +51,22 @@ func main() {
 	tokenSigner := token.NewTokenSigner(cfg.JWTSecret, time.Second*3600)
 	hasher := crypto.NewHasher()
 
-	returnPointSvc := returnpoint.NewService(returnPointRepo)
-	userSvc := user.NewService(userRepo)
-	authSvc := auth.NewRefreshTokenService(tokenRepo)
+	userSvc := usecase.NewUserService(userRepo, hasher, tokenSigner)
+	returnPointSvc := usecase.NewReturnPointService(returnPointRepo, userSvc)
+	authSvc := usecase.NewAuthService(tokenRepo, userSvc, hasher, tokenSigner)
 
-	seedSvc := seed.NewService(returnPointRepo, userRepo, &scraper, cfg.AdminUsername, hasher, cfg)
+	seedSvc := usecase.NewSeedService(returnPointRepo, userRepo, &scraper, cfg.AdminUsername, hasher)
 
-	err := seedSvc.SeedAdminUser(context.Background())
+	err := seedSvc.SeedAdminUser(context.Background(), dto.SeedAdminInput{
+		Username: cfg.AdminUsername,
+		Password: cfg.AdminPassword,
+		Email:    cfg.AdminEmail,
+	})
 	if err != nil {
 		log.Printf("Error seeding admin user: %v", err)
 	}
 
-	err = seedSvc.ScrapPoints(context.Background())
-	if err != nil {
-		log.Printf("Error scraping points: %v", err)
-	}
+	go seedSvc.ScrapPoints(context.Background())
 
 	server := http.New(returnPointSvc, userSvc, authSvc, tokenSigner, hasher, cfg)
 

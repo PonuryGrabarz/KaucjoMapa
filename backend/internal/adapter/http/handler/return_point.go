@@ -3,35 +3,42 @@ package handler
 import (
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/presenter"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/auth"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/returnpoint"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/user"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/dto"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
 type ReturnPointHandler struct {
-	svc     returnpoint.IReturnPointService
-	userSvc user.IUserService
+	svc     usecase.IReturnPointService
+	userSvc usecase.IUserService
 }
 
-func NewReturnPointHandler(svc returnpoint.IReturnPointService, userSvc user.IUserService) *ReturnPointHandler {
+func NewReturnPointHandler(svc usecase.IReturnPointService, userSvc usecase.IUserService) *ReturnPointHandler {
 	return &ReturnPointHandler{svc: svc, userSvc: userSvc}
 }
 
+// Create godoc
+// @Summary Dodaj punkt zwrotu
+// @Description Tworzy punkt zwrotu przypisany do zalogowanego użytkownika.
+// @Tags return-points
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body presenter.CreateReturnPointRequest true "Dane punktu zwrotu"
+// @Success 200 {object} presenter.ReturnPointResponse "Utworzony punkt zwrotu"
+// @Failure 400 {object} presenter.ErrorResponse "Nieprawidłowe body żądania"
+// @Failure 401 {object} presenter.ErrorResponse "Brak lub nieprawidłowy access token"
+// @Failure 500 {object} presenter.ErrorResponse "Nie udało się utworzyć punktu zwrotu"
+// @Router /return_points [post]
 func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
-	claims, ok := c.Locals("claims").(*auth.JWTClaims)
+	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
-	}
-
-	userID, err := uuid.Parse(claims.Subject)
-	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid user ID in JWT claims")
 	}
 
 	var req presenter.CreateReturnPointRequest
@@ -39,91 +46,115 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	point, err := h.svc.Create(c.Context(), userID, entity.ReturnPoint{
+	returnPoint, err := h.svc.Create(c.Context(), dto.CreateReturnPointInput{
 		Name:          req.Name,
-		Type:          entity.PointType(req.Type),
+		UserID:        claims.UserID,
+		Type:          req.Type,
 		Address:       req.Address,
 		Latitude:      req.Latitude,
 		Longitude:     req.Longitude,
 		OpeningHours:  req.OpeningHours,
 		Description:   req.Description,
-		CurrentStatus: entity.PointStatus(req.CurrentStatus),
-		IsVerified:    false,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CurrentStatus: req.CurrentStatus,
+		Pet:           req.Pet,
+		Can:           req.Can,
+		Glass:         req.Glass,
 	})
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create return point")
 	}
-	return c.JSON(presenter.CreateReturnPointSuccessResponse(point))
+
+	return c.JSON(presenter.CreateReturnPointSuccessResponse(returnPoint))
 }
 
+// GetReturnPoints godoc
+// @Summary Pobierz punkty zwrotu
+// @Description Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej frazie.
+// @Tags return-points
+// @Produce json
+// @Param type query string false "Typ punktu" Enums(butelkomat, sklep, punkt_skupu, inny)
+// @Param status query string false "Status punktu" Enums(dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji)
+// @Param query query string false "Fragment nazwy lub adresu"
+// @Param page query int false "Numer strony" default(1) minimum(1)
+// @Param page_size query int false "Liczba elementów na stronie" default(10) minimum(1)
+// @Success 200 {object} presenter.ReturnPointPage "Strona punktów zwrotu"
+// @Failure 400 {object} presenter.ErrorResponse "Nieprawidłowy numer lub rozmiar strony"
+// @Failure 500 {object} presenter.ErrorResponse "Nie udało się pobrać punktów zwrotu"
+// @Router /return_points [get]
 func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 	pointType := c.Query("type")
 	pointStatus := c.Query("status")
-	pageQuery := c.Query("page", "1")
-	pageSizeQuery := c.Query("page_size", "10")
+	pageQuery := c.Query("page", "-1")
+	pageSizeQuery := c.Query("page_size", "-1")
 	query := strings.TrimSpace(c.Query("query", ""))
+	var page, pageSize int
 
 	page, err := strconv.Atoi(pageQuery)
-	if err != nil || page < 1 {
+	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid page number")
 	}
-	pageSize, err := strconv.Atoi(pageSizeQuery)
-	if err != nil || pageSize < 1 {
+
+	pageSize, err = strconv.Atoi(pageSizeQuery)
+	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid page size")
 	}
 
-	returnPoints, err := h.svc.List(c.Context(), returnpoint.Filter{
+	filters := usecase.Filter{
 		Query:  query,
 		Type:   entity.PointType(pointType),
 		Status: entity.PointStatus(pointStatus),
-	})
+		Offset: int32((page - 1) * pageSize),
+		Limit:  int32(pageSize),
+	}
+
+	listSize, err := h.svc.ListSize(c.Context(), filters)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return points size")
+	}
+
+	maxPage := (listSize + int64(pageSize) - 1) / int64(pageSize)
+
+	if page == -1 {
+		filters.Limit = int32(listSize)
+	}
+	if pageSize == -1 {
+		filters.Offset = 0
+		maxPage = 1
+	}
+
+	returnPoints, err := h.svc.List(c.Context(), filters)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return points")
 	}
 
-	mapPointsDetails := []*fiber.Map{}
-
-	for _, point := range returnPoints {
-		mapPointsDetails = append(mapPointsDetails, presenter.CreateReturnPointSuccessResponse(point))
-	}
-
-	maxPage := len(mapPointsDetails) / pageSize
-
-	if maxPage > 0 && page <= maxPage {
-		return c.JSON(mapPointsDetails[pageSize*(page-1) : min(pageSize*page, len(mapPointsDetails))])
-	}
-
-	return c.JSON(mapPointsDetails)
+	return c.Status(fiber.StatusOK).JSON(presenter.GetReturnPointSuccessResponse(returnPoints, maxPage))
 }
 
+// DeletePoint godoc
+// @Summary Usuń punkt zwrotu
+// @Description Usuwa punkt zwrotu. Operacja jest dostępna tylko dla administratora.
+// @Tags return-points
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Identyfikator punktu" format(uuid)
+// @Success 204 "No Content"
+// @Failure 400 {object} presenter.ErrorResponse "Nieprawidłowy identyfikator punktu"
+// @Failure 401 {object} presenter.ErrorResponse "Brak lub nieprawidłowy access token"
+// @Failure 500 {object} presenter.ErrorResponse "Nie udało się usunąć punktu zwrotu"
+// @Router /return_points/{id} [delete]
 func (h *ReturnPointHandler) DeletePoint(c fiber.Ctx) error {
-	claims, ok := c.Locals("claims").(*auth.JWTClaims)
+	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
 	}
 
-	userID, err := uuid.Parse(claims.Subject)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID in JWT claims")
-	}
-
-	user, err := h.userSvc.GetUserByID(c.Context(), userID)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Faild to fetch user")
-	}
-
-	if !user.IsAdmin {
-		return fiber.NewError(fiber.StatusForbidden, "User is not an admin")
-	}
 	mapPointID := c.Params("id")
 	mapPointUUID, err := uuid.Parse(mapPointID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid map point ID")
 	}
 
-	err = h.svc.Delete(c.Context(), user, mapPointUUID)
+	err = h.svc.Delete(c.Context(), claims.UserID, mapPointUUID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to delete return point")
 	}
@@ -131,8 +162,22 @@ func (h *ReturnPointHandler) DeletePoint(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// UpdatePoint godoc
+// @Summary Zaktualizuj punkt zwrotu
+// @Description Częściowo aktualizuje dane istniejącego punktu zwrotu.
+// @Tags return-points
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Identyfikator punktu" format(uuid)
+// @Param request body presenter.UpdateKaucjomatRequest true "Pola do aktualizacji"
+// @Success 200 {object} presenter.ReturnPointDetailsResponse "Zaktualizowany punkt zwrotu"
+// @Failure 400 {object} presenter.ErrorResponse "Nieprawidłowy identyfikator lub body żądania"
+// @Failure 401 {object} presenter.ErrorResponse "Brak lub nieprawidłowy access token"
+// @Failure 500 {object} presenter.ErrorResponse "Nie udało się pobrać użytkownika lub zaktualizować punktu"
+// @Router /return_points/{id} [put]
 func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
-	claims, ok := c.Locals("claims").(*auth.JWTClaims)
+	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
 	}
@@ -142,12 +187,7 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid map point ID")
 	}
 
-	userID, err := uuid.Parse(claims.Subject)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID in JWT claims")
-	}
-
-	user, err := h.userSvc.GetUserByID(c.Context(), userID)
+	user, err := h.userSvc.GetUserByID(c.Context(), claims.UserID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user")
 	}

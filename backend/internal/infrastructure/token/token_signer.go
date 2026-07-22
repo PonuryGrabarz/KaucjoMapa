@@ -4,11 +4,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/auth"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -18,7 +17,12 @@ type TokenSigner struct {
 	ExpirationTime time.Duration
 }
 
-var _ auth.ITokenSigner = (*TokenSigner)(nil)
+type claims struct {
+	port.JWTClaims
+	jwt.RegisteredClaims
+}
+
+var _ port.ITokenSigner = (*TokenSigner)(nil)
 
 func NewTokenSigner(jwtSecret string, expTime time.Duration) *TokenSigner {
 	return &TokenSigner{
@@ -31,12 +35,15 @@ func (t *TokenSigner) MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, 
 	issuedAt := jwt.NewNumericDate(time.Now())
 	expiresAt := jwt.NewNumericDate(time.Now().Add(t.ExpirationTime))
 
-	claims := auth.JWTClaims{
-		Username:   username,
-		Email:      email,
-		IsAdmin:    isAdmin,
-		Reputation: reputation,
-		RegisteredClaims: jwt.RegisteredClaims{
+	claims := claims{
+		port.JWTClaims{
+			UserID:     userID,
+			Username:   username,
+			Email:      email,
+			IsAdmin:    isAdmin,
+			Reputation: reputation,
+		},
+		jwt.RegisteredClaims{
 			Issuer:    "KaucjoMapa",
 			IssuedAt:  issuedAt,
 			ExpiresAt: expiresAt,
@@ -61,32 +68,36 @@ func (t *TokenSigner) MakeRefreshToken() string {
 	return hex.EncodeToString(refreshToken[:])
 }
 
-func (t *TokenSigner) ValidateJWT(tokenString string) (auth.JWTClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &auth.JWTClaims{}, func(token *jwt.Token) (any, error) {
+func (t *TokenSigner) ValidateJWT(tokenString string) (port.JWTClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (any, error) {
 		return []byte(t.JWTSecret), nil
 	})
 	if err != nil {
-		return auth.JWTClaims{}, err
+		return port.JWTClaims{}, err
 	}
 
 	sub, err := token.Claims.GetSubject()
 	if err != nil {
-		return auth.JWTClaims{}, err
+		return port.JWTClaims{}, err
 	}
 
 	_, err = uuid.Parse(sub)
 	if err != nil {
-		return auth.JWTClaims{}, err
+		return port.JWTClaims{}, err
 	}
 
-	claims, ok := token.Claims.(*auth.JWTClaims)
+	claims, ok := token.Claims.(*claims)
 	if !ok {
-		return auth.JWTClaims{}, errors.New("invalid token claims")
+		return port.JWTClaims{}, errors.New("invalid token claims")
 	}
 
-	fmt.Println(claims.Username)
-
-	return *claims, nil
+	return port.JWTClaims{
+		UserID:     claims.UserID,
+		Username:   claims.Username,
+		IsAdmin:    claims.IsAdmin,
+		Email:      claims.Email,
+		Reputation: claims.Reputation,
+	}, nil
 }
 
 func (t *TokenSigner) GetBearerToken(headers map[string][]string) (string, error) {

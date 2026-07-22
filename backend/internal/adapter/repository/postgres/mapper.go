@@ -6,7 +6,7 @@ import (
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/returnpoint"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
 )
 
@@ -115,8 +115,18 @@ func toReturnPointEntity(returnPoint database.ReturnPoint) entity.ReturnPoint {
 	}
 }
 
-func toListReturnPointsParams(filters returnpoint.Filter) database.ListReturnPointsParams {
+func toListReturnPointsParams(filters usecase.Filter) database.ListReturnPointsParams {
 	return database.ListReturnPointsParams{
+		Query:       toNullString(filters.Query),
+		PointType:   toNullPointType(filters.Type),
+		PointStatus: toNullPointStatus(filters.Status),
+		Offset:      filters.Offset,
+		Limit:       filters.Limit,
+	}
+}
+
+func toCountReturnPointsParams(filters usecase.Filter) database.CountReturnPointsParams {
+	return database.CountReturnPointsParams{
 		Query:       toNullString(filters.Query),
 		PointType:   toNullPointType(filters.Type),
 		PointStatus: toNullPointStatus(filters.Status),
@@ -176,7 +186,6 @@ func toCreateRefreshTokenParams(token entity.RefreshToken) database.CreateRefres
 		UpdatedAt: token.UpdatedAt,
 		UserID:    token.UserID,
 		ExpiresAt: token.ExpiresAt,
-		RevokedAt: toNullTime(token.RevokedAt),
 	}
 }
 
@@ -193,7 +202,7 @@ func toRefreshTokenEntity(token database.RefreshToken) entity.RefreshToken {
 		UserID:    token.UserID,
 		Token:     token.Token,
 		ExpiresAt: token.ExpiresAt,
-		RevokedAt: token.RevokedAt.Time,
+		RevokedAt: &token.RevokedAt.Time,
 		CreatedAt: token.CreatedAt,
 		UpdatedAt: token.UpdatedAt,
 	}

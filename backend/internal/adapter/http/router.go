@@ -7,12 +7,12 @@ import (
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/handler"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/middleware"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/auth"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
 	"github.com/gofiber/fiber/v3"
 	"github.com/yokeTH/gofiber-scalar/scalar/v3"
 )
 
-func ReturnPointRouter(app fiber.Router, returnPointHandler handler.ReturnPointHandler, JWTSecret string, auth auth.ITokenSigner) {
+func ReturnPointRouter(app fiber.Router, returnPointHandler handler.ReturnPointHandler, JWTSecret string, auth port.ITokenSigner) {
 	app.Get("/return_points", returnPointHandler.GetReturnPoints)
 	app.Post("/return_points", middleware.RequireJWT(auth, JWTSecret), returnPointHandler.Create)
 	app.Delete("/return_points/:id", middleware.RequireJWT(auth, JWTSecret), returnPointHandler.DeletePoint)
@@ -23,7 +23,7 @@ func UsersRouter(app fiber.Router, userHandler handler.UserHandler) {
 	app.Post("/users", userHandler.Create)
 }
 
-func AuthRouter(app fiber.Router, authHandler handler.AuthHandler, JWTSecret string, auth auth.ITokenSigner) {
+func AuthRouter(app fiber.Router, authHandler handler.AuthHandler, JWTSecret string, auth port.ITokenSigner) {
 	app.Post("/login", authHandler.Login)
 	app.Post("/auth/token", middleware.RequireJWT(auth, JWTSecret), authHandler.RefreshToken)
 	app.Post("/auth/revoke", middleware.RequireJWT(auth, JWTSecret), authHandler.RevokeToken)

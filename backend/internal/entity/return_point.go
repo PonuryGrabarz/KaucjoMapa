@@ -25,20 +25,20 @@ const (
 )
 
 type ReturnPoint struct {
-	ID            uuid.UUID   `json:"id"`
-	UserID        *uuid.UUID  `json:"user_id"`
-	Name          string      `json:"name"`
-	Type          PointType   `json:"type"`
-	Latitude      float64     `json:"latitude"`
-	Longitude     float64     `json:"longitude"`
-	Address       string      `json:"address"`
-	Pet           bool        `json:"pet"`
-	Can           bool        `json:"can"`
-	Glass         bool        `json:"glass"`
-	OpeningHours  string      `json:"opening_hours"`
-	Description   string      `json:"description"`
-	CurrentStatus PointStatus `json:"current_status"`
-	IsVerified    bool        `json:"is_verified"`
-	CreatedAt     time.Time   `json:"created_at"`
-	UpdatedAt     time.Time   `json:"updated_at"`
+	ID            uuid.UUID
+	UserID        *uuid.UUID
+	Name          string
+	Type          PointType
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	Pet           bool
+	Can           bool
+	Glass         bool
+	OpeningHours  string
+	Description   string
+	CurrentStatus PointStatus
+	IsVerified    bool
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }

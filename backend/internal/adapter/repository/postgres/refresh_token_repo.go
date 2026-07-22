@@ -5,7 +5,7 @@ import (
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/auth"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +19,7 @@ func NewRefreshTokenRepo(q *database.Queries) *RefreshTokenRepo {
 	}
 }
 
-var _ auth.IRefreshTokenRepository = (*RefreshTokenRepo)(nil)
+var _ usecase.IRefreshTokenRepository = (*RefreshTokenRepo)(nil)
 
 func (r *RefreshTokenRepo) Create(ctx context.Context, token entity.RefreshToken) (entity.RefreshToken, error) {
 	row, err := r.q.CreateRefreshToken(ctx, toCreateRefreshTokenParams(token))
