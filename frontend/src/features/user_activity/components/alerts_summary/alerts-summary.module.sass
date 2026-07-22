@@ -1,0 +1,47 @@
+.alerts-summary
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 14px
+  padding: clamp(14px, 2vw, 18px)
+  background: var(--paper-50)
+  border: 1px solid var(--ink-100)
+  border-radius: 16px
+
+  .alerts-summary__copy
+    min-width: 0
+
+  .alerts-summary__count
+    margin: 0
+    font-size: clamp(17px, 2vw, 19px)
+    font-family: var(--display)
+    line-height: 1.2
+
+  .alerts-summary__description
+    margin: 4px 0 0
+    color: var(--muted-500)
+    font-size: 12px
+    line-height: 1.45
+
+  .alerts-summary__button
+    --button-padding-block: 9px
+    --button-padding-inline: 14px
+    --button-outlined-border-color: var(--ink-200)
+    --button-outlined-active-border-color: var(--ink-200)
+    --button-border-radius: 9999px
+    --button-font-size: 13px
+    --button-font-weight: 700
+    width: 100%
+    min-height: 44px
+    white-space: normal
+
+@media screen and (min-width: 600px)
+  .alerts-summary
+    flex-direction: row
+    align-items: center
+    justify-content: space-between
+
+    .alerts-summary__button
+      flex: 0 0 auto
+      width: auto
+      max-width: 50%

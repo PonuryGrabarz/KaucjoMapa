@@ -1,0 +1,86 @@
+.alert-item
+  min-width: 0
+
+  .alert-item__card
+    position: relative
+    display: grid
+    grid-template-columns: auto minmax(0, 1fr)
+    align-items: start
+    width: 100%
+    height: 100%
+    min-width: 0
+    gap: 12px
+    padding: 14px
+    background: var(--paper-50)
+    border: 1px solid var(--ink-100)
+    border-radius: 18px
+    box-shadow: var(--shadow-sm)
+
+    &[data-unread="true"]
+      background: color-mix(in srgb, var(--mint-100) 45%, var(--paper-50))
+      border-color: color-mix(in srgb, var(--grass-500) 38%, var(--ink-100))
+
+  .alert-item__icon
+    display: grid
+    place-items: center
+    flex: 0 0 auto
+    width: 40px
+    height: 40px
+    background: var(--mint-100)
+    border-radius: 13px
+    color: var(--grass-700)
+    font-size: 20px
+
+  .alert-item__content
+    display: grid
+    min-width: 0
+    gap: 4px
+    padding-inline-end: 12px
+
+    h2
+      color: var(--ink-900)
+      font-family: var(--body)
+      font-size: clamp(13.5px, 1.6vw, 14.5px)
+      line-height: 1.35
+      overflow-wrap: anywhere
+
+    p
+      margin: 0
+      color: var(--muted-500)
+      font-size: 12px
+      line-height: 1.45
+      overflow-wrap: anywhere
+
+    footer
+      margin-top: 2px
+      color: var(--muted-400)
+      font-size: 11px
+      font-weight: 700
+      line-height: 1.35
+
+  .alert-item__unread
+    position: absolute
+    top: 16px
+    right: 16px
+    width: 8px
+    height: 8px
+    background: var(--grass-500)
+    border: 2px solid var(--paper-50)
+    border-radius: 50%
+    box-shadow: 0 0 0 1px rgba(52, 184, 90, .28)
+
+@media screen and (max-width: 380px)
+  .alert-item
+    .alert-item__card
+      gap: 10px
+      padding: 12px
+
+    .alert-item__icon
+      width: 36px
+      height: 36px
+      border-radius: 11px
+      font-size: 18px
+
+    .alert-item__unread
+      top: 14px
+      right: 14px
