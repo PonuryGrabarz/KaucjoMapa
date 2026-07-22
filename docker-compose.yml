@@ -27,6 +27,11 @@ services:
       retries: 12
       start_period: 30s
 
+networks:
+  default:
+    driver_opts:
+      com.docker.network.bridge.name: kaucjomapa0
+
 volumes:
   nginx_proxy_manager_data:
   nginx_proxy_manager_letsencrypt:
