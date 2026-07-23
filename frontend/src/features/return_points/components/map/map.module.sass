@@ -98,6 +98,96 @@
     &[data-map-status="loading"]
         .map__canvas
             opacity: .72
+  
+    .map__modal-body
+      min-height: 0
+      padding: 16px 14px calc(16px + env(safe-area-inset-bottom)) !important
+      overflow: auto !important
+
+      .map__modal-body__card
+        position: relative
+        padding: 16px
+        background: radial-gradient(260px 160px at 100% 0, rgba(95, 211, 126, .36), transparent 62%), linear-gradient(135deg, #0e2a1b, #1f7a3c)
+        border-radius: 22px
+        color: #fff
+        box-shadow: var(--shadow-md)
+        overflow: hidden
+
+        .map__modal-body__card__header
+          position: relative
+          display: flex
+          align-items: flex-start
+          gap: 14px
+          z-index: 1
+
+          .map__modal-body__card__header__brand
+            display: inline-grid
+            place-items: center
+            width: 62px
+            height: 62px
+            background: var(--brand-bg-color, var(--mint-100))
+            border-radius: 20px
+            color: var(--brand-text-color, var(--grass-700))
+            font-family: var(--display)
+            font-size: 21px
+            font-weight: 800
+            letter-spacing: -.03em
+            box-shadow: 0 12px 24px -14px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .38)
+
+          .map__modal-body__card__header__content
+            min-width: 0
+            flex: 1
+
+            h4
+              margin: 9px 0 0
+              color: rgba(255, 255, 255, .86)
+              font-size: 14px
+              font-family: var(--body)
+              font-weight: 800
+
+            p
+              margin: 6px 0 0
+              color: rgba(255, 255, 255, .78)
+              font-size: 13px
+              line-height: 1.45
+
+            .map__modal-body__card__header__content__badge
+              display: inline-flex
+              align-items: center
+              gap: 5px
+              padding: 4px 9px
+              background: rgba(255, 255, 255, .18)
+              border: 1px solid rgba(255, 255, 255, .2)
+              border-radius: 999px
+              color: #fff
+              font-size: 11.5px
+              font-weight: 700
+              white-space: nowrap
+
+      .map__modal-body__footer
+        position: sticky
+        display: grid
+        grid-template-columns: 1fr 1fr
+        bottom: -16px
+        gap: 9px
+        padding: 12px 10px calc(14px + env(safe-area-inset-bottom))
+        margin: 12px -10px -16px
+        background: linear-gradient(180deg, rgba(245, 250, 246, 0), var(--paper-100) 24%, var(--paper-100))
+        backdrop-filter: blur(10px)
+        z-index: 2
+
+        .map__modal-body__footer__button
+          --button-contained-background: var(--paper-50)
+          --button-contained-border-color: var(--ink-100)
+          --button-border-width: 2px
+          --button-contained-color: var(--ink-900)
+          --button-font-weight: 700
+
+          &.map__modal-body__footer__button--navigation
+            --button-contained-background: linear-gradient(135deg, var(--grass-500), var(--grass-400))
+            --button-contained-hover-background: linear-gradient(135deg, var(--grass-500), var(--grass-400))
+            --button-contained-active-background: linear-gradient(135deg, var(--grass-500), var(--grass-400))
+            --button-border-width: 0px
 
 @media (min-width: 1024px)
     .map

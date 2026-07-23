@@ -1,0 +1,31 @@
+---
+import Styles from "./history-stats.module.sass";
+import IconifyIcon from "@components/iconify_icon/iconify-icon";
+
+import type { HistoryStatItem } from "../../lib/history-mock-data";
+
+interface Props {
+    items: HistoryStatItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class={Styles["history-stats"]}>
+    <h2 class={Styles["history-stats__title"]}>Twoje statystyki</h2>
+
+    <ul class={Styles["history-stats__list"]}>
+        {items.map(({ icon, label, value }) => (
+            <li class={Styles["history-stats__item"]}>
+                <span class={Styles["history-stats__item__icon"]} aria-hidden="true">
+                    <IconifyIcon icon={icon} />
+                </span>
+
+                <div class={Styles["history-stats__item__content"]}>
+                    <strong>{label}</strong>
+                    <p>{value}</p>
+                </div>
+            </li>
+        ))}
+    </ul>
+</div>

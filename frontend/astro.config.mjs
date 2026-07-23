@@ -15,6 +15,15 @@ export default defineConfig({
     allowedHosts: ["kaucjo-mapa.pl"],
   },
 
+  security: {
+    allowedDomains: [
+      {
+        protocol: "https",
+        hostname: "kaucjo-mapa.pl",
+      },
+    ],
+  },
+
   env: {
     validateSecrets: true,
     schema: {

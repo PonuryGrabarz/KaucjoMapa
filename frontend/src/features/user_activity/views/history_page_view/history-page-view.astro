@@ -1,0 +1,27 @@
+---
+import Styles from "./history-page-view.module.sass";
+import HistorySummary from "../../components/history_summary/history-summary.astro";
+import HistoryStats from "../../components/history_stats/history-stats.astro";
+import HistoryActivityList from "../../components/history_activity_list/history-activity-list.astro";
+
+import {
+    historySummaryItems,
+    historyStatsItems,
+    historyActivityItems,
+} from "../../lib/history-mock-data";
+---
+
+<section class:list={Styles["history-page"]} aria-labelledby="history-page-title">
+    <h1 id="history-page-title" class:list={Styles["history-page__title"]}>Historia zwrotów</h1>
+
+    <div class:list={Styles["history-page__content"]}>
+        <div class:list={Styles["history-page__content__left"]}>
+            <HistorySummary items={historySummaryItems} />
+            <HistoryStats items={historyStatsItems} />
+        </div>
+
+        <div class:list={Styles["history-page__content__right"]}>
+            <HistoryActivityList items={historyActivityItems} />
+        </div>
+    </div>
+</section>

@@ -4,7 +4,7 @@ import { ActionError, defineAction } from "astro:actions";
 const sessionUserSchema = z.object({
   createdAt: z.string().min(1),
   email: z.email(),
-  id: z.string().uuid(),
+  id: z.uuid(),
   isAdmin: z.boolean(),
   isBanned: z.boolean(),
   reputation: z.number().int(),
@@ -43,7 +43,15 @@ export const auth = {
 
   destroySession: defineAction({
     handler: (_input, context) => {
-      context.session?.destroy();
+      const { session } = context;
+      if (!session) {
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Obsługa sesji jest niedostępna.",
+        });
+      }
+
+      session.destroy();
       return { success: true };
     },
   }),

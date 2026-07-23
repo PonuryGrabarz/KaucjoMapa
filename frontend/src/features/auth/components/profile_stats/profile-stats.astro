@@ -1,0 +1,20 @@
+---
+import Styles from "./profile-stats.module.sass";
+
+import type { ProfileStat } from "../../lib/profile-mock-data";
+
+interface Props {
+  items: ProfileStat[];
+}
+
+const { items } = Astro.props;
+---
+
+<dl class={Styles["profile-stats"]} aria-label="Statystyki profilu">
+  {items.map(({ label, value }) => (
+    <div class={Styles["profile-stats__item"]}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </div>
+  ))}
+</dl>

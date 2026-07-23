@@ -1,0 +1,24 @@
+---
+import Styles from "./history-summary.module.sass";
+
+import type { HistorySummaryItem } from "../../lib/history-mock-data";
+
+interface Props {
+    items: HistorySummaryItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class={Styles["history-summary"]}>
+    <h2 class={Styles["history-summary__title"]}>Podsumowanie</h2>
+
+    <dl class={Styles["history-summary__grid"]}>
+        {items.map(({ value, label }) => (
+            <div class={Styles["history-summary__item"]}>
+                <dt class={Styles["history-summary__item__label"]}>{label}</dt>
+                <dd class={Styles["history-summary__item__value"]}>{value}</dd>
+            </div>
+        ))}
+    </dl>
+</div>
