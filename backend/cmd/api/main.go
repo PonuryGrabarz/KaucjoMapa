@@ -66,7 +66,10 @@ func main() {
 		log.Printf("Error seeding admin user: %v", err)
 	}
 
-	go seedSvc.ScrapPoints(context.Background())
+	err = seedSvc.ScrapPoints(context.Background())
+	if err != nil {
+		fmt.Printf("Error scraping points: %v", err)
+	}
 
 	server := http.New(returnPointSvc, userSvc, authSvc, tokenSigner, hasher, cfg)
 

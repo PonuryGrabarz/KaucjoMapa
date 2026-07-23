@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
@@ -36,7 +35,7 @@ func (r *ReturnPointRepo) ExistsNearby(ctx context.Context, lat, lng float64) (b
 		return true, entity.ErrPointExistsNearby
 	}
 
-	return false, err
+	return false, nil
 }
 
 func (r *ReturnPointRepo) Create(ctx context.Context, p entity.ReturnPoint) (entity.ReturnPoint, error) {
@@ -69,11 +68,9 @@ func (r *ReturnPointRepo) GetByID(ctx context.Context, id uuid.UUID) (entity.Ret
 func (r *ReturnPointRepo) List(ctx context.Context, f usecase.Filter) ([]entity.ReturnPoint, error) {
 	var returnPoints []entity.ReturnPoint
 	row, err := r.q.ListReturnPoints(ctx, toListReturnPointsParams(f))
-	fmt.Println("ListReturnPoints error:", err) // Debugging line
 	if errors.Is(err, pgx.ErrNoRows) {
 		return []entity.ReturnPoint{}, nil
 	}
-	fmt.Println("ListReturnPoints row:", row) // Debugging line
 
 	if err != nil {
 		return []entity.ReturnPoint{}, entity.ErrNotFound

@@ -37,17 +37,20 @@ func (s *Scraper) FetchReturnPoints(ctx context.Context) ([]entity.ReturnPoint, 
 
 	for _, retPoint := range kaucjomatyList {
 		returnPoints = append(returnPoints, entity.ReturnPoint{
-			ID:            uuid.New(),
-			UserID:        nil,
-			Name:          retPoint.Brand,
-			Type:          entity.PointTypeButelkomat,
-			Address:       fmt.Sprintf("%s %s", retPoint.City, retPoint.Address),
-			Latitude:      retPoint.Lat,
-			Longitude:     retPoint.Lng,
-			Pet:           retPoint.Pet,
-			Can:           retPoint.Can,
-			Glass:         retPoint.Glass,
-			OpeningHours:  "8:00 - 20:00",
+			ID:           uuid.New(),
+			UserID:       nil,
+			Name:         retPoint.Brand,
+			Type:         entity.PointTypeButelkomat,
+			Address:      fmt.Sprintf("%s %s", retPoint.City, retPoint.Address),
+			Latitude:     retPoint.Lat,
+			Longitude:    retPoint.Lng,
+			Pet:          retPoint.Pet,
+			Can:          retPoint.Can,
+			Glass:        retPoint.Glass,
+			RefundMethod: []entity.RefundMethod{entity.RefundMethodCash, entity.RefundMethodVoucher},
+			OpeningHours: entity.OpeningHours{
+				MonFri: "06:00:00 - 23:00:00",
+			},
 			Description:   "Automat do zwrotu butelek i puszek",
 			CurrentStatus: entity.PointStatusDostepny,
 			IsVerified:    true,
@@ -57,13 +60,25 @@ func (s *Scraper) FetchReturnPoints(ctx context.Context) ([]entity.ReturnPoint, 
 	}
 
 	for _, retPoint := range zabkaKaucjomatyList {
-		openingHours := "8:00 - 20:00"
+		openingHours := entity.OpeningHours{}
 		if retPoint.Properties.OpeningHours.MonSun != "" {
-			openingHours = retPoint.Properties.OpeningHours.MonSun
+			openingHours.MonSun = retPoint.Properties.OpeningHours.MonSun
 		}
 
 		if retPoint.Properties.OpeningHours.MonSat != "" {
-			openingHours = retPoint.Properties.OpeningHours.MonSat
+			openingHours.MonSat = retPoint.Properties.OpeningHours.MonSat
+		}
+
+		if retPoint.Properties.OpeningHours.MonFri != "" {
+			openingHours.MonFri = retPoint.Properties.OpeningHours.MonFri
+		}
+
+		if retPoint.Properties.OpeningHours.Sat != "" {
+			openingHours.Sat = retPoint.Properties.OpeningHours.Sat
+		}
+
+		if retPoint.Properties.OpeningHours.Sun != "" {
+			openingHours.Sun = retPoint.Properties.OpeningHours.Sun
 		}
 
 		returnPoints = append(returnPoints, entity.ReturnPoint{
@@ -78,6 +93,7 @@ func (s *Scraper) FetchReturnPoints(ctx context.Context) ([]entity.ReturnPoint, 
 			Can:           true,
 			Glass:         false,
 			OpeningHours:  openingHours,
+			RefundMethod:  []entity.RefundMethod{entity.RefundMethodCash, entity.RefundMethodVoucher},
 			Description:   "Automat do zwrotu butelek i puszek",
 			CurrentStatus: entity.PointStatusDostepny,
 			IsVerified:    true,

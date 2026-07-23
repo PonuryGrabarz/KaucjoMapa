@@ -2,12 +2,14 @@ package postgres
 
 import (
 	"database/sql"
-	"time"
+	"encoding/json"
+	"fmt"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
 
 func toNullUUID(id *uuid.UUID) uuid.NullUUID {
@@ -64,16 +66,27 @@ func toNullPointType(str entity.PointType) database.NullPointType {
 	return pType
 }
 
-func toNullTime(t time.Time) sql.NullTime {
-	nullTime := sql.NullTime{
-		Time:  t,
-		Valid: t != time.Time{},
-	}
+// func toNullTime(t time.Time) sql.NullTime {
+// 	nullTime := sql.NullTime{
+// 		Time:  t,
+// 		Valid: t != time.Time{},
+// 	}
 
-	return nullTime
-}
+// 	return nullTime
+// }
 
 func toCreateReturnPointParams(p entity.ReturnPoint) database.CreatePointParams {
+	var rawOpeningHours json.RawMessage
+	rawOpeningHours, err := json.Marshal(p.OpeningHours)
+	if err != nil {
+		fmt.Println("Error marshalling OpeningHours:", err) // Debugging line
+	}
+
+	refundMethods := []database.RefundMethod{}
+	for _, method := range p.RefundMethod {
+		refundMethods = append(refundMethods, database.RefundMethod(method))
+	}
+
 	return database.CreatePointParams{
 		ID:            p.ID,
 		UserID:        toNullUUID(p.UserID),
@@ -85,7 +98,8 @@ func toCreateReturnPointParams(p entity.ReturnPoint) database.CreatePointParams 
 		Pet:           p.Pet,
 		Can:           p.Can,
 		Glass:         p.Glass,
-		OpeningHours:  toNullString(p.OpeningHours),
+		RefundMethods: refundMethods,
+		OpeningHours:  rawOpeningHours,
 		Description:   toNullString(p.Description),
 		CurrentStatus: database.PointStatus(p.CurrentStatus),
 		IsVerified:    p.IsVerified,
@@ -95,6 +109,14 @@ func toCreateReturnPointParams(p entity.ReturnPoint) database.CreatePointParams 
 }
 
 func toReturnPointEntity(returnPoint database.ReturnPoint) entity.ReturnPoint {
+	var openingHours entity.OpeningHours
+	json.Unmarshal(returnPoint.OpeningHours, &openingHours)
+
+	refundMethods := []entity.RefundMethod{}
+	for _, method := range returnPoint.RefundMethods {
+		refundMethods = append(refundMethods, entity.RefundMethod(method))
+	}
+
 	return entity.ReturnPoint{
 		ID:            returnPoint.ID,
 		UserID:        &returnPoint.UserID.UUID,
@@ -106,7 +128,8 @@ func toReturnPointEntity(returnPoint database.ReturnPoint) entity.ReturnPoint {
 		Pet:           returnPoint.Pet,
 		Can:           returnPoint.Can,
 		Glass:         returnPoint.Glass,
-		OpeningHours:  returnPoint.OpeningHours.String,
+		RefundMethod:  refundMethods,
+		OpeningHours:  openingHours,
 		Description:   returnPoint.Description.String,
 		CurrentStatus: entity.PointStatus(returnPoint.CurrentStatus),
 		IsVerified:    returnPoint.IsVerified,
@@ -134,6 +157,17 @@ func toCountReturnPointsParams(filters usecase.Filter) database.CountReturnPoint
 }
 
 func toUpdatePointParams(returnPoint entity.ReturnPoint) database.UpdatePointByIdParams {
+	var rawOpeningHours json.RawMessage
+	rawOpeningHours, err := json.Marshal(returnPoint.OpeningHours)
+	if err != nil {
+		fmt.Println("Error marshalling OpeningHours:", err) // Debugging line
+	}
+
+	nullRaw := pqtype.NullRawMessage{
+		RawMessage: rawOpeningHours,
+		Valid:      rawOpeningHours != nil,
+	}
+
 	return database.UpdatePointByIdParams{
 		ID:           returnPoint.ID,
 		Name:         toNullString(returnPoint.Name),
@@ -141,7 +175,7 @@ func toUpdatePointParams(returnPoint entity.ReturnPoint) database.UpdatePointByI
 		Address:      toNullString(returnPoint.Address),
 		Latitude:     toNullFloat(returnPoint.Latitude),
 		Longitude:    toNullFloat(returnPoint.Longitude),
-		OpeningHours: toNullString(returnPoint.OpeningHours),
+		OpeningHours: nullRaw,
 		Description:  toNullString(returnPoint.Description),
 		Pet:          toNullBool(returnPoint.Pet),
 		Can:          toNullBool(returnPoint.Can),
