@@ -38,7 +38,6 @@ func (s *Service) ScrapPoints(ctx context.Context) error {
 	for _, p := range pts {
 		p.UserID = &admin.ID
 		if _, err := s.points.Create(ctx, p); err != nil {
-			fmt.Println(err)
 			continue
 		}
 	}

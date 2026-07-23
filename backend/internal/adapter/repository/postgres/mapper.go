@@ -82,6 +82,11 @@ func toCreateReturnPointParams(p entity.ReturnPoint) database.CreatePointParams 
 		fmt.Println("Error marshalling OpeningHours:", err) // Debugging line
 	}
 
+	refundMethods := []database.RefundMethod{}
+	for _, method := range p.RefundMethod {
+		refundMethods = append(refundMethods, database.RefundMethod(method))
+	}
+
 	return database.CreatePointParams{
 		ID:            p.ID,
 		UserID:        toNullUUID(p.UserID),
@@ -93,6 +98,7 @@ func toCreateReturnPointParams(p entity.ReturnPoint) database.CreatePointParams 
 		Pet:           p.Pet,
 		Can:           p.Can,
 		Glass:         p.Glass,
+		RefundMethods: refundMethods,
 		OpeningHours:  rawOpeningHours,
 		Description:   toNullString(p.Description),
 		CurrentStatus: database.PointStatus(p.CurrentStatus),
@@ -106,6 +112,11 @@ func toReturnPointEntity(returnPoint database.ReturnPoint) entity.ReturnPoint {
 	var openingHours entity.OpeningHours
 	json.Unmarshal(returnPoint.OpeningHours, &openingHours)
 
+	refundMethods := []entity.RefundMethod{}
+	for _, method := range returnPoint.RefundMethods {
+		refundMethods = append(refundMethods, entity.RefundMethod(method))
+	}
+
 	return entity.ReturnPoint{
 		ID:            returnPoint.ID,
 		UserID:        &returnPoint.UserID.UUID,
@@ -117,6 +128,7 @@ func toReturnPointEntity(returnPoint database.ReturnPoint) entity.ReturnPoint {
 		Pet:           returnPoint.Pet,
 		Can:           returnPoint.Can,
 		Glass:         returnPoint.Glass,
+		RefundMethod:  refundMethods,
 		OpeningHours:  openingHours,
 		Description:   returnPoint.Description.String,
 		CurrentStatus: entity.PointStatus(returnPoint.CurrentStatus),

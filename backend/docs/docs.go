@@ -478,6 +478,7 @@ const docTemplate = `{
             "required": [
                 "current_status",
                 "name",
+                "refund_method",
                 "type"
             ],
             "properties": {
@@ -516,6 +517,17 @@ const docTemplate = `{
                 },
                 "pet": {
                     "type": "boolean"
+                },
+                "refund_method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "gotowka",
+                            "bon",
+                            "karta"
+                        ]
+                    }
                 },
                 "type": {
                     "type": "string",
@@ -657,6 +669,17 @@ const docTemplate = `{
                 "pet": {
                     "type": "boolean"
                 },
+                "refund_method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "gotowka",
+                            "bon",
+                            "karta"
+                        ]
+                    }
+                },
                 "short_name": {
                     "type": "string"
                 },
@@ -736,6 +759,17 @@ const docTemplate = `{
                 },
                 "pet": {
                     "type": "boolean"
+                },
+                "refund_method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "gotowka",
+                            "bon",
+                            "karta"
+                        ]
+                    }
                 },
                 "type": {
                     "type": "string",

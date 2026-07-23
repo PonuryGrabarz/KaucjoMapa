@@ -46,13 +46,19 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
+	refundMethods := []entity.RefundMethod{}
+	for _, method := range req.RefundMethod {
+		refundMethods = append(refundMethods, entity.RefundMethod(method))
+	}
+
 	returnPoint, err := h.svc.Create(c.Context(), dto.CreateReturnPointInput{
-		Name:      req.Name,
-		UserID:    claims.UserID,
-		Type:      req.Type,
-		Address:   req.Address,
-		Latitude:  req.Latitude,
-		Longitude: req.Longitude,
+		Name:         req.Name,
+		UserID:       claims.UserID,
+		Type:         req.Type,
+		Address:      req.Address,
+		Latitude:     req.Latitude,
+		Longitude:    req.Longitude,
+		RefundMethod: refundMethods,
 		OpeningHours: entity.OpeningHours{
 			MonSun: req.OpeningHours.MonSun,
 			MonSat: req.OpeningHours.MonSat,

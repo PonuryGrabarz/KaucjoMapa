@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
 )
 
@@ -65,7 +66,8 @@ INSERT INTO return_points (
   updated_at,
   pet,
   can,
-  glass
+  glass,
+  refund_methods
 ) VALUES (
   $1,
   $2,
@@ -84,8 +86,9 @@ INSERT INTO return_points (
   $15,
   $16,
   $17,
-  $18
-  ) RETURNING id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at
+  $18,
+  $19
+  ) RETURNING id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods
 `
 
 type CreatePointParams struct {
@@ -107,11 +110,11 @@ type CreatePointParams struct {
 	Pet                bool
 	Can                bool
 	Glass              bool
+	RefundMethods      []RefundMethod
 }
 
 func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (ReturnPoint, error) {
-	row := q.db.QueryRowContext(
-		ctx, createPoint,
+	row := q.db.QueryRowContext(ctx, createPoint,
 		arg.ID,
 		arg.UserID,
 		arg.Name,
@@ -130,6 +133,7 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 		arg.Pet,
 		arg.Can,
 		arg.Glass,
+		pq.Array(arg.RefundMethods),
 	)
 	var i ReturnPoint
 	err := row.Scan(
@@ -151,6 +155,7 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		pq.Array(&i.RefundMethods),
 	)
 	return i, err
 }
@@ -165,7 +170,7 @@ func (q *Queries) DeletePointById(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllReturnPoints = `-- name: GetAllReturnPoints :many
-SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at FROM return_points
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods FROM return_points
 `
 
 func (q *Queries) GetAllReturnPoints(ctx context.Context) ([]ReturnPoint, error) {
@@ -196,6 +201,7 @@ func (q *Queries) GetAllReturnPoints(ctx context.Context) ([]ReturnPoint, error)
 			&i.IsVerified,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			pq.Array(&i.RefundMethods),
 		); err != nil {
 			return nil, err
 		}
@@ -238,7 +244,7 @@ func (q *Queries) GetPointByDistance(ctx context.Context, arg GetPointByDistance
 }
 
 const getPointById = `-- name: GetPointById :one
-SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at FROM return_points WHERE id = $1
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods FROM return_points WHERE id = $1
 `
 
 func (q *Queries) GetPointById(ctx context.Context, id uuid.UUID) (ReturnPoint, error) {
@@ -263,12 +269,13 @@ func (q *Queries) GetPointById(ctx context.Context, id uuid.UUID) (ReturnPoint, 
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		pq.Array(&i.RefundMethods),
 	)
 	return i, err
 }
 
 const listReturnPoints = `-- name: ListReturnPoints :many
-SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods
 FROM return_points
 WHERE (
     $1::TEXT IS NULL
@@ -297,8 +304,7 @@ type ListReturnPointsParams struct {
 }
 
 func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsParams) ([]ReturnPoint, error) {
-	rows, err := q.db.QueryContext(
-		ctx, listReturnPoints,
+	rows, err := q.db.QueryContext(ctx, listReturnPoints,
 		arg.Query,
 		arg.PointType,
 		arg.PointStatus,
@@ -331,6 +337,7 @@ func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsPara
 			&i.IsVerified,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			pq.Array(&i.RefundMethods),
 		); err != nil {
 			return nil, err
 		}
@@ -384,33 +391,37 @@ SET
         $9::BOOLEAN,
         rp.can
     ),
+    refund_methods = COALESCE(
+      $10::refund_method[],
+      rp.refund_methods
+    ),
     glass = COALESCE(
-        $10::BOOLEAN,
+        $11::BOOLEAN,
         rp.glass
     ),
     is_verified = false,
     updated_at = NOW()
-WHERE rp.id = $11::UUID
-RETURNING rp.id, rp.user_id, rp.name, rp.type, rp.address, rp.latitude, rp.longitude, rp.pet, rp.can, rp.glass, rp.opening_hours, rp.description, rp.current_status, rp.confirmations_count, rp.rejections_count, rp.is_verified, rp.created_at, rp.updated_at
+WHERE rp.id = $12::UUID
+RETURNING rp.id, rp.user_id, rp.name, rp.type, rp.address, rp.latitude, rp.longitude, rp.pet, rp.can, rp.glass, rp.opening_hours, rp.description, rp.current_status, rp.confirmations_count, rp.rejections_count, rp.is_verified, rp.created_at, rp.updated_at, rp.refund_methods
 `
 
 type UpdatePointByIdParams struct {
-	Name         sql.NullString
-	Type         NullPointType
-	Address      sql.NullString
-	Latitude     sql.NullFloat64
-	Longitude    sql.NullFloat64
-	OpeningHours pqtype.NullRawMessage
-	Description  sql.NullString
-	Pet          sql.NullBool
-	Can          sql.NullBool
-	Glass        sql.NullBool
-	ID           uuid.UUID
+	Name          sql.NullString
+	Type          NullPointType
+	Address       sql.NullString
+	Latitude      sql.NullFloat64
+	Longitude     sql.NullFloat64
+	OpeningHours  pqtype.NullRawMessage
+	Description   sql.NullString
+	Pet           sql.NullBool
+	Can           sql.NullBool
+	RefundMethods []RefundMethod
+	Glass         sql.NullBool
+	ID            uuid.UUID
 }
 
 func (q *Queries) UpdatePointById(ctx context.Context, arg UpdatePointByIdParams) (ReturnPoint, error) {
-	row := q.db.QueryRowContext(
-		ctx, updatePointById,
+	row := q.db.QueryRowContext(ctx, updatePointById,
 		arg.Name,
 		arg.Type,
 		arg.Address,
@@ -420,6 +431,7 @@ func (q *Queries) UpdatePointById(ctx context.Context, arg UpdatePointByIdParams
 		arg.Description,
 		arg.Pet,
 		arg.Can,
+		pq.Array(arg.RefundMethods),
 		arg.Glass,
 		arg.ID,
 	)
@@ -443,6 +455,7 @@ func (q *Queries) UpdatePointById(ctx context.Context, arg UpdatePointByIdParams
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		pq.Array(&i.RefundMethods),
 	)
 	return i, err
 }

@@ -24,6 +24,7 @@ type CreateReturnPointRequest struct {
 	Pet           bool         `json:"pet"`
 	Can           bool         `json:"can"`
 	Glass         bool         `json:"glass"`
+	RefundMethod  []string     `json:"refund_method" validate:"required,oneof=gotowka bon karta" enums:"gotowka,bon,karta"`
 	OpeningHours  OpeningHours `json:"opening_hours"`
 	Description   string       `json:"description"`
 	CurrentStatus string       `json:"current_status" validate:"required,oneof=dostepny awaria brak_informacji" enums:"dostepny,awaria,brak_informacji"`
@@ -38,6 +39,7 @@ type UpdateKaucjomatRequest struct {
 	Pet          *bool         `json:"pet"`
 	Can          *bool         `json:"can"`
 	Glass        *bool         `json:"glass"`
+	RefundMethod *[]string     `json:"refund_method" validate:"omitempty,oneof=gotowka bon karta" enums:"gotowka,bon,karta"`
 	OpeningHours *OpeningHours `json:"opening_hours"`
 	Description  *string       `json:"description"`
 }
@@ -57,6 +59,7 @@ type ReturnPointDetailsResponse struct {
 	Can           bool         `json:"can"`
 	Glass         bool         `json:"glass"`
 	OpeningHours  OpeningHours `json:"opening_hours"`
+	RefundMethod  []string     `json:"refund_method" enums:"gotowka,bon,karta"`
 	Description   string       `json:"description"`
 	CurrentStatus string       `json:"current_status" validate:"required,oneof=dostepny awaria brak_informacji" enums:"dostepny,awaria,brak_informacji"`
 	IsVerified    bool         `json:"is_verified"`
@@ -78,21 +81,27 @@ type ReturnPointPage struct {
 
 func CreateReturnPointSuccessResponse(p entity.ReturnPoint) ReturnPointDetailsResponse {
 	style := ResolvePointStyle(p.Name)
+	refundMethod := []string{}
+
+	for _, method := range p.RefundMethod {
+		refundMethod = append(refundMethod, string(method))
+	}
 
 	return ReturnPointDetailsResponse{
-		ID:        p.ID.String(),
-		UserID:    p.UserID,
-		Type:      string(p.Type),
-		ShortName: style.ShortName,
-		Name:      p.Name,
-		BgColor:   style.BgColor,
-		TextColor: style.TextColor,
-		Latitude:  p.Latitude,
-		Longitude: p.Longitude,
-		Address:   p.Address,
-		Pet:       p.Pet,
-		Can:       p.Can,
-		Glass:     p.Glass,
+		ID:           p.ID.String(),
+		UserID:       p.UserID,
+		Type:         string(p.Type),
+		ShortName:    style.ShortName,
+		Name:         p.Name,
+		BgColor:      style.BgColor,
+		TextColor:    style.TextColor,
+		Latitude:     p.Latitude,
+		Longitude:    p.Longitude,
+		Address:      p.Address,
+		Pet:          p.Pet,
+		Can:          p.Can,
+		Glass:        p.Glass,
+		RefundMethod: refundMethod,
 		OpeningHours: OpeningHours{
 			MonFri: p.OpeningHours.MonFri,
 			MonSat: p.OpeningHours.MonSat,

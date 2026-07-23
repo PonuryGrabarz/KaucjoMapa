@@ -17,7 +17,8 @@ INSERT INTO return_points (
   updated_at,
   pet,
   can,
-  glass
+  glass,
+  refund_methods
 ) VALUES (
   $1,
   $2,
@@ -36,7 +37,8 @@ INSERT INTO return_points (
   $15,
   $16,
   $17,
-  $18
+  $18,
+  $19
   ) RETURNING *;
 
 -- name: GetAllReturnPoints :many
@@ -131,6 +133,10 @@ SET
     can = COALESCE(
         sqlc.narg('can')::BOOLEAN,
         rp.can
+    ),
+    refund_methods = COALESCE(
+      sqlc.narg('refund_methods')::refund_method[],
+      rp.refund_methods
     ),
     glass = COALESCE(
         sqlc.narg('glass')::BOOLEAN,

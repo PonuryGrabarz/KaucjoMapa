@@ -29,6 +29,14 @@ definitions:
         $ref: '#/definitions/presenter.OpeningHours'
       pet:
         type: boolean
+      refund_method:
+        items:
+          enum:
+          - gotowka
+          - bon
+          - karta
+          type: string
+        type: array
       type:
         enum:
         - butelkomat
@@ -39,6 +47,7 @@ definitions:
     required:
     - current_status
     - name
+    - refund_method
     - type
     type: object
   presenter.CreateUserRequest:
@@ -126,6 +135,14 @@ definitions:
         $ref: '#/definitions/presenter.OpeningHours'
       pet:
         type: boolean
+      refund_method:
+        items:
+          enum:
+          - gotowka
+          - bon
+          - karta
+          type: string
+        type: array
       short_name:
         type: string
       text_color:
@@ -180,6 +197,14 @@ definitions:
         $ref: '#/definitions/presenter.OpeningHours'
       pet:
         type: boolean
+      refund_method:
+        items:
+          enum:
+          - gotowka
+          - bon
+          - karta
+          type: string
+        type: array
       type:
         enum:
         - butelkomat

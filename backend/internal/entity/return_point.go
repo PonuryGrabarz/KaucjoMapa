@@ -7,18 +7,22 @@ import (
 )
 
 type (
-	PointType   string
-	PointStatus string
+	PointType    string
+	PointStatus  string
+	RefundMethod string
 )
 
 const (
-	PointTypeButelkomat       PointType   = "butelkomat"
-	PointTypeSklep            PointType   = "sklep"
-	PointTypePunktSkupu       PointType   = "punkt_skupu"
-	PointTypeInny             PointType   = "inny"
-	PointStatusDostepny       PointStatus = "dostepny"
-	PointStatusAwaria         PointStatus = "awaria"
-	PointStatusBrakInformacji PointStatus = "bark_informacji"
+	PointTypeButelkomat       PointType    = "butelkomat"
+	PointTypeSklep            PointType    = "sklep"
+	PointTypePunktSkupu       PointType    = "punkt_skupu"
+	PointTypeInny             PointType    = "inny"
+	PointStatusDostepny       PointStatus  = "dostepny"
+	PointStatusAwaria         PointStatus  = "awaria"
+	PointStatusBrakInformacji PointStatus  = "bark_informacji"
+	RefundMethodCash          RefundMethod = "gotowka"
+	RefundMethodVoucher       RefundMethod = "bon"
+	RefundMethodCard          RefundMethod = "karta"
 )
 
 type OpeningHours struct {
@@ -40,6 +44,7 @@ type ReturnPoint struct {
 	Pet           bool
 	Can           bool
 	Glass         bool
+	RefundMethod  []RefundMethod
 	OpeningHours  OpeningHours
 	Description   string
 	CurrentStatus PointStatus

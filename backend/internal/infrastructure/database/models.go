@@ -101,6 +101,49 @@ func (ns NullPointType) Value() (driver.Value, error) {
 	return string(ns.PointType), nil
 }
 
+type RefundMethod string
+
+const (
+	RefundMethodGotowka RefundMethod = "gotowka"
+	RefundMethodBon     RefundMethod = "bon"
+	RefundMethodKarta   RefundMethod = "karta"
+)
+
+func (e *RefundMethod) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RefundMethod(s)
+	case string:
+		*e = RefundMethod(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RefundMethod: %T", src)
+	}
+	return nil
+}
+
+type NullRefundMethod struct {
+	RefundMethod RefundMethod
+	Valid        bool // Valid is true if RefundMethod is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRefundMethod) Scan(value interface{}) error {
+	if value == nil {
+		ns.RefundMethod, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RefundMethod.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRefundMethod) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RefundMethod), nil
+}
+
 type RefreshToken struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
@@ -130,6 +173,7 @@ type ReturnPoint struct {
 	IsVerified         bool
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+	RefundMethods      []RefundMethod
 }
 
 type User struct {

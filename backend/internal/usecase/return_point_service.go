@@ -86,6 +86,7 @@ func (s *returnPointService) Create(ctx context.Context, in dto.CreateReturnPoin
 		Pet:           in.Pet,
 		Can:           in.Can,
 		Glass:         in.Glass,
+		RefundMethod:  in.RefundMethod,
 		CurrentStatus: entity.PointStatus(in.CurrentStatus),
 		IsVerified:    false,
 		CreatedAt:     time.Now(),
