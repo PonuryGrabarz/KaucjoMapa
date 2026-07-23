@@ -8,9 +8,11 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
 
 const countReturnPoints = `-- name: CountReturnPoints :one
@@ -94,7 +96,7 @@ type CreatePointParams struct {
 	Address            sql.NullString
 	Latitude           float64
 	Longitude          float64
-	OpeningHours       sql.NullString
+	OpeningHours       json.RawMessage
 	Description        sql.NullString
 	CurrentStatus      PointStatus
 	ConfirmationsCount int32
@@ -108,7 +110,8 @@ type CreatePointParams struct {
 }
 
 func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (ReturnPoint, error) {
-	row := q.db.QueryRowContext(ctx, createPoint,
+	row := q.db.QueryRowContext(
+		ctx, createPoint,
 		arg.ID,
 		arg.UserID,
 		arg.Name,
@@ -294,7 +297,8 @@ type ListReturnPointsParams struct {
 }
 
 func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsParams) ([]ReturnPoint, error) {
-	rows, err := q.db.QueryContext(ctx, listReturnPoints,
+	rows, err := q.db.QueryContext(
+		ctx, listReturnPoints,
 		arg.Query,
 		arg.PointType,
 		arg.PointStatus,
@@ -365,7 +369,7 @@ SET
         rp.longitude
     ),
     opening_hours = COALESCE(
-        $6::TEXT,
+        $6::JSONB,
         rp.opening_hours
     ),
     description = COALESCE(
@@ -396,7 +400,7 @@ type UpdatePointByIdParams struct {
 	Address      sql.NullString
 	Latitude     sql.NullFloat64
 	Longitude    sql.NullFloat64
-	OpeningHours sql.NullString
+	OpeningHours pqtype.NullRawMessage
 	Description  sql.NullString
 	Pet          sql.NullBool
 	Can          sql.NullBool
@@ -405,7 +409,8 @@ type UpdatePointByIdParams struct {
 }
 
 func (q *Queries) UpdatePointById(ctx context.Context, arg UpdatePointByIdParams) (ReturnPoint, error) {
-	row := q.db.QueryRowContext(ctx, updatePointById,
+	row := q.db.QueryRowContext(
+		ctx, updatePointById,
 		arg.Name,
 		arg.Type,
 		arg.Address,

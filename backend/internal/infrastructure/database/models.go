@@ -7,6 +7,7 @@ package database
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -17,11 +18,8 @@ type PointStatus string
 
 const (
 	PointStatusDostepny       PointStatus = "dostepny"
-	PointStatusZapelniony     PointStatus = "zapelniony"
-	PointStatusNieczynny      PointStatus = "nieczynny"
 	PointStatusAwaria         PointStatus = "awaria"
 	PointStatusBrakInformacji PointStatus = "brak_informacji"
-	PointStatusDoWeryfikacji  PointStatus = "do_weryfikacji"
 )
 
 func (e *PointStatus) Scan(src interface{}) error {
@@ -124,7 +122,7 @@ type ReturnPoint struct {
 	Pet                bool
 	Can                bool
 	Glass              bool
-	OpeningHours       sql.NullString
+	OpeningHours       json.RawMessage
 	Description        sql.NullString
 	CurrentStatus      PointStatus
 	ConfirmationsCount int32

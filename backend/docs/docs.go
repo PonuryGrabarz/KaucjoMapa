@@ -288,7 +288,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Utworzony punkt zwrotu",
                         "schema": {
-                            "$ref": "#/definitions/presenter.ReturnPointResponse"
+                            "$ref": "#/definitions/presenter.ReturnPointDetailsResponse"
                         }
                     },
                     "400": {
@@ -475,6 +475,11 @@ const docTemplate = `{
     "definitions": {
         "presenter.CreateReturnPointRequest": {
             "type": "object",
+            "required": [
+                "current_status",
+                "name",
+                "type"
+            ],
             "properties": {
                 "address": {
                     "type": "string"
@@ -486,11 +491,8 @@ const docTemplate = `{
                     "type": "string",
                     "enum": [
                         "dostepny",
-                        "zapelniony",
-                        "nieczynny",
                         "awaria",
-                        "brak_informacji",
-                        "do_weryfikacji"
+                        "brak_informacji"
                     ]
                 },
                 "description": {
@@ -506,10 +508,11 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "opening_hours": {
-                    "type": "string"
+                    "$ref": "#/definitions/presenter.OpeningHours"
                 },
                 "pet": {
                     "type": "boolean"
@@ -565,10 +568,51 @@ const docTemplate = `{
                 }
             }
         },
-        "presenter.ReturnPointDetailsResponse": {
+        "presenter.OpeningHours": {
             "type": "object",
             "properties": {
+                "mon-fri": {
+                    "type": "string"
+                },
+                "mon-sat": {
+                    "type": "string"
+                },
+                "mon-sun": {
+                    "type": "string"
+                },
+                "sat": {
+                    "type": "string"
+                },
+                "sun": {}
+            }
+        },
+        "presenter.Pagination": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ReturnPointDetailsResponse": {
+            "type": "object",
+            "required": [
+                "current_status"
+            ],
+            "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "bg_color": {
                     "type": "string"
                 },
                 "can": {
@@ -581,11 +625,8 @@ const docTemplate = `{
                     "type": "string",
                     "enum": [
                         "dostepny",
-                        "zapelniony",
-                        "nieczynny",
                         "awaria",
-                        "brak_informacji",
-                        "do_weryfikacji"
+                        "brak_informacji"
                     ]
                 },
                 "description": {
@@ -611,10 +652,16 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "opening_hours": {
-                    "type": "string"
+                    "$ref": "#/definitions/presenter.OpeningHours"
                 },
                 "pet": {
                     "type": "boolean"
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "text_color": {
+                    "type": "string"
                 },
                 "type": {
                     "type": "string",
@@ -637,70 +684,14 @@ const docTemplate = `{
         "presenter.ReturnPointPage": {
             "type": "object",
             "properties": {
-                "max_page": {
-                    "type": "integer"
+                "pagination": {
+                    "$ref": "#/definitions/presenter.Pagination"
                 },
                 "return_points": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/presenter.ReturnPointResponse"
+                        "$ref": "#/definitions/presenter.ReturnPointDetailsResponse"
                     }
-                }
-            }
-        },
-        "presenter.ReturnPointResponse": {
-            "type": "object",
-            "properties": {
-                "Longitude": {
-                    "type": "number"
-                },
-                "address": {
-                    "type": "string"
-                },
-                "bg_color": {
-                    "type": "string"
-                },
-                "can": {
-                    "type": "boolean"
-                },
-                "current_status": {
-                    "type": "string",
-                    "enum": [
-                        "dostepny",
-                        "zapelniony",
-                        "nieczynny",
-                        "awaria",
-                        "brak_informacji",
-                        "do_weryfikacji"
-                    ]
-                },
-                "description": {
-                    "type": "string"
-                },
-                "glass": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "latitude": {
-                    "type": "number"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "opening_hours": {
-                    "type": "string"
-                },
-                "pet": {
-                    "type": "boolean"
-                },
-                "short_name": {
-                    "type": "string"
-                },
-                "text_color": {
-                    "type": "string"
                 }
             }
         },
@@ -714,6 +705,9 @@ const docTemplate = `{
         },
         "presenter.UpdateKaucjomatRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "address": {
                     "type": "string"
@@ -734,10 +728,11 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "opening_hours": {
-                    "type": "string"
+                    "$ref": "#/definitions/presenter.OpeningHours"
                 },
                 "pet": {
                     "type": "boolean"

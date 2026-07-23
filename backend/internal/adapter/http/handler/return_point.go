@@ -30,7 +30,7 @@ func NewReturnPointHandler(svc usecase.IReturnPointService, userSvc usecase.IUse
 // @Produce json
 // @Security BearerAuth
 // @Param request body presenter.CreateReturnPointRequest true "Dane punktu zwrotu"
-// @Success 200 {object} presenter.ReturnPointResponse "Utworzony punkt zwrotu"
+// @Success 200 {object} presenter.ReturnPointDetailsResponse "Utworzony punkt zwrotu"
 // @Failure 400 {object} presenter.ErrorResponse "Nieprawidłowe body żądania"
 // @Failure 401 {object} presenter.ErrorResponse "Brak lub nieprawidłowy access token"
 // @Failure 500 {object} presenter.ErrorResponse "Nie udało się utworzyć punktu zwrotu"
@@ -47,13 +47,19 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 	}
 
 	returnPoint, err := h.svc.Create(c.Context(), dto.CreateReturnPointInput{
-		Name:          req.Name,
-		UserID:        claims.UserID,
-		Type:          req.Type,
-		Address:       req.Address,
-		Latitude:      req.Latitude,
-		Longitude:     req.Longitude,
-		OpeningHours:  req.OpeningHours,
+		Name:      req.Name,
+		UserID:    claims.UserID,
+		Type:      req.Type,
+		Address:   req.Address,
+		Latitude:  req.Latitude,
+		Longitude: req.Longitude,
+		OpeningHours: entity.OpeningHours{
+			MonSun: req.OpeningHours.MonSun,
+			MonSat: req.OpeningHours.MonSat,
+			MonFri: req.OpeningHours.MonFri,
+			Sat:    req.OpeningHours.Sat,
+			Sun:    req.OpeningHours.Sun,
+		},
 		Description:   req.Description,
 		CurrentStatus: req.CurrentStatus,
 		Pet:           req.Pet,
@@ -127,7 +133,7 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return points")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(presenter.GetReturnPointSuccessResponse(returnPoints, maxPage))
+	return c.Status(fiber.StatusOK).JSON(presenter.GetReturnPointSuccessResponse(returnPoints, maxPage, int64(page), int64(pageSize), listSize))
 }
 
 // DeletePoint godoc
@@ -192,7 +198,7 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user")
 	}
 
-	_, err = h.svc.GetByID(c.Context(), mapPointID)
+	point, err := h.svc.GetByID(c.Context(), mapPointID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Return point not found")
 	}
@@ -203,7 +209,10 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 	}
 
 	params := entity.ReturnPoint{
-		ID: mapPointID,
+		ID:    mapPointID,
+		Pet:   point.Pet,
+		Can:   point.Can,
+		Glass: point.Glass,
 	}
 
 	if req.Name != nil {
@@ -239,7 +248,13 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 	}
 
 	if req.OpeningHours != nil {
-		params.OpeningHours = *req.OpeningHours
+		params.OpeningHours = entity.OpeningHours{
+			MonSun: req.OpeningHours.MonSun,
+			MonSat: req.OpeningHours.MonSat,
+			MonFri: req.OpeningHours.MonFri,
+			Sat:    req.OpeningHours.Sat,
+			Sun:    req.OpeningHours.Sun,
+		}
 	}
 
 	if req.Description != nil {

@@ -92,6 +92,7 @@ SELECT * FROM return_points WHERE id = $1;
 
 -- name: DeletePointById :exec
 DELETE FROM return_points WHERE id = $1;
+
 -- name: UpdatePointById :one
 UPDATE return_points AS rp
 SET
@@ -116,7 +117,7 @@ SET
         rp.longitude
     ),
     opening_hours = COALESCE(
-        sqlc.narg('opening_hours')::TEXT,
+        sqlc.narg('opening_hours')::JSONB,
         rp.opening_hours
     ),
     description = COALESCE(

@@ -11,11 +11,8 @@ definitions:
       current_status:
         enum:
         - dostepny
-        - zapelniony
-        - nieczynny
         - awaria
         - brak_informacji
-        - do_weryfikacji
         type: string
       description:
         type: string
@@ -26,9 +23,10 @@ definitions:
       longitude:
         type: number
       name:
+        maxLength: 255
         type: string
       opening_hours:
-        type: string
+        $ref: '#/definitions/presenter.OpeningHours'
       pet:
         type: boolean
       type:
@@ -38,6 +36,10 @@ definitions:
         - punkt_skupu
         - inny
         type: string
+    required:
+    - current_status
+    - name
+    - type
     type: object
   presenter.CreateUserRequest:
     properties:
@@ -66,9 +68,34 @@ definitions:
       username:
         type: string
     type: object
+  presenter.OpeningHours:
+    properties:
+      mon-fri:
+        type: string
+      mon-sat:
+        type: string
+      mon-sun:
+        type: string
+      sat:
+        type: string
+      sun: {}
+    type: object
+  presenter.Pagination:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   presenter.ReturnPointDetailsResponse:
     properties:
       address:
+        type: string
+      bg_color:
         type: string
       can:
         type: boolean
@@ -77,11 +104,8 @@ definitions:
       current_status:
         enum:
         - dostepny
-        - zapelniony
-        - nieczynny
         - awaria
         - brak_informacji
-        - do_weryfikacji
         type: string
       description:
         type: string
@@ -99,9 +123,13 @@ definitions:
       name:
         type: string
       opening_hours:
-        type: string
+        $ref: '#/definitions/presenter.OpeningHours'
       pet:
         type: boolean
+      short_name:
+        type: string
+      text_color:
+        type: string
       type:
         enum:
         - butelkomat
@@ -114,54 +142,17 @@ definitions:
       user_id:
         format: uuid
         type: string
+    required:
+    - current_status
     type: object
   presenter.ReturnPointPage:
     properties:
-      max_page:
-        type: integer
+      pagination:
+        $ref: '#/definitions/presenter.Pagination'
       return_points:
         items:
-          $ref: '#/definitions/presenter.ReturnPointResponse'
+          $ref: '#/definitions/presenter.ReturnPointDetailsResponse'
         type: array
-    type: object
-  presenter.ReturnPointResponse:
-    properties:
-      Longitude:
-        type: number
-      address:
-        type: string
-      bg_color:
-        type: string
-      can:
-        type: boolean
-      current_status:
-        enum:
-        - dostepny
-        - zapelniony
-        - nieczynny
-        - awaria
-        - brak_informacji
-        - do_weryfikacji
-        type: string
-      description:
-        type: string
-      glass:
-        type: boolean
-      id:
-        format: uuid
-        type: string
-      latitude:
-        type: number
-      name:
-        type: string
-      opening_hours:
-        type: string
-      pet:
-        type: boolean
-      short_name:
-        type: string
-      text_color:
-        type: string
     type: object
   presenter.TokenResponse:
     properties:
@@ -183,9 +174,10 @@ definitions:
       longitude:
         type: number
       name:
+        maxLength: 255
         type: string
       opening_hours:
-        type: string
+        $ref: '#/definitions/presenter.OpeningHours'
       pet:
         type: boolean
       type:
@@ -195,6 +187,8 @@ definitions:
         - punkt_skupu
         - inny
         type: string
+    required:
+    - name
     type: object
 host: localhost:3000
 info:
@@ -380,7 +374,7 @@ paths:
         "200":
           description: Utworzony punkt zwrotu
           schema:
-            $ref: '#/definitions/presenter.ReturnPointResponse'
+            $ref: '#/definitions/presenter.ReturnPointDetailsResponse'
         "400":
           description: Nieprawidłowe body żądania
           schema:

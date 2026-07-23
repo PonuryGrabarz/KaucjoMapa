@@ -48,6 +48,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
+	github.com/sqlc-dev/pqtype v0.3.0 // indirect
 	github.com/sv-tools/openapi v0.4.0 // indirect
 	github.com/swaggo/swag/v2 v2.0.0-rc5 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect

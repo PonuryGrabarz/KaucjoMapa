@@ -17,12 +17,17 @@ const (
 	PointTypePunktSkupu       PointType   = "punkt_skupu"
 	PointTypeInny             PointType   = "inny"
 	PointStatusDostepny       PointStatus = "dostepny"
-	PointStatusZapelniony     PointStatus = "zapelniony"
-	PointStatusNieczynny      PointStatus = "nieczynny"
 	PointStatusAwaria         PointStatus = "awaria"
 	PointStatusBrakInformacji PointStatus = "bark_informacji"
-	PointStatusDoWeryfikacji  PointStatus = "do_weryfikacji"
 )
+
+type OpeningHours struct {
+	MonSun string
+	MonSat string
+	MonFri string
+	Sat    string
+	Sun    any
+}
 
 type ReturnPoint struct {
 	ID            uuid.UUID
@@ -35,7 +40,7 @@ type ReturnPoint struct {
 	Pet           bool
 	Can           bool
 	Glass         bool
-	OpeningHours  string
+	OpeningHours  OpeningHours
 	Description   string
 	CurrentStatus PointStatus
 	IsVerified    bool

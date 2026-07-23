@@ -36,7 +36,7 @@ func (r *ReturnPointRepo) ExistsNearby(ctx context.Context, lat, lng float64) (b
 		return true, entity.ErrPointExistsNearby
 	}
 
-	return false, err
+	return false, nil
 }
 
 func (r *ReturnPointRepo) Create(ctx context.Context, p entity.ReturnPoint) (entity.ReturnPoint, error) {

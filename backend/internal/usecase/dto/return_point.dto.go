@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
+	"github.com/google/uuid"
+)
 
 type CreateReturnPointInput struct {
 	Name          string
@@ -12,7 +15,7 @@ type CreateReturnPointInput struct {
 	Pet           bool
 	Can           bool
 	Glass         bool
-	OpeningHours  string
+	OpeningHours  entity.OpeningHours
 	Description   string
 	CurrentStatus string
 }
