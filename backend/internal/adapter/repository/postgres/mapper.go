@@ -241,3 +241,27 @@ func toRefreshTokenEntity(token database.RefreshToken) entity.RefreshToken {
 		UpdatedAt: token.UpdatedAt,
 	}
 }
+
+func toCreateCommunityReportParams(report entity.CommunityReport) database.CreateCommunityReportParams {
+	return database.CreateCommunityReportParams{
+		ID:            report.ID,
+		UserID:        *report.UserID,
+		ReturnPointID: *report.ReturnPointID,
+		Status:        database.PointStatus(report.Status),
+		Description:   report.Description,
+	}
+}
+
+func toCommunityReportEntity(report database.CommunityReport) entity.CommunityReport {
+	return entity.CommunityReport{
+		ID:                 report.ID,
+		UserID:             &report.UserID,
+		ReturnPointID:      &report.ReturnPointID,
+		Status:             entity.PointStatus(report.Status),
+		Description:        report.Description,
+		ConfirmationsCount: int(report.ConfirmationsCount),
+		RejectionsCount:    int(report.RejectionsCount),
+		CreatedAt:          report.CreatedAt,
+		UpdatedAt:          report.UpdatedAt,
+	}
+}

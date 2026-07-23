@@ -12,7 +12,7 @@ CREATE TYPE point_type AS ENUM (
 
 CREATE TYPE point_status AS ENUM (
     'dostepny',
-    'awaria',
+    'nieczynny',
     'brak_informacji'
 );
 

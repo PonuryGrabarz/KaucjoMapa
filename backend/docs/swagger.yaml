@@ -2,6 +2,61 @@ basePath: /api
 consumes:
 - application/json
 definitions:
+  entity.CommunityReport:
+    properties:
+      confirmationsCount:
+        type: integer
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      rejectionsCount:
+        type: integer
+      returnPointID:
+        type: string
+      status:
+        $ref: '#/definitions/entity.PointStatus'
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  entity.PointStatus:
+    enum:
+    - dostepny
+    - nieczynny
+    - brak_informacji
+    type: string
+    x-enum-varnames:
+    - PointStatusDostepny
+    - PointStatusNieczynny
+    - PointStatusBrakInformacji
+  presenter.CreateCommunityReportRequest:
+    properties:
+      description:
+        type: string
+      report_id:
+        type: string
+      status:
+        enum:
+        - dostepny
+        - nieczynny
+        - bark_informacji
+        type: string
+    required:
+    - description
+    - report_id
+    - status
+    type: object
+  presenter.CreateCommunityReportResponse:
+    properties:
+      report:
+        $ref: '#/definitions/entity.CommunityReport'
+      username:
+        type: string
+    type: object
   presenter.CreateReturnPointRequest:
     properties:
       address:
@@ -323,6 +378,43 @@ paths:
       summary: Zaloguj użytkownika
       tags:
       - auth
+  /reports:
+    post:
+      consumes:
+      - application/json
+      description: Tworzy zgłoszenie dotyczące statusu punktu zwrotu, przypisane do
+        zalogowanego użytkownika.
+      parameters:
+      - description: Dane zgłoszenia społecznościowego
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateCommunityReportRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Utworzone zgłoszenie społecznościowe
+          schema:
+            $ref: '#/definitions/presenter.CreateCommunityReportResponse'
+        "400":
+          description: Nieprawidłowe body żądania lub identyfikator punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się utworzyć zgłoszenia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Utwórz zgłoszenie społecznościowe
+      tags:
+      - community-reports
   /return_points:
     get:
       description: Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej

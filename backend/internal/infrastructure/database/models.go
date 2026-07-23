@@ -60,7 +60,7 @@ type PointStatus string
 
 const (
 	PointStatusDostepny       PointStatus = "dostepny"
-	PointStatusAwaria         PointStatus = "awaria"
+	PointStatusNieczynny      PointStatus = "nieczynny"
 	PointStatusBrakInformacji PointStatus = "brak_informacji"
 )
 
@@ -190,7 +190,7 @@ type CommunityReport struct {
 	ID                 uuid.UUID
 	UserID             uuid.UUID
 	ReturnPointID      uuid.UUID
-	Category           string
+	Status             PointStatus
 	Description        string
 	ConfirmationsCount int32
 	RejectionsCount    int32

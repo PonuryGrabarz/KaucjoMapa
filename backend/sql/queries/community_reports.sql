@@ -3,7 +3,7 @@ INSERT INTO community_reports (
     id,
     user_id,
     return_point_id,
-    category,
+    status,
     description
 ) VALUES (
     $1,

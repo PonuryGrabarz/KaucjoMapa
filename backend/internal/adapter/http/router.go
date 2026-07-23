@@ -29,6 +29,10 @@ func AuthRouter(app fiber.Router, authHandler handler.AuthHandler, JWTSecret str
 	app.Post("/auth/revoke", middleware.RequireJWT(auth, JWTSecret), authHandler.RevokeToken)
 }
 
+func CommunityReportRouter(app fiber.Router, reportsHandler handler.CommunityReportHandler, JWTSecret string, auth port.ITokenSigner) {
+	app.Post("/reports", middleware.RequireJWT(auth, JWTSecret), reportsHandler.Create)
+}
+
 func DocsRouter(app fiber.Router) {
 	openAPISepcDir, err := filepath.Abs("docs")
 	if err != nil {

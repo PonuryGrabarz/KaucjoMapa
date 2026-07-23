@@ -8,7 +8,7 @@ CREATE TABLE community_reports (
     id                  UUID        PRIMARY KEY,
     user_id             UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     return_point_id     UUID        NOT NULL REFERENCES return_points (id) ON DELETE CASCADE,
-    category            VARCHAR(50) NOT NULL DEFAULT 'inny',
+    status              point_status NOT NULL DEFAULT 'brak_informacji',
     description         TEXT        NOT NULL,
     confirmations_count INT         NOT NULL DEFAULT 0 CHECK (confirmations_count >= 0),
     rejections_count    INT         NOT NULL DEFAULT 0 CHECK (rejections_count >= 0),
