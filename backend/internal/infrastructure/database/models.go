@@ -14,6 +14,48 @@ import (
 	"github.com/google/uuid"
 )
 
+type CommunityReportVoteValue string
+
+const (
+	CommunityReportVoteValueConfirm CommunityReportVoteValue = "confirm"
+	CommunityReportVoteValueReject  CommunityReportVoteValue = "reject"
+)
+
+func (e *CommunityReportVoteValue) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CommunityReportVoteValue(s)
+	case string:
+		*e = CommunityReportVoteValue(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CommunityReportVoteValue: %T", src)
+	}
+	return nil
+}
+
+type NullCommunityReportVoteValue struct {
+	CommunityReportVoteValue CommunityReportVoteValue
+	Valid                    bool // Valid is true if CommunityReportVoteValue is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCommunityReportVoteValue) Scan(value interface{}) error {
+	if value == nil {
+		ns.CommunityReportVoteValue, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CommunityReportVoteValue.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCommunityReportVoteValue) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CommunityReportVoteValue), nil
+}
+
 type PointStatus string
 
 const (
@@ -142,6 +184,26 @@ func (ns NullRefundMethod) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.RefundMethod), nil
+}
+
+type CommunityReport struct {
+	ID                 uuid.UUID
+	UserID             uuid.UUID
+	ReturnPointID      uuid.UUID
+	Category           string
+	Description        string
+	ConfirmationsCount int32
+	RejectionsCount    int32
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type CommunityReportVote struct {
+	CommunityReportID uuid.UUID
+	UserID            uuid.UUID
+	Vote              CommunityReportVoteValue
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type RefreshToken struct {
