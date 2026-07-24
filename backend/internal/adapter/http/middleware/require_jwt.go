@@ -15,11 +15,14 @@ func GetBearerToken(headers map[string][]string) (string, error) {
 	}
 
 	for _, auth := range authHeaders {
-		if !strings.Contains(auth, "Bearer ") {
+		if !strings.HasPrefix(auth, "Bearer ") {
 			continue
 		}
 
 		token := strings.TrimPrefix(auth, "Bearer ")
+		if token == "" {
+			continue
+		}
 
 		return token, nil
 	}

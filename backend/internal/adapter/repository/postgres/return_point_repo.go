@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx"
 )
 
 type ReturnPointRepo struct {
@@ -27,15 +27,15 @@ func (r *ReturnPointRepo) ExistsNearby(ctx context.Context, lat, lng float64) (b
 		LlToEarth: lat, LlToEarth_2: lng,
 	})
 
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
 
-	if row.ID != uuid.Nil {
-		return true, entity.ErrPointExistsNearby
+	if err != nil {
+		return false, entity.ErrServerError
 	}
 
-	return false, nil
+	return row.ID != uuid.Nil, nil
 }
 
 func (r *ReturnPointRepo) Create(ctx context.Context, p entity.ReturnPoint) (entity.ReturnPoint, error) {
@@ -68,7 +68,7 @@ func (r *ReturnPointRepo) GetByID(ctx context.Context, id uuid.UUID) (entity.Ret
 func (r *ReturnPointRepo) List(ctx context.Context, f usecase.Filter) ([]entity.ReturnPoint, error) {
 	var returnPoints []entity.ReturnPoint
 	row, err := r.q.ListReturnPoints(ctx, toListReturnPointsParams(f))
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
 		return []entity.ReturnPoint{}, nil
 	}
 

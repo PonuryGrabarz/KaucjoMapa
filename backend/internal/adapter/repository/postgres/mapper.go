@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
@@ -76,11 +76,7 @@ func toNullPointType(str entity.PointType) database.NullPointType {
 // }
 
 func toCreateReturnPointParams(p entity.ReturnPoint) database.CreatePointParams {
-	var rawOpeningHours json.RawMessage
-	rawOpeningHours, err := json.Marshal(p.OpeningHours)
-	if err != nil {
-		fmt.Println("Error marshalling OpeningHours:", err) // Debugging line
-	}
+	rawOpeningHours, _ := json.Marshal(p.OpeningHours)
 
 	refundMethods := []database.RefundMethod{}
 	for _, method := range p.RefundMethod {
@@ -157,29 +153,32 @@ func toCountReturnPointsParams(filters usecase.Filter) database.CountReturnPoint
 }
 
 func toUpdatePointParams(returnPoint entity.ReturnPoint) database.UpdatePointByIdParams {
-	var rawOpeningHours json.RawMessage
-	rawOpeningHours, err := json.Marshal(returnPoint.OpeningHours)
-	if err != nil {
-		fmt.Println("Error marshalling OpeningHours:", err) // Debugging line
-	}
+	rawOpeningHours, _ := json.Marshal(returnPoint.OpeningHours)
 
 	nullRaw := pqtype.NullRawMessage{
 		RawMessage: rawOpeningHours,
 		Valid:      rawOpeningHours != nil,
 	}
 
+	// nil pozostawia stare metody zwrotu (COALESCE w SQL).
+	var refundMethods []database.RefundMethod
+	for _, method := range returnPoint.RefundMethod {
+		refundMethods = append(refundMethods, database.RefundMethod(method))
+	}
+
 	return database.UpdatePointByIdParams{
-		ID:           returnPoint.ID,
-		Name:         toNullString(returnPoint.Name),
-		Type:         toNullPointType(returnPoint.Type),
-		Address:      toNullString(returnPoint.Address),
-		Latitude:     toNullFloat(returnPoint.Latitude),
-		Longitude:    toNullFloat(returnPoint.Longitude),
-		OpeningHours: nullRaw,
-		Description:  toNullString(returnPoint.Description),
-		Pet:          toNullBool(returnPoint.Pet),
-		Can:          toNullBool(returnPoint.Can),
-		Glass:        toNullBool(returnPoint.Glass),
+		ID:            returnPoint.ID,
+		Name:          toNullString(returnPoint.Name),
+		Type:          toNullPointType(returnPoint.Type),
+		Address:       toNullString(returnPoint.Address),
+		Latitude:      toNullFloat(returnPoint.Latitude),
+		Longitude:     toNullFloat(returnPoint.Longitude),
+		OpeningHours:  nullRaw,
+		Description:   toNullString(returnPoint.Description),
+		Pet:           toNullBool(returnPoint.Pet),
+		Can:           toNullBool(returnPoint.Can),
+		Glass:         toNullBool(returnPoint.Glass),
+		RefundMethods: refundMethods,
 	}
 }
 
@@ -231,12 +230,17 @@ func toGetUserRefresTokenParams(id uuid.UUID, tokenString string) database.GetUs
 }
 
 func toRefreshTokenEntity(token database.RefreshToken) entity.RefreshToken {
+	var revokedAt *time.Time
+	if token.RevokedAt.Valid {
+		revokedAt = &token.RevokedAt.Time
+	}
+
 	return entity.RefreshToken{
 		ID:        token.ID,
 		UserID:    token.UserID,
 		Token:     token.Token,
 		ExpiresAt: token.ExpiresAt,
-		RevokedAt: &token.RevokedAt.Time,
+		RevokedAt: revokedAt,
 		CreatedAt: token.CreatedAt,
 		UpdatedAt: token.UpdatedAt,
 	}
