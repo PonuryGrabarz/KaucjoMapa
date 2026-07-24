@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/middleware"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/presenter"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/dto"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
@@ -42,7 +43,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	var req presenter.LoginRequest
 
 	if err := c.Bind().Body(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+		return err
 	}
 
 	refreshToken, token, err := h.refreshTokenSvc.Login(c.Context(), dto.LoginUserInput{
@@ -50,7 +51,8 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 		Password: req.Password,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid username or password")
+		// Nie zdradzamy, czy zawiódł login czy hasło (ochrona przed enumeracją).
+		return entity.NewUnauthorized("invalid username or password")
 	}
 
 	cookie := fiber.Cookie{
@@ -81,12 +83,12 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
 	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
 	if refreshToken == "" {
-		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not provided")
+		return entity.NewUnauthorized("refresh token not provided")
 	}
 
 	token, err := middleware.GetBearerToken(c.GetHeaders())
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid Authorization header")
+		return entity.NewUnauthorized("invalid authorization header")
 	}
 
 	newToken, err := h.refreshTokenSvc.RefreshToken(c.Context(), dto.RefreshTokenInput{
@@ -94,7 +96,7 @@ func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
 		AccessToken:  token,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid refresh token or access token")
+		return entity.NewUnauthorized("invalid refresh token or access token")
 	}
 
 	return c.JSON(presenter.UserSuccessResponse(newToken))
@@ -115,12 +117,12 @@ func (h *AuthHandler) RevokeToken(c fiber.Ctx) error {
 	refreshToken := string(c.Request().Header.Cookie("RefreshToken"))
 
 	if refreshToken == "" {
-		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized: Refresh token not provided")
+		return entity.NewUnauthorized("refresh token not provided")
 	}
 
 	token, err := middleware.GetBearerToken(c.GetHeaders())
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid Authorization header")
+		return entity.NewUnauthorized("invalid authorization header")
 	}
 
 	err = h.refreshTokenSvc.RevokeToken(c.Context(), dto.RevokeTokenInput{
@@ -128,7 +130,7 @@ func (h *AuthHandler) RevokeToken(c fiber.Ctx) error {
 		AccessToken:  token,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid refresh token or access token")
+		return entity.NewUnauthorized("invalid refresh token or access token")
 	}
 
 	c.ClearCookie("RefreshToken")

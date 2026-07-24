@@ -154,8 +154,27 @@ definitions:
     type: object
   presenter.ErrorResponse:
     properties:
+      details:
+        items:
+          $ref: '#/definitions/presenter.FieldErrorResponse'
+        type: array
       error:
         example: Invalid request body
+        type: string
+    type: object
+  presenter.FieldErrorResponse:
+    properties:
+      field:
+        example: current_status
+        type: string
+      message:
+        example: 'current_status must be one of: dostepny awaria brak_informacji'
+        type: string
+      param:
+        example: dostepny awaria brak_informacji
+        type: string
+      rule:
+        example: oneof
         type: string
     type: object
   presenter.LoginRequest:
@@ -164,6 +183,9 @@ definitions:
         type: string
       username:
         type: string
+    required:
+    - password
+    - username
     type: object
   presenter.OpeningHours:
     properties:

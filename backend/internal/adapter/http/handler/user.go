@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/presenter"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/dto"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
@@ -37,7 +38,7 @@ func (h *UserHandler) Create(c fiber.Ctx) error {
 	var req presenter.CreateUserRequest
 
 	if err := c.Bind().Body(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+		return err
 	}
 
 	user, err := h.userSvc.Create(c.Context(), dto.CreateUserInput{
@@ -46,7 +47,7 @@ func (h *UserHandler) Create(c fiber.Ctx) error {
 		Password: req.Password,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create user")
+		return err
 	}
 
 	refreshToken, newToken, err := h.authSvc.Login(c.Context(), dto.LoginUserInput{
@@ -54,7 +55,8 @@ func (h *UserHandler) Create(c fiber.Ctx) error {
 		Password: req.Password,
 	})
 	if err != nil {
-		return err
+		// Konto powstało, ale logowanie zawiodło — to błąd wewnętrzny.
+		return entity.NewInternal(err)
 	}
 
 	cookie := fiber.Cookie{

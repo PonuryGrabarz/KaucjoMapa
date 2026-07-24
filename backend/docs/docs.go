@@ -909,14 +909,45 @@ const docTemplate = `{
         "presenter.ErrorResponse": {
             "type": "object",
             "properties": {
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.FieldErrorResponse"
+                    }
+                },
                 "error": {
                     "type": "string",
                     "example": "Invalid request body"
                 }
             }
         },
+        "presenter.FieldErrorResponse": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string",
+                    "example": "current_status"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "current_status must be one of: dostepny awaria brak_informacji"
+                },
+                "param": {
+                    "type": "string",
+                    "example": "dostepny awaria brak_informacji"
+                },
+                "rule": {
+                    "type": "string",
+                    "example": "oneof"
+                }
+            }
+        },
         "presenter.LoginRequest": {
             "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
             "properties": {
                 "password": {
                     "type": "string"

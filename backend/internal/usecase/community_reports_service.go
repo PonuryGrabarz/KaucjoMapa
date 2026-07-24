@@ -60,7 +60,7 @@ func (s *communityReportService) Delete(ctx context.Context, userID uuid.UUID, i
 	}
 
 	if !user.IsAdmin {
-		return entity.ErrForbidden
+		return entity.NewForbidden("only an administrator can delete reports")
 	}
 
 	err = s.repo.Delete(ctx, id)

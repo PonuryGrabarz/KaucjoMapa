@@ -37,17 +37,17 @@ func NewCommunityReportHandler(svc usecase.ICommunityReportsService, userSvc use
 func (h *CommunityReportHandler) Create(c fiber.Ctx) error {
 	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
+		return entity.NewUnauthorized("invalid or missing authentication")
 	}
 
 	var req presenter.CreateCommunityReportRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+		return err
 	}
 
 	rID, err := uuid.Parse(req.ReturnPointID)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid report ID")
+		return entity.NewBadRequest("invalid identifier")
 	}
 
 	newReport, err := h.communityReportSvc.Create(c.Context(), entity.CommunityReport{
@@ -58,12 +58,12 @@ func (h *CommunityReportHandler) Create(c fiber.Ctx) error {
 		Description:   req.Description,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.ErrInternalServerError.Code, "Failed creating report")
+		return err
 	}
 
 	user, err := h.userSvc.GetUserByID(c.Context(), claims.UserID)
 	if err != nil {
-		return fiber.NewError(fiber.ErrInternalServerError.Code, "Failed creating report")
+		return err
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(presenter.CommunityReportSuccessResponse(newReport, user))
@@ -85,12 +85,12 @@ func (h *CommunityReportHandler) List(c fiber.Ctx) error {
 
 	rID, err := uuid.Parse(id)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid report ID")
+		return entity.NewBadRequest("invalid identifier")
 	}
 
 	reports, err := h.communityReportSvc.List(c.Context(), rID)
 	if err != nil {
-		return fiber.NewError(fiber.ErrInternalServerError.Code, "Failed to list reports")
+		return err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(presenter.ListCommunityReportsSuccessReponse(reports))
@@ -110,19 +110,19 @@ func (h *CommunityReportHandler) List(c fiber.Ctx) error {
 func (h *CommunityReportHandler) Delete(c fiber.Ctx) error {
 	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
+		return entity.NewUnauthorized("invalid or missing authentication")
 	}
 
 	id := c.Params("id")
 
 	reportID, err := uuid.Parse(id)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid report ID")
+		return entity.NewBadRequest("invalid identifier")
 	}
 
 	err = h.communityReportSvc.Delete(c.Context(), claims.UserID, reportID)
 	if err != nil {
-		return fiber.NewError(fiber.ErrInternalServerError.Code, "Failed to delete report")
+		return err
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
@@ -133,16 +133,16 @@ func (h *CommunityReportHandler) GetByID(c fiber.Ctx) error {
 
 	reportID, err := uuid.Parse(id)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid report ID")
+		return entity.NewBadRequest("invalid identifier")
 	}
 
 	report, err := h.communityReportSvc.GetByID(c.Context(), reportID)
 	if err != nil {
-		return fiber.NewError(fiber.ErrInternalServerError.Code, "Failed to get report")
+		return err
 	}
 	user, err := h.userSvc.GetUserByID(c.Context(), *report.UserID)
 	if err != nil {
-		return fiber.NewError(fiber.ErrInternalServerError.Code, "Failed to get user")
+		return err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(presenter.GetCommunityReportSuccessResponse(report, user))

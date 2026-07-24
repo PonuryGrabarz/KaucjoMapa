@@ -33,12 +33,12 @@ func NewUserService(userRepo IUserRepository, hasher port.IPasswordHasher, signe
 func (s *userService) Create(ctx context.Context, in dto.CreateUserInput) (entity.User, error) {
 	userByUsername, err := s.GetUserByUsername(ctx, in.Username)
 	if err == nil && in.Username == userByUsername.Username {
-		return entity.User{}, entity.ErrBadRequest
+		return entity.User{}, entity.NewConflict("username already taken")
 	}
 
 	passwordHash, err := s.hasherSvc.HashPassword(in.Password)
 	if err != nil {
-		return entity.User{}, entity.ErrServerError
+		return entity.User{}, entity.NewInternal(err)
 	}
 
 	user := entity.User{
@@ -55,7 +55,7 @@ func (s *userService) Create(ctx context.Context, in dto.CreateUserInput) (entit
 
 	accessToken, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email)
 	if err != nil {
-		return entity.User{}, entity.ErrServerError
+		return entity.User{}, entity.NewInternal(err)
 	}
 	user.Token = accessToken
 
