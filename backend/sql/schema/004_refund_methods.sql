@@ -14,4 +14,3 @@ ALTER TABLE return_points
 DROP COLUMN IF EXISTS refund_methods;
 
 DROP TYPE IF EXISTS refund_method;
-Po dodaniu migracji uruchom:

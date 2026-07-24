@@ -118,3 +118,25 @@ func (t *TokenSigner) GetBearerToken(headers map[string][]string) (string, error
 
 	return "", errors.New("invalid authorization header")
 }
+
+func (t *TokenSigner) ExtractClaimsFromJWT(tokenString string) (port.JWTClaims, error) {
+	jwtClaims := claims{}
+
+	token, _, err := jwt.NewParser().ParseUnverified(tokenString, &jwtClaims)
+	if err != nil {
+		return port.JWTClaims{}, err
+	}
+
+	claims, ok := token.Claims.(*claims)
+	if !ok {
+		return port.JWTClaims{}, errors.New("invalid token claims")
+	}
+
+	return port.JWTClaims{
+		UserID:     claims.UserID,
+		Username:   claims.Username,
+		Email:      claims.Email,
+		IsAdmin:    claims.IsAdmin,
+		Reputation: claims.Reputation,
+	}, nil
+}

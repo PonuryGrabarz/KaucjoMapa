@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
@@ -76,11 +76,7 @@ func toNullPointType(str entity.PointType) database.NullPointType {
 // }
 
 func toCreateReturnPointParams(p entity.ReturnPoint) database.CreatePointParams {
-	var rawOpeningHours json.RawMessage
-	rawOpeningHours, err := json.Marshal(p.OpeningHours)
-	if err != nil {
-		fmt.Println("Error marshalling OpeningHours:", err) // Debugging line
-	}
+	rawOpeningHours, _ := json.Marshal(p.OpeningHours)
 
 	refundMethods := []database.RefundMethod{}
 	for _, method := range p.RefundMethod {
@@ -157,29 +153,32 @@ func toCountReturnPointsParams(filters usecase.Filter) database.CountReturnPoint
 }
 
 func toUpdatePointParams(returnPoint entity.ReturnPoint) database.UpdatePointByIdParams {
-	var rawOpeningHours json.RawMessage
-	rawOpeningHours, err := json.Marshal(returnPoint.OpeningHours)
-	if err != nil {
-		fmt.Println("Error marshalling OpeningHours:", err) // Debugging line
-	}
+	rawOpeningHours, _ := json.Marshal(returnPoint.OpeningHours)
 
 	nullRaw := pqtype.NullRawMessage{
 		RawMessage: rawOpeningHours,
 		Valid:      rawOpeningHours != nil,
 	}
 
+	// nil pozostawia stare metody zwrotu (COALESCE w SQL).
+	var refundMethods []database.RefundMethod
+	for _, method := range returnPoint.RefundMethod {
+		refundMethods = append(refundMethods, database.RefundMethod(method))
+	}
+
 	return database.UpdatePointByIdParams{
-		ID:           returnPoint.ID,
-		Name:         toNullString(returnPoint.Name),
-		Type:         toNullPointType(returnPoint.Type),
-		Address:      toNullString(returnPoint.Address),
-		Latitude:     toNullFloat(returnPoint.Latitude),
-		Longitude:    toNullFloat(returnPoint.Longitude),
-		OpeningHours: nullRaw,
-		Description:  toNullString(returnPoint.Description),
-		Pet:          toNullBool(returnPoint.Pet),
-		Can:          toNullBool(returnPoint.Can),
-		Glass:        toNullBool(returnPoint.Glass),
+		ID:            returnPoint.ID,
+		Name:          toNullString(returnPoint.Name),
+		Type:          toNullPointType(returnPoint.Type),
+		Address:       toNullString(returnPoint.Address),
+		Latitude:      toNullFloat(returnPoint.Latitude),
+		Longitude:     toNullFloat(returnPoint.Longitude),
+		OpeningHours:  nullRaw,
+		Description:   toNullString(returnPoint.Description),
+		Pet:           toNullBool(returnPoint.Pet),
+		Can:           toNullBool(returnPoint.Can),
+		Glass:         toNullBool(returnPoint.Glass),
+		RefundMethods: refundMethods,
 	}
 }
 
@@ -199,16 +198,18 @@ func toCreateUserParams(user entity.User) database.CreateUserParams {
 
 func toUserEntity(user database.User) entity.User {
 	return entity.User{
-		ID:           user.ID,
-		Email:        user.Email,
-		Username:     user.Username,
-		PasswordHash: user.PasswordHash,
-		Token:        "",
-		Reputation:   user.Reputation,
-		IsAdmin:      user.IsAdmin,
-		IsBanned:     user.IsBanned,
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
+		ID:                 user.ID,
+		Email:              user.Email,
+		Username:           user.Username,
+		PasswordHash:       user.PasswordHash,
+		Token:              "",
+		Reputation:         user.Reputation,
+		TotalConfirmations: user.TotalConfirmations,
+		TotalRejections:    user.TotalRejections,
+		IsAdmin:            user.IsAdmin,
+		IsBanned:           user.IsBanned,
+		CreatedAt:          user.CreatedAt,
+		UpdatedAt:          user.UpdatedAt,
 	}
 }
 
@@ -231,13 +232,84 @@ func toGetUserRefresTokenParams(id uuid.UUID, tokenString string) database.GetUs
 }
 
 func toRefreshTokenEntity(token database.RefreshToken) entity.RefreshToken {
+	var revokedAt *time.Time
+	if token.RevokedAt.Valid {
+		revokedAt = &token.RevokedAt.Time
+	}
+
 	return entity.RefreshToken{
 		ID:        token.ID,
 		UserID:    token.UserID,
 		Token:     token.Token,
 		ExpiresAt: token.ExpiresAt,
-		RevokedAt: &token.RevokedAt.Time,
+		RevokedAt: revokedAt,
 		CreatedAt: token.CreatedAt,
 		UpdatedAt: token.UpdatedAt,
+	}
+}
+
+func toCreateCommunityReportParams(report entity.CommunityReport) database.CreateCommunityReportParams {
+	return database.CreateCommunityReportParams{
+		ID:            report.ID,
+		UserID:        *report.UserID,
+		ReturnPointID: *report.ReturnPointID,
+		Status:        database.PointStatus(report.Status),
+		Description:   report.Description,
+	}
+}
+
+func toCommunityReportEntity(report database.CommunityReport) entity.CommunityReport {
+	return entity.CommunityReport{
+		ID:                 report.ID,
+		UserID:             &report.UserID,
+		ReturnPointID:      &report.ReturnPointID,
+		Status:             entity.PointStatus(report.Status),
+		Description:        report.Description,
+		ConfirmationsCount: int(report.ConfirmationsCount),
+		RejectionsCount:    int(report.RejectionsCount),
+		CreatedAt:          report.CreatedAt,
+		UpdatedAt:          report.UpdatedAt,
+	}
+}
+
+func toListCommunityReportsByReturnPoint(row []database.ListCommunityReportsByReturnPointRow) []entity.UserCommunityReport {
+	communityReports := []entity.UserCommunityReport{}
+
+	for _, report := range row {
+		communityReports = append(communityReports, entity.UserCommunityReport{
+			Report: entity.CommunityReport{
+				ID:                 report.ID,
+				UserID:             &report.UserID,
+				ReturnPointID:      &report.ReturnPointID,
+				Status:             entity.PointStatus(report.Status),
+				Description:        report.Description,
+				ConfirmationsCount: int(report.ConfirmationsCount),
+				RejectionsCount:    int(report.RejectionsCount),
+				CreatedAt:          report.CreatedAt,
+				UpdatedAt:          report.UpdatedAt,
+			},
+			Username:   report.Username,
+			Reputation: report.Reputation,
+		})
+	}
+
+	return communityReports
+}
+
+func toCreateCommunityReportVoteParams(vote entity.CommunityReportVote) database.UpsertCommunityReportVoteParams {
+	return database.UpsertCommunityReportVoteParams{
+		UserID:            *vote.UserID,
+		CommunityReportID: *vote.CommunityReportID,
+		Vote:              database.CommunityReportVoteValue(vote.Vote),
+	}
+}
+
+func toCommunityReportVoteEntity(vote database.CommunityReportVote) entity.CommunityReportVote {
+	return entity.CommunityReportVote{
+		UserID:            &vote.UserID,
+		CommunityReportID: &vote.CommunityReportID,
+		Vote:              entity.CommunityReportVoteValue(vote.Vote),
+		CreatedAt:         vote.CreatedAt,
+		UpdatedAt:         vote.UpdatedAt,
 	}
 }

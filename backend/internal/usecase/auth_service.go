@@ -81,7 +81,7 @@ func (s *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenInput
 		return "", err
 	}
 
-	if time.Now().Compare(userToken.ExpiresAt) != -1 || userToken.RevokedAt == nil {
+	if time.Now().Compare(userToken.ExpiresAt) != -1 || userToken.RevokedAt != nil {
 		return "", entity.ErrUnauthorized
 	}
 

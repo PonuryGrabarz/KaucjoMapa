@@ -29,6 +29,16 @@ func AuthRouter(app fiber.Router, authHandler handler.AuthHandler, JWTSecret str
 	app.Post("/auth/revoke", middleware.RequireJWT(auth, JWTSecret), authHandler.RevokeToken)
 }
 
+func CommunityReportRouter(app fiber.Router, reportsHandler handler.CommunityReportHandler, JWTSecret string, auth port.ITokenSigner) {
+	app.Post("/reports", middleware.RequireJWT(auth, JWTSecret), reportsHandler.Create)
+	app.Get("/reports/:return_point_id", reportsHandler.List)
+	app.Delete("/reports/:id", middleware.RequireJWT(auth, JWTSecret), reportsHandler.Delete)
+}
+
+func CommunityReportVoteRouter(app fiber.Router, voteHandler handler.CommunityReportVoteHandler, JWTSecret string, auth port.ITokenSigner) {
+	app.Post("/votes/:report_id", middleware.RequireJWT(auth, JWTSecret), voteHandler.Create)
+}
+
 func DocsRouter(app fiber.Router) {
 	openAPISepcDir, err := filepath.Abs("docs")
 	if err != nil {

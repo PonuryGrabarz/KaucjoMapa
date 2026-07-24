@@ -14,4 +14,5 @@ type ITokenSigner interface {
 	MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, username, email string) (string, error)
 	MakeRefreshToken() string
 	ValidateJWT(tokenString string) (JWTClaims, error)
+	ExtractClaimsFromJWT(tokenString string) (JWTClaims, error)
 }

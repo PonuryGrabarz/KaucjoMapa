@@ -175,6 +175,158 @@ const docTemplate = `{
                 }
             }
         },
+        "/reports": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy zgłoszenie dotyczące statusu punktu zwrotu, przypisane do zalogowanego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community-reports"
+                ],
+                "summary": "Utwórz zgłoszenie społecznościowe",
+                "parameters": [
+                    {
+                        "description": "Dane zgłoszenia społecznościowego",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateCommunityReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzone zgłoszenie społecznościowe",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateCommunityReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania lub identyfikator punktu zwrotu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się utworzyć zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa wskazane zgłoszenie społecznościowe należące do zalogowanego użytkownika.",
+                "tags": [
+                    "community-reports"
+                ],
+                "summary": "Usuń zgłoszenie społecznościowe",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator zgłoszenia społecznościowego",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się usunąć zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{return_point_id}": {
+            "get": {
+                "description": "Zwraca zgłoszenia społecznościowe dotyczące wskazanego punktu zwrotu.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community-reports"
+                ],
+                "summary": "Pobierz zgłoszenia społecznościowe",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator punktu zwrotu",
+                        "name": "return_point_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista zgłoszeń społecznościowych",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/presenter.CreateCommunityReportResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania lub identyfikator punktu zwrotu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać zgłoszeń",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/return_points": {
             "get": {
                 "description": "Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej frazie.",
@@ -470,9 +622,203 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/votes/{report_id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy lub aktualizuje głos zalogowanego użytkownika na wskazane zgłoszenie społecznościowe.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community-report-votes"
+                ],
+                "summary": "Oddaj głos na zgłoszenie społecznościowe",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator zgłoszenia społecznościowego",
+                        "name": "report_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Głos: confirm albo reject",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateCommunityReportVoteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzony lub zaktualizowany głos",
+                        "schema": {
+                            "$ref": "#/definitions/entity.CommunityReportVote"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator zgłoszenia lub body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zapisać głosu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "entity.CommunityReport": {
+            "type": "object",
+            "properties": {
+                "confirmationsCount": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "rejectionsCount": {
+                    "type": "integer"
+                },
+                "returnPointID": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/entity.PointStatus"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.CommunityReportVote": {
+            "type": "object",
+            "properties": {
+                "communityReportID": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                },
+                "vote": {
+                    "$ref": "#/definitions/entity.CommunityReportVoteValue"
+                }
+            }
+        },
+        "entity.CommunityReportVoteValue": {
+            "type": "string",
+            "enum": [
+                "confirm",
+                "reject"
+            ],
+            "x-enum-varnames": [
+                "VoteConfirm",
+                "VoteReject"
+            ]
+        },
+        "entity.PointStatus": {
+            "type": "string",
+            "enum": [
+                "dostepny",
+                "nieczynny",
+                "brak_informacji"
+            ],
+            "x-enum-varnames": [
+                "PointStatusDostepny",
+                "PointStatusNieczynny",
+                "PointStatusBrakInformacji"
+            ]
+        },
+        "presenter.CreateCommunityReportRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "report_id",
+                "status"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "report_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "dostepny",
+                        "nieczynny",
+                        "bark_informacji"
+                    ]
+                }
+            }
+        },
+        "presenter.CreateCommunityReportResponse": {
+            "type": "object",
+            "properties": {
+                "report": {
+                    "$ref": "#/definitions/entity.CommunityReport"
+                },
+                "reputation": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.CreateCommunityReportVoteRequest": {
+            "type": "object",
+            "required": [
+                "vote"
+            ],
+            "properties": {
+                "vote": {
+                    "type": "string",
+                    "enum": [
+                        "confirm",
+                        "reject"
+                    ]
+                }
+            }
+        },
         "presenter.CreateReturnPointRequest": {
             "type": "object",
             "required": [

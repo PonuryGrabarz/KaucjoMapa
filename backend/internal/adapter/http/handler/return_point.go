@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -73,6 +74,9 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 		Glass:         req.Glass,
 	})
 	if err != nil {
+		if errors.Is(err, entity.ErrPointExistsNearby) {
+			return err
+		}
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create return point")
 	}
 
@@ -96,18 +100,15 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 	pointType := c.Query("type")
 	pointStatus := c.Query("status")
-	pageQuery := c.Query("page", "-1")
-	pageSizeQuery := c.Query("page_size", "-1")
 	query := strings.TrimSpace(c.Query("query", ""))
-	var page, pageSize int
 
-	page, err := strconv.Atoi(pageQuery)
-	if err != nil {
+	page, err := strconv.Atoi(c.Query("page", "1"))
+	if err != nil || (page < 1 && page != -1) {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid page number")
 	}
 
-	pageSize, err = strconv.Atoi(pageSizeQuery)
-	if err != nil {
+	pageSize, err := strconv.Atoi(c.Query("page_size", "10"))
+	if err != nil || (pageSize < 1 && pageSize != -1) {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid page size")
 	}
 
@@ -115,8 +116,6 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 		Query:  query,
 		Type:   entity.PointType(pointType),
 		Status: entity.PointStatus(pointStatus),
-		Offset: int32((page - 1) * pageSize),
-		Limit:  int32(pageSize),
 	}
 
 	listSize, err := h.svc.ListSize(c.Context(), filters)
@@ -124,14 +123,20 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return points size")
 	}
 
-	maxPage := (listSize + int64(pageSize) - 1) / int64(pageSize)
+	// -1 na page lub page_size oznacza "zwróć wszystko".
+	returnAll := page == -1 || pageSize == -1
 
-	if page == -1 {
-		filters.Limit = int32(listSize)
-	}
-	if pageSize == -1 {
+	var maxPage int64
+	if returnAll {
 		filters.Offset = 0
+		filters.Limit = int32(listSize)
 		maxPage = 1
+		page = 1
+		pageSize = int(listSize)
+	} else {
+		filters.Offset = int32((page - 1) * pageSize)
+		filters.Limit = int32(pageSize)
+		maxPage = (listSize + int64(pageSize) - 1) / int64(pageSize)
 	}
 
 	returnPoints, err := h.svc.List(c.Context(), filters)
@@ -168,6 +173,9 @@ func (h *ReturnPointHandler) DeletePoint(c fiber.Ctx) error {
 
 	err = h.svc.Delete(c.Context(), claims.UserID, mapPointUUID)
 	if err != nil {
+		if errors.Is(err, entity.ErrForbidden) || errors.Is(err, entity.ErrNotFound) {
+			return err
+		}
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to delete return point")
 	}
 
@@ -206,7 +214,10 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 
 	point, err := h.svc.GetByID(c.Context(), mapPointID)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Return point not found")
+		if errors.Is(err, entity.ErrNotFound) {
+			return err
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return point")
 	}
 
 	var req presenter.UpdateKaucjomatRequest
@@ -253,6 +264,14 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 		params.Glass = *req.Glass
 	}
 
+	if req.RefundMethod != nil {
+		refundMethods := []entity.RefundMethod{}
+		for _, method := range *req.RefundMethod {
+			refundMethods = append(refundMethods, entity.RefundMethod(method))
+		}
+		params.RefundMethod = refundMethods
+	}
+
 	if req.OpeningHours != nil {
 		params.OpeningHours = entity.OpeningHours{
 			MonSun: req.OpeningHours.MonSun,
@@ -269,8 +288,11 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 
 	updatedPoint, err := h.svc.Update(c.Context(), user, params)
 	if err != nil {
+		if errors.Is(err, entity.ErrNotFound) {
+			return err
+		}
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to update return point")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(updatedPoint)
+	return c.Status(fiber.StatusOK).JSON(presenter.CreateReturnPointSuccessResponse(updatedPoint))
 }

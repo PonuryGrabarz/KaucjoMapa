@@ -24,7 +24,7 @@ type CreateReturnPointRequest struct {
 	Pet           bool         `json:"pet"`
 	Can           bool         `json:"can"`
 	Glass         bool         `json:"glass"`
-	RefundMethod  []string     `json:"refund_method" validate:"required,oneof=gotowka bon karta" enums:"gotowka,bon,karta"`
+	RefundMethod  []string     `json:"refund_method" validate:"required,dive,oneof=gotowka bon karta" enums:"gotowka,bon,karta"`
 	OpeningHours  OpeningHours `json:"opening_hours"`
 	Description   string       `json:"description"`
 	CurrentStatus string       `json:"current_status" validate:"required,oneof=dostepny awaria brak_informacji" enums:"dostepny,awaria,brak_informacji"`
@@ -39,7 +39,7 @@ type UpdateKaucjomatRequest struct {
 	Pet          *bool         `json:"pet"`
 	Can          *bool         `json:"can"`
 	Glass        *bool         `json:"glass"`
-	RefundMethod *[]string     `json:"refund_method" validate:"omitempty,oneof=gotowka bon karta" enums:"gotowka,bon,karta"`
+	RefundMethod *[]string     `json:"refund_method" validate:"omitempty,dive,oneof=gotowka bon karta" enums:"gotowka,bon,karta"`
 	OpeningHours *OpeningHours `json:"opening_hours"`
 	Description  *string       `json:"description"`
 }

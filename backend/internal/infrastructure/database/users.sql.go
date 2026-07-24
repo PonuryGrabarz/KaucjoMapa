@@ -25,7 +25,7 @@ VALUES (
     $8,
     $9
 )
-RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at
+RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections
 `
 
 type CreateUserParams struct {
@@ -63,12 +63,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.IsBanned,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.TotalConfirmations,
+		&i.TotalRejections,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at FROM users WHERE id = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -84,12 +86,14 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.IsBanned,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.TotalConfirmations,
+		&i.TotalRejections,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at FROM users WHERE username = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections FROM users WHERE username = $1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
@@ -105,12 +109,14 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.IsBanned,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.TotalConfirmations,
+		&i.TotalRejections,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at FROM users
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -132,6 +138,8 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.IsBanned,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.TotalConfirmations,
+			&i.TotalRejections,
 		); err != nil {
 			return nil, err
 		}
