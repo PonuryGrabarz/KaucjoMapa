@@ -70,7 +70,7 @@ func (s *returnPointService) Create(ctx context.Context, in dto.CreateReturnPoin
 		return entity.ReturnPoint{}, err
 	}
 	if nearby {
-		return entity.ReturnPoint{}, entity.ErrPointExistsNearby
+		return entity.ReturnPoint{}, entity.NewConflict("a return point already exists nearby")
 	}
 
 	returnPoint := entity.ReturnPoint{
@@ -108,7 +108,7 @@ func (s *returnPointService) Delete(ctx context.Context, userID uuid.UUID, id uu
 	}
 
 	if !user.IsAdmin {
-		return entity.ErrForbidden
+		return entity.NewForbidden("only an administrator can delete return points")
 	}
 
 	return s.repo.Delete(ctx, id)

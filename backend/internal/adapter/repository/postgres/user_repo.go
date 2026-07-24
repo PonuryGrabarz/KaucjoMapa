@@ -24,7 +24,7 @@ var _ usecase.IUserRepository = (*UserRepo)(nil)
 func (r *UserRepo) Create(ctx context.Context, user entity.User) (entity.User, error) {
 	row, err := r.q.CreateUser(ctx, toCreateUserParams(user))
 	if err != nil {
-		return entity.User{}, entity.ErrServerError
+		return entity.User{}, mapError(err)
 	}
 
 	return toUserEntity(row), nil
@@ -33,7 +33,7 @@ func (r *UserRepo) Create(ctx context.Context, user entity.User) (entity.User, e
 func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
 	row, err := r.q.GetUserByUsername(ctx, username)
 	if err != nil {
-		return entity.User{}, entity.ErrNotFound
+		return entity.User{}, mapError(err)
 	}
 
 	return toUserEntity(row), nil
@@ -42,7 +42,7 @@ func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (enti
 func (r *UserRepo) GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, error) {
 	row, err := r.q.GetUserById(ctx, id)
 	if err != nil {
-		return entity.User{}, entity.ErrNotFound
+		return entity.User{}, mapError(err)
 	}
 
 	return toUserEntity(row), nil

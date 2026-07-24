@@ -38,18 +38,18 @@ func NewCommunityReportVoteHandler(communityReportVoteService usecase.ICommunity
 func (h *CommunityReportVoteHandler) Create(c fiber.Ctx) error {
 	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
+		return entity.NewUnauthorized("invalid or missing authentication")
 	}
 
 	reportIDParam := c.Params("report_id")
 	reportID, err := uuid.Parse(reportIDParam)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid report ID")
+		return entity.NewBadRequest("invalid report ID")
 	}
 
 	var req presenter.CreateCommunityReportVoteRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+		return err
 	}
 
 	newVote, err := h.communityReportVoteService.Create(c.Context(), entity.CommunityReportVote{
@@ -60,7 +60,7 @@ func (h *CommunityReportVoteHandler) Create(c fiber.Ctx) error {
 		UpdatedAt:         time.Now(),
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create community report vote")
+		return err
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(

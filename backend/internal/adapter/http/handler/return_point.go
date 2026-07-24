@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
@@ -39,12 +38,12 @@ func NewReturnPointHandler(svc usecase.IReturnPointService, userSvc usecase.IUse
 func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
+		return entity.NewUnauthorized("invalid or missing authentication")
 	}
 
 	var req presenter.CreateReturnPointRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+		return err
 	}
 
 	refundMethods := []entity.RefundMethod{}
@@ -74,10 +73,7 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 		Glass:         req.Glass,
 	})
 	if err != nil {
-		if errors.Is(err, entity.ErrPointExistsNearby) {
-			return err
-		}
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create return point")
+		return err
 	}
 
 	return c.JSON(presenter.CreateReturnPointSuccessResponse(returnPoint))
@@ -104,12 +100,12 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil || (page < 1 && page != -1) {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid page number")
+		return entity.NewBadRequest("invalid page number")
 	}
 
 	pageSize, err := strconv.Atoi(c.Query("page_size", "10"))
 	if err != nil || (pageSize < 1 && pageSize != -1) {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid page size")
+		return entity.NewBadRequest("invalid page size")
 	}
 
 	filters := usecase.Filter{
@@ -120,7 +116,7 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 
 	listSize, err := h.svc.ListSize(c.Context(), filters)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return points size")
+		return err
 	}
 
 	// -1 na page lub page_size oznacza "zwróć wszystko".
@@ -141,7 +137,7 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 
 	returnPoints, err := h.svc.List(c.Context(), filters)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return points")
+		return err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(presenter.GetReturnPointSuccessResponse(returnPoints, maxPage, int64(page), int64(pageSize), listSize))
@@ -162,21 +158,18 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 func (h *ReturnPointHandler) DeletePoint(c fiber.Ctx) error {
 	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
+		return entity.NewUnauthorized("invalid or missing authentication")
 	}
 
 	mapPointID := c.Params("id")
 	mapPointUUID, err := uuid.Parse(mapPointID)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid map point ID")
+		return entity.NewBadRequest("invalid return point ID")
 	}
 
 	err = h.svc.Delete(c.Context(), claims.UserID, mapPointUUID)
 	if err != nil {
-		if errors.Is(err, entity.ErrForbidden) || errors.Is(err, entity.ErrNotFound) {
-			return err
-		}
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to delete return point")
+		return err
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
@@ -199,30 +192,27 @@ func (h *ReturnPointHandler) DeletePoint(c fiber.Ctx) error {
 func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 	claims, ok := c.Locals("claims").(*port.JWTClaims)
 	if !ok {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid JWT claims")
+		return entity.NewUnauthorized("invalid or missing authentication")
 	}
 
 	mapPointID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid map point ID")
+		return entity.NewBadRequest("invalid return point ID")
 	}
 
 	user, err := h.userSvc.GetUserByID(c.Context(), claims.UserID)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user")
+		return err
 	}
 
 	point, err := h.svc.GetByID(c.Context(), mapPointID)
 	if err != nil {
-		if errors.Is(err, entity.ErrNotFound) {
-			return err
-		}
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch return point")
+		return err
 	}
 
 	var req presenter.UpdateKaucjomatRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+		return err
 	}
 
 	params := entity.ReturnPoint{
@@ -288,10 +278,7 @@ func (h *ReturnPointHandler) UpdatePoint(c fiber.Ctx) error {
 
 	updatedPoint, err := h.svc.Update(c.Context(), user, params)
 	if err != nil {
-		if errors.Is(err, entity.ErrNotFound) {
-			return err
-		}
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to update return point")
+		return err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(presenter.CreateReturnPointSuccessResponse(updatedPoint))

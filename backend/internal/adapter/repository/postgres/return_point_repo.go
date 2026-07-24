@@ -2,8 +2,6 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
@@ -27,12 +25,12 @@ func (r *ReturnPointRepo) ExistsNearby(ctx context.Context, lat, lng float64) (b
 		LlToEarth: lat, LlToEarth_2: lng,
 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-
-	if err != nil {
-		return false, entity.ErrServerError
+	if mapped := mapError(err); mapped != nil {
+		// Brak wiersza oznacza po prostu, że w pobliżu nic nie ma.
+		if entity.IsKind(mapped, entity.KindNotFound) {
+			return false, nil
+		}
+		return false, mapped
 	}
 
 	return row.ID != uuid.Nil, nil
@@ -41,7 +39,7 @@ func (r *ReturnPointRepo) ExistsNearby(ctx context.Context, lat, lng float64) (b
 func (r *ReturnPointRepo) Create(ctx context.Context, p entity.ReturnPoint) (entity.ReturnPoint, error) {
 	created, err := r.q.CreatePoint(ctx, toCreateReturnPointParams(p)) // mapper.go: entity -> database
 	if err != nil {
-		return entity.ReturnPoint{}, err
+		return entity.ReturnPoint{}, mapError(err)
 	}
 
 	return toReturnPointEntity(created), nil // mapper.go: database -> entity
@@ -50,7 +48,7 @@ func (r *ReturnPointRepo) Create(ctx context.Context, p entity.ReturnPoint) (ent
 func (r *ReturnPointRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	err := r.q.DeletePointById(ctx, id)
 	if err != nil {
-		return entity.ErrNotFound
+		return mapError(err)
 	}
 
 	return nil
@@ -59,7 +57,7 @@ func (r *ReturnPointRepo) Delete(ctx context.Context, id uuid.UUID) error {
 func (r *ReturnPointRepo) GetByID(ctx context.Context, id uuid.UUID) (entity.ReturnPoint, error) {
 	row, err := r.q.GetPointById(ctx, id)
 	if err != nil {
-		return entity.ReturnPoint{}, entity.ErrNotFound
+		return entity.ReturnPoint{}, mapError(err)
 	}
 
 	return toReturnPointEntity(row), nil
@@ -68,12 +66,12 @@ func (r *ReturnPointRepo) GetByID(ctx context.Context, id uuid.UUID) (entity.Ret
 func (r *ReturnPointRepo) List(ctx context.Context, f usecase.Filter) ([]entity.ReturnPoint, error) {
 	var returnPoints []entity.ReturnPoint
 	row, err := r.q.ListReturnPoints(ctx, toListReturnPointsParams(f))
-	if errors.Is(err, sql.ErrNoRows) {
-		return []entity.ReturnPoint{}, nil
-	}
-
-	if err != nil {
-		return []entity.ReturnPoint{}, entity.ErrNotFound
+	if mapped := mapError(err); mapped != nil {
+		// Pusta lista to nie błąd.
+		if entity.IsKind(mapped, entity.KindNotFound) {
+			return []entity.ReturnPoint{}, nil
+		}
+		return []entity.ReturnPoint{}, mapped
 	}
 
 	for _, point := range row {
@@ -86,7 +84,7 @@ func (r *ReturnPointRepo) List(ctx context.Context, f usecase.Filter) ([]entity.
 func (r *ReturnPointRepo) Update(ctx context.Context, p entity.ReturnPoint) (entity.ReturnPoint, error) {
 	row, err := r.q.UpdatePointById(ctx, toUpdatePointParams(p))
 	if err != nil {
-		return entity.ReturnPoint{}, entity.ErrNotFound
+		return entity.ReturnPoint{}, mapError(err)
 	}
 
 	return toReturnPointEntity(row), nil
@@ -95,7 +93,7 @@ func (r *ReturnPointRepo) Update(ctx context.Context, p entity.ReturnPoint) (ent
 func (r *ReturnPointRepo) ListSize(ctx context.Context, f usecase.Filter) (int64, error) {
 	size, err := r.q.CountReturnPoints(ctx, toCountReturnPointsParams(f))
 	if err != nil {
-		return 0, entity.ErrServerError
+		return 0, mapError(err)
 	}
 
 	return size, nil

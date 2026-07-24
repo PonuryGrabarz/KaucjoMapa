@@ -23,7 +23,7 @@ var _ usecase.ICommunityReportVoteRepository = (*CommunityReportVoteRepo)(nil)
 func (r *CommunityReportVoteRepo) Create(ctx context.Context, vote entity.CommunityReportVote) (entity.CommunityReportVote, error) {
 	reportVote, err := r.q.UpsertCommunityReportVote(ctx, toCreateCommunityReportVoteParams(vote))
 	if err != nil {
-		return entity.CommunityReportVote{}, entity.ErrServerError
+		return entity.CommunityReportVote{}, mapError(err)
 	}
 
 	return toCommunityReportVoteEntity(reportVote), nil

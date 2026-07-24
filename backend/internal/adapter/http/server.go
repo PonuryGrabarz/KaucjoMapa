@@ -1,10 +1,14 @@
 package http
 
 import (
+	"errors"
 	"os"
+	"reflect"
+	"strings"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/handler"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/middleware"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/config"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
@@ -32,9 +36,66 @@ type structValidator struct {
 	validate *validator.Validate
 }
 
-// Validator needs to implement the Validate method
+// newValidator zwraca validator, w którym nazwy pól w błędach pochodzą z tagu
+// `json` (a nie z nazwy pola w Go), dzięki czemu klient widzi znane mu klucze.
+func newValidator() *validator.Validate {
+	v := validator.New()
+	v.RegisterTagNameFunc(func(field reflect.StructField) string {
+		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+	return v
+}
+
+// Validate implementuje interfejs walidatora Fibera. Błędy walidacji są
+// tłumaczone na entity.AppError (KindBadRequest) z listą pól, żeby warstwa
+// HTTP mogła zwrócić czytelne szczegóły.
 func (v *structValidator) Validate(out any) error {
-	return v.validate.Struct(out)
+	err := v.validate.Struct(out)
+	if err == nil {
+		return nil
+	}
+
+	var validationErrs validator.ValidationErrors
+	if errors.As(err, &validationErrs) {
+		fields := make([]entity.FieldError, 0, len(validationErrs))
+		for _, fe := range validationErrs {
+			fields = append(fields, entity.FieldError{
+				Field:   fe.Field(),
+				Rule:    fe.Tag(),
+				Param:   fe.Param(),
+				Message: translateFieldError(fe),
+			})
+		}
+		return entity.NewBadRequest("Validation failed", fields...)
+	}
+
+	// Nietypowy błąd walidatora (np. zła konfiguracja) chowamy jako 500.
+	return entity.NewInternal(err)
+}
+
+// translateFieldError buduje czytelny komunikat dla pojedynczej reguły.
+func translateFieldError(fe validator.FieldError) string {
+	field := fe.Field()
+	switch fe.Tag() {
+	case "required":
+		return field + " is required"
+	case "oneof":
+		return field + " must be one of: " + fe.Param()
+	case "max":
+		return field + " must be at most " + fe.Param() + " characters"
+	case "min":
+		return field + " must be at least " + fe.Param()
+	case "email":
+		return field + " must be a valid email"
+	case "latitude", "longitude":
+		return field + " must be a valid " + fe.Tag()
+	default:
+		return field + " is invalid (" + fe.Tag() + ")"
+	}
 }
 
 func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
@@ -43,7 +104,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 			ServerHeader:    "KaucjoMapa",
 			AppName:         "KaucjoMapa",
 			ErrorHandler:    middleware.ErrorHandler,
-			StructValidator: &structValidator{validate: validator.New()},
+			StructValidator: &structValidator{validate: newValidator()},
 		}),
 		ReturnPointSvc: returnPointSvc,
 		UserSvc:        userSvc,

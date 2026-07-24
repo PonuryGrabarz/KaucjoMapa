@@ -40,11 +40,11 @@ func (s *authService) Login(ctx context.Context, in dto.LoginUserInput) (entity.
 
 	isPasswordValid, err := s.hasherSvc.CheckPasswordHash(in.Password, user.PasswordHash)
 	if err != nil {
-		return entity.RefreshToken{}, "", entity.ErrInvalidCredentials
+		return entity.RefreshToken{}, "", entity.NewInvalidCredentials()
 	}
 
 	if !isPasswordValid {
-		return entity.RefreshToken{}, "", entity.ErrInvalidCredentials
+		return entity.RefreshToken{}, "", entity.NewInvalidCredentials()
 	}
 
 	token, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email)
@@ -82,7 +82,7 @@ func (s *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenInput
 	}
 
 	if time.Now().Compare(userToken.ExpiresAt) != -1 || userToken.RevokedAt != nil {
-		return "", entity.ErrUnauthorized
+		return "", entity.NewUnauthorized("refresh token expired or revoked")
 	}
 
 	user, err := s.userSvc.GetUserByID(ctx, claims.UserID)
