@@ -39,16 +39,22 @@ func (r *CommunityReportsRepo) GetByID(ctx context.Context, id uuid.UUID) (entit
 	return toCommunityReportEntity(row), nil
 }
 
-func (r *CommunityReportsRepo) List(ctx context.Context, id uuid.UUID) ([]entity.CommunityReport, error) {
+func (r *CommunityReportsRepo) List(ctx context.Context, id uuid.UUID) ([]entity.UserCommunityReport, error) {
 	rows, err := r.q.ListCommunityReportsByReturnPoint(ctx, id)
 	if err != nil {
-		return []entity.CommunityReport{}, entity.ErrNotFound
+		return []entity.UserCommunityReport{}, entity.ErrNotFound
 	}
 
-	reports := []entity.CommunityReport{}
-	for _, row := range rows {
-		reports = append(reports, toCommunityReportEntity(row))
+	userReports := toListCommunityReportsByReturnPoint(rows)
+
+	return userReports, nil
+}
+
+func (r *CommunityReportsRepo) Delete(ctx context.Context, id uuid.UUID) error {
+	err := r.q.DeleteCommunityReportById(ctx, id)
+	if err != nil {
+		return entity.ErrNotFound
 	}
 
-	return reports, nil
+	return nil
 }

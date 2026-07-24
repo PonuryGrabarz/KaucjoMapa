@@ -265,3 +265,44 @@ func toCommunityReportEntity(report database.CommunityReport) entity.CommunityRe
 		UpdatedAt:          report.UpdatedAt,
 	}
 }
+
+func toListCommunityReportsByReturnPoint(row []database.ListCommunityReportsByReturnPointRow) []entity.UserCommunityReport {
+	communityReports := []entity.UserCommunityReport{}
+
+	for _, report := range row {
+		communityReports = append(communityReports, entity.UserCommunityReport{
+			Report: entity.CommunityReport{
+				ID:                 report.ID,
+				UserID:             &report.UserID,
+				ReturnPointID:      &report.ReturnPointID,
+				Status:             entity.PointStatus(report.Status),
+				Description:        report.Description,
+				ConfirmationsCount: int(report.ConfirmationsCount),
+				RejectionsCount:    int(report.RejectionsCount),
+				CreatedAt:          report.CreatedAt,
+				UpdatedAt:          report.UpdatedAt,
+			},
+			Username: report.Username,
+		})
+	}
+
+	return communityReports
+}
+
+func toCreateCommunityReportVoteParams(vote entity.CommunityReportVote) database.UpsertCommunityReportVoteParams {
+	return database.UpsertCommunityReportVoteParams{
+		UserID:            *vote.UserID,
+		CommunityReportID: *vote.CommunityReportID,
+		Vote:              database.CommunityReportVoteValue(vote.Vote),
+	}
+}
+
+func toCommunityReportVoteEntity(vote database.CommunityReportVote) entity.CommunityReportVote {
+	return entity.CommunityReportVote{
+		UserID:            &vote.UserID,
+		CommunityReportID: &vote.CommunityReportID,
+		Vote:              entity.CommunityReportVoteValue(vote.Vote),
+		CreatedAt:         vote.CreatedAt,
+		UpdatedAt:         vote.UpdatedAt,
+	}
+}

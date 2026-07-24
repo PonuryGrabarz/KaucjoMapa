@@ -23,6 +23,27 @@ definitions:
       userID:
         type: string
     type: object
+  entity.CommunityReportVote:
+    properties:
+      communityReportID:
+        type: string
+      createdAt:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: string
+      vote:
+        $ref: '#/definitions/entity.CommunityReportVoteValue'
+    type: object
+  entity.CommunityReportVoteValue:
+    enum:
+    - confirm
+    - reject
+    type: string
+    x-enum-varnames:
+    - VoteConfirm
+    - VoteReject
   entity.PointStatus:
     enum:
     - dostepny
@@ -56,6 +77,16 @@ definitions:
         $ref: '#/definitions/entity.CommunityReport'
       username:
         type: string
+    type: object
+  presenter.CreateCommunityReportVoteRequest:
+    properties:
+      vote:
+        enum:
+        - confirm
+        - reject
+        type: string
+    required:
+    - vote
     type: object
   presenter.CreateReturnPointRequest:
     properties:
@@ -415,6 +446,69 @@ paths:
       summary: Utwórz zgłoszenie społecznościowe
       tags:
       - community-reports
+  /reports/{id}:
+    delete:
+      description: Usuwa wskazane zgłoszenie społecznościowe należące do zalogowanego
+        użytkownika.
+      parameters:
+      - description: Identyfikator zgłoszenia społecznościowego
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator zgłoszenia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć zgłoszenia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń zgłoszenie społecznościowe
+      tags:
+      - community-reports
+  /reports/{return_point_id}:
+    get:
+      consumes:
+      - application/json
+      description: Zwraca zgłoszenia społecznościowe dotyczące wskazanego punktu zwrotu.
+      parameters:
+      - description: Identyfikator punktu zwrotu
+        format: uuid
+        in: path
+        name: return_point_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista zgłoszeń społecznościowych
+          schema:
+            items:
+              $ref: '#/definitions/presenter.CreateCommunityReportResponse'
+            type: array
+        "400":
+          description: Nieprawidłowe body żądania lub identyfikator punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać zgłoszeń
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Pobierz zgłoszenia społecznościowe
+      tags:
+      - community-reports
   /return_points:
     get:
       description: Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej
@@ -612,6 +706,49 @@ paths:
       summary: Zarejestruj użytkownika
       tags:
       - users
+  /votes/{report_id}:
+    post:
+      consumes:
+      - application/json
+      description: Tworzy lub aktualizuje głos zalogowanego użytkownika na wskazane
+        zgłoszenie społecznościowe.
+      parameters:
+      - description: Identyfikator zgłoszenia społecznościowego
+        format: uuid
+        in: path
+        name: report_id
+        required: true
+        type: string
+      - description: 'Głos: confirm albo reject'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateCommunityReportVoteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Utworzony lub zaktualizowany głos
+          schema:
+            $ref: '#/definitions/entity.CommunityReportVote'
+        "400":
+          description: Nieprawidłowy identyfikator zgłoszenia lub body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zapisać głosu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Oddaj głos na zgłoszenie społecznościowe
+      tags:
+      - community-report-votes
 produces:
 - application/json
 schemes:

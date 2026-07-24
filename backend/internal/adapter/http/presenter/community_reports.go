@@ -24,15 +24,22 @@ func CommunityReportSuccessResponse(report entity.CommunityReport, user entity.U
 	}
 }
 
-func ListCommunityReportsSuccessReponse(reports map[string]entity.CommunityReport) []CreateCommunityReportResponse {
+func ListCommunityReportsSuccessReponse(userReports []entity.UserCommunityReport) []CreateCommunityReportResponse {
 	reportsRes := []CreateCommunityReportResponse{}
 
-	for username, report := range reports {
+	for _, report := range userReports {
 		reportsRes = append(reportsRes, CreateCommunityReportResponse{
-			Report:   report,
-			Username: username,
+			Report:   report.Report,
+			Username: report.Username,
 		})
 	}
 
 	return reportsRes
+}
+
+func GetCommunityReportSuccessResponse(report entity.CommunityReport, user entity.User) CreateCommunityReportResponse {
+	return CreateCommunityReportResponse{
+		Report:   report,
+		Username: user.Username,
+	}
 }

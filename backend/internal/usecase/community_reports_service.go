@@ -9,7 +9,9 @@ import (
 
 type ICommunityReportsService interface {
 	Create(ctx context.Context, report entity.CommunityReport) (entity.CommunityReport, error)
-	List(ctx context.Context, id uuid.UUID) ([]entity.CommunityReport, error)
+	List(ctx context.Context, id uuid.UUID) ([]entity.UserCommunityReport, error)
+	GetByID(ctx context.Context, id uuid.UUID) (entity.CommunityReport, error)
+	Delete(ctx context.Context, userID uuid.UUID, id uuid.UUID) error
 }
 
 type communityReportService struct {
@@ -33,11 +35,38 @@ func (s *communityReportService) Create(ctx context.Context, report entity.Commu
 	return newReport, nil
 }
 
-func (s *communityReportService) List(ctx context.Context, id uuid.UUID) ([]entity.CommunityReport, error) {
+func (s *communityReportService) List(ctx context.Context, id uuid.UUID) ([]entity.UserCommunityReport, error) {
 	reports, err := s.repo.List(ctx, id)
 	if err != nil {
-		return []entity.CommunityReport{}, err
+		return []entity.UserCommunityReport{}, err
 	}
 
 	return reports, nil
+}
+
+func (s *communityReportService) GetByID(ctx context.Context, id uuid.UUID) (entity.CommunityReport, error) {
+	report, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return entity.CommunityReport{}, err
+	}
+
+	return report, nil
+}
+
+func (s *communityReportService) Delete(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
+	user, err := s.userSvc.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if !user.IsAdmin {
+		return entity.ErrForbidden
+	}
+
+	err = s.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

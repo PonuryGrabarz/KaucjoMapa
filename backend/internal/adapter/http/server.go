@@ -24,6 +24,7 @@ type FiberServer struct {
 	UserSvc        usecase.IUserService
 	AuthSvc        usecase.IAuthService
 	ReportSvc      usecase.ICommunityReportsService
+	VoteSvc        usecase.ICommunityReportVoteService
 	cfg            *config.Config
 }
 
@@ -36,7 +37,7 @@ func (v *structValidator) Validate(out any) error {
 	return v.validate.Struct(out)
 }
 
-func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
+func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
@@ -48,6 +49,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 		UserSvc:        userSvc,
 		AuthSvc:        authSvc,
 		ReportSvc:      reportSvc,
+		VoteSvc:        voteSvc,
 		cfg:            cfg,
 	}
 
@@ -86,11 +88,13 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	returnPointHandler := handler.NewReturnPointHandler(server.ReturnPointSvc, server.UserSvc)
 	userHandler := handler.NewUserHandler(server.UserSvc, tokenSvc, server.AuthSvc)
 	reportsHandler := handler.NewCommunityReportHandler(server.ReportSvc, server.UserSvc)
+	voteHandler := handler.NewCommunityReportVoteHandler(server.VoteSvc)
 
 	ReturnPointRouter(api, *returnPointHandler, cfg.JWTSecret, tokenSvc)
 	UsersRouter(api, *userHandler)
 	AuthRouter(api, *authHandler, cfg.JWTSecret, tokenSvc)
 	CommunityReportRouter(api, *reportsHandler, cfg.JWTSecret, tokenSvc)
+	CommunityReportVoteRouter(api, *voteHandler, cfg.JWTSecret, tokenSvc)
 	DocsRouter(api)
 
 	return server
