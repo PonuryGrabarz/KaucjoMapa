@@ -19,6 +19,7 @@ type CommunityReport struct {
 }
 
 type UserCommunityReport struct {
-	Report   CommunityReport
-	Username string
+	Report     CommunityReport
+	Username   string
+	Reputation int32
 }

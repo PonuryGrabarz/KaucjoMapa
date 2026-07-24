@@ -109,7 +109,8 @@ func (q *Queries) GetCommunityReportById(ctx context.Context, id uuid.UUID) (Com
 const listCommunityReportsByReturnPoint = `-- name: ListCommunityReportsByReturnPoint :many
 SELECT
     cr.id, cr.user_id, cr.return_point_id, cr.status, cr.description, cr.confirmations_count, cr.rejections_count, cr.created_at, cr.updated_at,
-    u.username
+    u.username,
+    u.reputation
 FROM community_reports AS cr
 JOIN users AS u ON u.id = cr.user_id
 WHERE cr.return_point_id = $1
@@ -127,6 +128,7 @@ type ListCommunityReportsByReturnPointRow struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	Username           string
+	Reputation         int32
 }
 
 func (q *Queries) ListCommunityReportsByReturnPoint(ctx context.Context, returnPointID uuid.UUID) ([]ListCommunityReportsByReturnPointRow, error) {
@@ -149,6 +151,7 @@ func (q *Queries) ListCommunityReportsByReturnPoint(ctx context.Context, returnP
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Username,
+			&i.Reputation,
 		); err != nil {
 			return nil, err
 		}

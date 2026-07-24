@@ -198,16 +198,18 @@ func toCreateUserParams(user entity.User) database.CreateUserParams {
 
 func toUserEntity(user database.User) entity.User {
 	return entity.User{
-		ID:           user.ID,
-		Email:        user.Email,
-		Username:     user.Username,
-		PasswordHash: user.PasswordHash,
-		Token:        "",
-		Reputation:   user.Reputation,
-		IsAdmin:      user.IsAdmin,
-		IsBanned:     user.IsBanned,
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
+		ID:                 user.ID,
+		Email:              user.Email,
+		Username:           user.Username,
+		PasswordHash:       user.PasswordHash,
+		Token:              "",
+		Reputation:         user.Reputation,
+		TotalConfirmations: user.TotalConfirmations,
+		TotalRejections:    user.TotalRejections,
+		IsAdmin:            user.IsAdmin,
+		IsBanned:           user.IsBanned,
+		CreatedAt:          user.CreatedAt,
+		UpdatedAt:          user.UpdatedAt,
 	}
 }
 
@@ -286,7 +288,8 @@ func toListCommunityReportsByReturnPoint(row []database.ListCommunityReportsByRe
 				CreatedAt:          report.CreatedAt,
 				UpdatedAt:          report.UpdatedAt,
 			},
-			Username: report.Username,
+			Username:   report.Username,
+			Reputation: report.Reputation,
 		})
 	}
 

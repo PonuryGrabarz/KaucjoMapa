@@ -22,7 +22,8 @@ WHERE id = $1;
 -- name: ListCommunityReportsByReturnPoint :many
 SELECT
     cr.*,
-    u.username
+    u.username,
+    u.reputation
 FROM community_reports AS cr
 JOIN users AS u ON u.id = cr.user_id
 WHERE cr.return_point_id = $1

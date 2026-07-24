@@ -796,6 +796,9 @@ const docTemplate = `{
                 "report": {
                     "$ref": "#/definitions/entity.CommunityReport"
                 },
+                "reputation": {
+                    "type": "integer"
+                },
                 "username": {
                     "type": "string"
                 }

@@ -239,13 +239,15 @@ type ReturnPoint struct {
 }
 
 type User struct {
-	ID           uuid.UUID
-	Email        string
-	Username     string
-	PasswordHash string
-	Reputation   int32
-	IsAdmin      bool
-	IsBanned     bool
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID                 uuid.UUID
+	Email              string
+	Username           string
+	PasswordHash       string
+	Reputation         int32
+	IsAdmin            bool
+	IsBanned           bool
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	TotalConfirmations int32
+	TotalRejections    int32
 }
