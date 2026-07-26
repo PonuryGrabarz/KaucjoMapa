@@ -90,6 +90,13 @@ definitions:
     required:
     - vote
     type: object
+  presenter.CreateNotificationRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
   presenter.CreateReturnPointRequest:
     properties:
       address:
@@ -186,6 +193,21 @@ definitions:
     required:
     - password
     - username
+    type: object
+  presenter.NotificationResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      seen:
+        type: boolean
+      user_id:
+        type: string
     type: object
   presenter.OpeningHours:
     properties:
@@ -433,6 +455,137 @@ paths:
       summary: Zaloguj użytkownika
       tags:
       - auth
+  /notifications:
+    get:
+      description: Zwraca listę powiadomień zalogowanego użytkownika.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista powiadomień
+          schema:
+            items:
+              $ref: '#/definitions/presenter.NotificationResponse'
+            type: array
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać powiadomień
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz powiadomienia
+      tags:
+      - notifications
+    post:
+      consumes:
+      - application/json
+      description: Tworzy powiadomienie przypisane do zalogowanego użytkownika.
+      parameters:
+      - description: Dane powiadomienia
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateNotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Utworzone powiadomienie
+          schema:
+            $ref: '#/definitions/presenter.NotificationResponse'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się utworzyć powiadomienia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Utwórz powiadomienie
+      tags:
+      - notifications
+  /notifications/{id}:
+    delete:
+      description: Usuwa wskazane powiadomienie należące do zalogowanego użytkownika.
+      parameters:
+      - description: Identyfikator powiadomienia
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator powiadomienia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "403":
+          description: Powiadomienie nie należy do zalogowanego użytkownika
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć powiadomienia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń powiadomienie
+      tags:
+      - notifications
+    put:
+      description: Oznacza wskazane powiadomienie zalogowanego użytkownika jako przeczytane.
+      parameters:
+      - description: Identyfikator powiadomienia
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowane powiadomienie
+          schema:
+            $ref: '#/definitions/presenter.NotificationResponse'
+        "400":
+          description: Nieprawidłowy identyfikator powiadomienia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "403":
+          description: Powiadomienie nie należy do zalogowanego użytkownika
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zaktualizować powiadomienia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Oznacz powiadomienie jako przeczytane
+      tags:
+      - notifications
   /reports:
     post:
       consumes:

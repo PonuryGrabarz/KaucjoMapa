@@ -251,3 +251,12 @@ type User struct {
 	TotalConfirmations int32
 	TotalRejections    int32
 }
+
+type UserNotification struct {
+	ID          uuid.UUID
+	UserID      uuid.NullUUID
+	Name        string
+	Description string
+	Seen        bool
+	CreatedAt   time.Time
+}

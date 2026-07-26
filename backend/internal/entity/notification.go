@@ -1,12 +1,16 @@
 package entity
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Notification struct {
 	ID          uuid.UUID
-	UserID      uuid.UUID
+	UserID      *uuid.UUID
 	Name        string
 	Description string
 	Seen        bool
-	CreatedAt   string
+	CreatedAt   time.Time
 }

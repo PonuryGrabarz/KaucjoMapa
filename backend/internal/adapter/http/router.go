@@ -39,6 +39,13 @@ func CommunityReportVoteRouter(app fiber.Router, voteHandler handler.CommunityRe
 	app.Post("/votes/:report_id", middleware.RequireJWT(auth, JWTSecret), voteHandler.Create)
 }
 
+func NotificationsRouter(app fiber.Router, notificationsHandler handler.NotificationsHandler, JWTSecret string, auth port.ITokenSigner) {
+	app.Post("/notifications", middleware.RequireJWT(auth, JWTSecret), notificationsHandler.Create)
+	app.Put("/notifications/:id", middleware.RequireJWT(auth, JWTSecret), notificationsHandler.MarkAsSeen)
+	app.Get("/notifications", middleware.RequireJWT(auth, JWTSecret), notificationsHandler.List)
+	app.Delete("/notifications/:id", middleware.RequireJWT(auth, JWTSecret), notificationsHandler.Delete)
+}
+
 func DocsRouter(app fiber.Router) {
 	openAPISepcDir, err := filepath.Abs("docs")
 	if err != nil {

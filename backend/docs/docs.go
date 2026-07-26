@@ -175,6 +175,211 @@ const docTemplate = `{
                 }
             }
         },
+        "/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca listę powiadomień zalogowanego użytkownika.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Pobierz powiadomienia",
+                "responses": {
+                    "200": {
+                        "description": "Lista powiadomień",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/presenter.NotificationResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać powiadomień",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy powiadomienie przypisane do zalogowanego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Utwórz powiadomienie",
+                "parameters": [
+                    {
+                        "description": "Dane powiadomienia",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateNotificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzone powiadomienie",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.NotificationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się utworzyć powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Oznacza wskazane powiadomienie zalogowanego użytkownika jako przeczytane.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Oznacz powiadomienie jako przeczytane",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator powiadomienia",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowane powiadomienie",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.NotificationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Powiadomienie nie należy do zalogowanego użytkownika",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zaktualizować powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa wskazane powiadomienie należące do zalogowanego użytkownika.",
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Usuń powiadomienie",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator powiadomienia",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Powiadomienie nie należy do zalogowanego użytkownika",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się usunąć powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/reports": {
             "post": {
                 "security": [
@@ -819,6 +1024,17 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.CreateNotificationRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "presenter.CreateReturnPointRequest": {
             "type": "object",
             "required": [
@@ -953,6 +1169,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.NotificationResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "seen": {
+                    "type": "boolean"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }
