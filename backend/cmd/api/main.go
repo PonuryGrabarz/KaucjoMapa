@@ -50,6 +50,7 @@ func main() {
 	tokenRepo := postgres.NewRefreshTokenRepo(db.Queries)
 	reportsRepo := postgres.NewCommunityReportsRepo(db.Queries)
 	voteRepo := postgres.NewCommunityReportVoteRepo(db.Queries)
+	notificationsRepo := postgres.NewNotificationsRepo(db.Queries)
 	tokenSigner := token.NewTokenSigner(cfg.JWTSecret, time.Second*3600)
 	hasher := crypto.NewHasher()
 
@@ -58,6 +59,7 @@ func main() {
 	authSvc := usecase.NewAuthService(tokenRepo, userSvc, hasher, tokenSigner)
 	reportSvc := usecase.NewCommunityReportsService(reportsRepo, userSvc)
 	voteSvc := usecase.NewCommunityReportVoteService(voteRepo, userSvc, reportSvc)
+	notificationsSvc := usecase.NewNotificationService(notificationsRepo, userSvc)
 
 	seedSvc := usecase.NewSeedService(returnPointRepo, userRepo, &scraper, cfg.AdminUsername, hasher)
 
@@ -75,7 +77,7 @@ func main() {
 		fmt.Printf("Error scraping points: %v", err)
 	}
 
-	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, tokenSigner, hasher, cfg)
+	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, notificationsSvc, tokenSigner, hasher, cfg)
 
 	certsDir, err := filepath.Abs("certs")
 	if err != nil {
@@ -104,4 +106,5 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}
+
 }

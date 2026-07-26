@@ -313,3 +313,36 @@ func toCommunityReportVoteEntity(vote database.CommunityReportVote) entity.Commu
 		UpdatedAt:         vote.UpdatedAt,
 	}
 }
+
+func toCreateNotificationParams(notification entity.Notification) database.CreateUserNotificationParams {
+	return database.CreateUserNotificationParams{
+		ID:          notification.ID,
+		UserID:      toNullUUID(notification.UserID),
+		Name:        notification.Name,
+		Description: notification.Description,
+		Seen:        notification.Seen,
+		CreatedAt:   notification.CreatedAt,
+	}
+}
+
+func toUpdateNotificationParams(notification entity.Notification, id uuid.UUID) database.UpdateUserNotificationParams {
+	return database.UpdateUserNotificationParams{
+		ID:          notification.ID,
+		UserID:      toNullUUID(notification.UserID),
+		Name:        notification.Name,
+		Description: notification.Description,
+		Seen:        notification.Seen,
+	}
+
+}
+
+func toNotificationEntity(notification database.UserNotification) entity.Notification {
+	return entity.Notification{
+		ID:          notification.ID,
+		UserID:      &notification.UserID.UUID,
+		Name:        notification.Name,
+		Description: notification.Description,
+		Seen:        notification.Seen,
+		CreatedAt:   notification.CreatedAt,
+	}
+}

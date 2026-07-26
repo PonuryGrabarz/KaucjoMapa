@@ -24,12 +24,13 @@ import (
 
 type FiberServer struct {
 	*fiber.App
-	ReturnPointSvc usecase.IReturnPointService
-	UserSvc        usecase.IUserService
-	AuthSvc        usecase.IAuthService
-	ReportSvc      usecase.ICommunityReportsService
-	VoteSvc        usecase.ICommunityReportVoteService
-	cfg            *config.Config
+	ReturnPointSvc   usecase.IReturnPointService
+	UserSvc          usecase.IUserService
+	AuthSvc          usecase.IAuthService
+	ReportSvc        usecase.ICommunityReportsService
+	VoteSvc          usecase.ICommunityReportVoteService
+	NotificationsSvc usecase.INotificationsService
+	cfg              *config.Config
 }
 
 type structValidator struct {
@@ -98,7 +99,7 @@ func translateFieldError(fe validator.FieldError) string {
 	}
 }
 
-func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
+func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, notSvc usecase.INotificationsService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
@@ -106,12 +107,13 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 			ErrorHandler:    middleware.ErrorHandler,
 			StructValidator: &structValidator{validate: newValidator()},
 		}),
-		ReturnPointSvc: returnPointSvc,
-		UserSvc:        userSvc,
-		AuthSvc:        authSvc,
-		ReportSvc:      reportSvc,
-		VoteSvc:        voteSvc,
-		cfg:            cfg,
+		ReturnPointSvc:   returnPointSvc,
+		UserSvc:          userSvc,
+		AuthSvc:          authSvc,
+		ReportSvc:        reportSvc,
+		VoteSvc:          voteSvc,
+		NotificationsSvc: notSvc,
+		cfg:              cfg,
 	}
 
 	server.Use(cors.New(cors.Config{
@@ -150,12 +152,14 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	userHandler := handler.NewUserHandler(server.UserSvc, tokenSvc, server.AuthSvc)
 	reportsHandler := handler.NewCommunityReportHandler(server.ReportSvc, server.UserSvc)
 	voteHandler := handler.NewCommunityReportVoteHandler(server.VoteSvc)
+	notificationsHandler := handler.NewNotificationsHandler(server.NotificationsSvc)
 
 	ReturnPointRouter(api, *returnPointHandler, cfg.JWTSecret, tokenSvc)
 	UsersRouter(api, *userHandler)
 	AuthRouter(api, *authHandler, cfg.JWTSecret, tokenSvc)
 	CommunityReportRouter(api, *reportsHandler, cfg.JWTSecret, tokenSvc)
 	CommunityReportVoteRouter(api, *voteHandler, cfg.JWTSecret, tokenSvc)
+	NotificationsRouter(api, *notificationsHandler, cfg.JWTSecret, tokenSvc)
 	DocsRouter(api)
 
 	return server
