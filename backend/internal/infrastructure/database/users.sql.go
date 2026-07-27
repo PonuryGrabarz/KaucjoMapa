@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +26,7 @@ VALUES (
     $8,
     $9
 )
-RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections
+RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, google_subject
 `
 
 type CreateUserParams struct {
@@ -63,14 +64,35 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.IsBanned,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.TotalConfirmations,
-		&i.TotalRejections,
+		&i.GoogleSubject,
+	)
+	return i, err
+}
+
+const getUserByGoogleSubject = `-- name: GetUserByGoogleSubject :one
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, google_subject FROM users WHERE google_subject = $1
+`
+
+func (q *Queries) GetUserByGoogleSubject(ctx context.Context, googleSubject sql.NullString) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByGoogleSubject, googleSubject)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Username,
+		&i.PasswordHash,
+		&i.Reputation,
+		&i.IsAdmin,
+		&i.IsBanned,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GoogleSubject,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections FROM users WHERE id = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, google_subject FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -86,14 +108,13 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.IsBanned,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.TotalConfirmations,
-		&i.TotalRejections,
+		&i.GoogleSubject,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections FROM users WHERE username = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, google_subject FROM users WHERE username = $1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
@@ -109,14 +130,13 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.IsBanned,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.TotalConfirmations,
-		&i.TotalRejections,
+		&i.GoogleSubject,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections FROM users
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, google_subject FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -138,8 +158,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.IsBanned,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.TotalConfirmations,
-			&i.TotalRejections,
+			&i.GoogleSubject,
 		); err != nil {
 			return nil, err
 		}
@@ -209,4 +228,59 @@ func (q *Queries) UpsertAdminUser(ctx context.Context, arg UpsertAdminUserParams
 		arg.PasswordHash,
 	)
 	return err
+}
+
+const upsertGoogleUserByEmail = `-- name: UpsertGoogleUserByEmail :one
+INSERT INTO users (
+    id,
+    email,
+    username,
+    password_hash,
+    google_subject
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5
+)
+ON CONFLICT (email) DO UPDATE SET
+    google_subject = EXCLUDED.google_subject,
+    updated_at = NOW()
+WHERE users.google_subject IS NULL
+   OR users.google_subject = EXCLUDED.google_subject
+RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, google_subject
+`
+
+type UpsertGoogleUserByEmailParams struct {
+	ID            uuid.UUID
+	Email         string
+	Username      string
+	PasswordHash  string
+	GoogleSubject sql.NullString
+}
+
+func (q *Queries) UpsertGoogleUserByEmail(ctx context.Context, arg UpsertGoogleUserByEmailParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, upsertGoogleUserByEmail,
+		arg.ID,
+		arg.Email,
+		arg.Username,
+		arg.PasswordHash,
+		arg.GoogleSubject,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Username,
+		&i.PasswordHash,
+		&i.Reputation,
+		&i.IsAdmin,
+		&i.IsBanned,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GoogleSubject,
+	)
+	return i, err
 }

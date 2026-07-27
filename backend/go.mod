@@ -13,9 +13,11 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/swaggo/swag v1.16.6
 	github.com/yokeTH/gofiber-scalar/scalar/v3 v3.1.12
+	golang.org/x/oauth2 v0.36.0
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect

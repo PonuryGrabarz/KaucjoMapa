@@ -19,6 +19,31 @@ SELECT * FROM users WHERE username = $1;
 -- name: GetUserById :one
 SELECT * FROM users WHERE id = $1;
 
+-- name: GetUserByGoogleSubject :one
+SELECT * FROM users WHERE google_subject = $1;
+
+-- name: UpsertGoogleUserByEmail :one
+INSERT INTO users (
+    id,
+    email,
+    username,
+    password_hash,
+    google_subject
+)
+VALUES (
+    sqlc.arg(id),
+    sqlc.arg(email),
+    sqlc.arg(username),
+    sqlc.arg(password_hash),
+    sqlc.arg(google_subject)
+)
+ON CONFLICT (email) DO UPDATE SET
+    google_subject = EXCLUDED.google_subject,
+    updated_at = NOW()
+WHERE users.google_subject IS NULL
+   OR users.google_subject = EXCLUDED.google_subject
+RETURNING *;
+
 -- name: ResetUsers :exec
 DELETE FROM users;
 
