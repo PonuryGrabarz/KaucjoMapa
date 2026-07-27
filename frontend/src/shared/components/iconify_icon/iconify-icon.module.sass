@@ -1,0 +1,17 @@
+.iconify-icon
+	display: inline-block
+	vertical-align: middle
+	flex-shrink: 0
+	width: var(--iconify-icon-width, 1em)
+	height: var(--iconify-icon-height, 1em)
+	background-color: currentColor
+	mask: var(--iconify-icon-url) no-repeat center / 100% 100%
+	-webkit-mask: var(--iconify-icon-url) no-repeat center / 100% 100%
+	transform: rotate(var(--iconify-icon-rotation, 0deg)) scale(var(--iconify-icon-scale-x, 1), var(--iconify-icon-scale-y, 1))
+	transform-origin: center
+
+	&.iconify-icon--colored
+		background: var(--iconify-icon-url) no-repeat center / 100% 100%
+		background-color: transparent
+		mask: none
+		-webkit-mask: none

@@ -1,0 +1,129 @@
+.input
+	position: relative
+	display: inline-flex
+	align-items: center
+	vertical-align: middle
+	box-sizing: border-box
+	width: auto
+	max-width: 100%
+	min-width: 0
+	margin: 0
+	background: var(--input-background, transparent)
+	color: var(--input-text-color, inherit)
+	font: inherit
+	border: var(--input-border-width, 1px) solid var(--input-border-color, currentColor)
+	border-radius: var(--input-border-radius, 6px)
+	outline: transparent
+	transition: background-color var(--input-transition-duration, 160ms) ease, border-color var(--input-transition-duration, 160ms) ease, color var(--input-transition-duration, 160ms) ease, outline-color var(--input-transition-duration, 160ms) ease
+
+	&:hover:not([data-disabled="true"])
+		border-color: var(--input-hover-border-color, var(--input-border-color, currentColor))
+
+	&:focus-within
+		border-color: var(--input-focus-border-color, var(--input-border-color, currentColor))
+		outline: var(--input-focus-outline-width, 2px) solid var(--input-focus-outline-color, currentColor)
+		outline-offset: var(--input-focus-outline-offset, 2px)
+
+	&[data-adorned-start="true"]
+		.input__control
+			padding-inline-start: var(--input-adorned-padding, 8px)
+
+	&[data-adorned-end="true"]
+		.input__control
+			padding-inline-end: var(--input-adorned-padding, 8px)
+
+	&[data-full-width="true"]
+		display: flex
+		width: 100%
+
+		.input__control
+			width: 100%
+
+	&[data-disabled="true"]
+		background: var(--input-disabled-background, var(--input-background, transparent))
+		color: var(--input-disabled-text-color, var(--input-text-color, inherit))
+		border-color: var(--input-disabled-border-color, var(--input-border-color, currentColor))
+		cursor: not-allowed
+		opacity: var(--input-disabled-opacity, 0.6)
+
+		.input__start-adornment, .input__end-adornment
+			color: inherit
+
+	&[data-error="true"]
+		border-color: var(--input-error-border-color, var(--input-border-color, currentColor))
+
+		&:focus-within
+			border-color: var(--input-error-focus-border-color, var(--input-error-border-color, currentColor))
+			outline-color: var(--input-error-focus-outline-color, var(--input-focus-outline-color, currentColor))
+
+	.input__start-adornment, .input__end-adornment
+		display: inline-flex
+		align-items: center
+		justify-content: center
+		flex: 0 0 auto
+		color: var(--input-adornment-color, currentColor)
+		font-size: var(--input-adornment-size, 1.25em)
+		line-height: 1
+
+	.input__start-adornment
+		margin-inline-start: var(--input-adornment-offset, 12px)
+
+	.input__end-adornment
+		gap: var(--input-end-adornment-gap, 4px)
+		margin-inline-end: var(--input-adornment-offset, 12px)
+
+	.input__password-toggle
+		display: inline-grid
+		place-items: center
+		flex: 0 0 auto
+		width: var(--input-password-toggle-size, 1.875rem)
+		height: var(--input-password-toggle-size, 1.875rem)
+		padding: 0
+		margin: 0
+		background: transparent
+		color: var(--input-password-toggle-color, var(--input-adornment-color, currentColor))
+		font: inherit
+		font-size: var(--input-password-toggle-icon-size, 1.125rem)
+		line-height: 1
+		border: 0
+		border-radius: var(--input-password-toggle-border-radius, 50%)
+		outline: none
+		cursor: pointer
+
+		&:hover:not(:disabled)
+			background: var(--input-password-toggle-hover-background, color-mix(in srgb, currentColor 8%, transparent))
+
+		&:focus-visible
+			outline: var(--input-password-toggle-focus-outline-width, 2px) solid var(--input-password-toggle-focus-outline-color, currentColor)
+			outline-offset: var(--input-password-toggle-focus-outline-offset, 1px)
+
+		&:disabled
+			cursor: not-allowed
+			opacity: var(--input-password-toggle-disabled-opacity, 0.55)
+
+	.input__control
+		flex: 1 1 auto
+		box-sizing: border-box
+		width: var(--input-width, 20ch)
+		min-width: 0
+		padding: var(--input-padding-block, 8px) var(--input-padding-inline, 12px)
+		background: transparent
+		color: var(--input-control-color, inherit)
+		caret-color: var(--input-caret-color, auto)
+		font: inherit
+		line-height: var(--input-line-height, 1.5)
+		letter-spacing: inherit
+		border: 0
+		border-radius: inherit
+		outline: 0
+
+		&::placeholder
+			color: var(--input-placeholder-color, currentColor)
+			opacity: var(--input-placeholder-opacity, 0.6)
+
+		&:disabled
+			cursor: not-allowed
+
+@media (prefers-reduced-motion: reduce)
+	.input
+		transition: none

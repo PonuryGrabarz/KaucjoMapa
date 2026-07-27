@@ -12,11 +12,8 @@ CREATE TYPE point_type AS ENUM (
 
 CREATE TYPE point_status AS ENUM (
     'dostepny',
-    'zapelniony',
     'nieczynny',
-    'awaria',
-    'brak_informacji',
-    'do_weryfikacji'
+    'brak_informacji'
 );
 
 CREATE TABLE return_points (
@@ -30,7 +27,8 @@ CREATE TABLE return_points (
     pet                 BOOLEAN NOT NULL DEFAULT FALSE,
     can                 BOOLEAN NOT NULL DEFAULT FALSE,
     glass               BOOLEAN NOT NULL DEFAULT FALSE,
-    opening_hours       TEXT,
+    opening_hours JSONB NOT NULL DEFAULT '{}'::jsonb
+    CHECK (jsonb_typeof(opening_hours) = 'object'),
     description         TEXT,
     current_status      point_status NOT NULL DEFAULT 'brak_informacji',
     confirmations_count INT          NOT NULL DEFAULT 0,

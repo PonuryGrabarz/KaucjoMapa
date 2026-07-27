@@ -1,0 +1,111 @@
+.point-list
+  display: flex
+  flex-direction: column
+  flex: 1 1 auto
+  width: 100%
+  min-width: 0
+  min-height: 0
+  overflow: hidden
+
+  .point-list__title
+    position: absolute
+    width: 1px
+    height: 1px
+    padding: 0
+    margin: -1px
+    border: 0
+    clip: rect(0 0 0 0)
+    clip-path: inset(50%)
+    overflow: hidden
+    white-space: nowrap
+
+  .point-list__summary
+    flex: 0 0 auto
+    width: min(100%, 1180px)
+    padding-inline: clamp(12px, 2.2vw, 28px)
+    margin: 0 auto 6px
+    color: var(--muted-500)
+    font-size: 12.5px
+    font-weight: 600
+
+  .point-list__scrollable
+    flex: 1 1 auto
+    min-height: 0
+    overflow-y: auto
+    overscroll-behavior: contain
+    outline: none
+    scrollbar-gutter: stable
+    -webkit-overflow-scrolling: touch
+
+    &:focus-visible
+      box-shadow: inset var(--focus-500)
+
+    .point-list__grid
+      display: grid
+      width: min(100%, 1236px)
+      gap: 10px
+      padding: 14px 16px 16px
+      margin: 0 auto
+      list-style: none
+
+    .point-list__empty
+      display: grid
+      place-content: center
+      justify-items: center
+      min-height: 100%
+      padding: 32px 20px
+      text-align: center
+
+      h2
+        font-size: clamp(20px, 3vw, 26px)
+
+      p
+        max-width: 42ch
+        margin: 8px 0 18px
+        color: var(--muted-500)
+        font-size: 14px
+        line-height: 1.5
+
+      a
+        padding: 10px 14px
+        background: var(--paper-50)
+        color: var(--grass-700)
+        font-size: 13px
+        font-weight: 800
+        text-decoration: none
+        border: 1px solid var(--ink-200)
+        border-radius: 11px
+
+        &:hover
+          background: var(--paper-100)
+
+        &:focus-visible
+          outline: 2px solid var(--grass-700)
+          outline-offset: 2px
+
+@media screen and (max-width: 380px)
+  .point-list
+    .point-list__scrollable
+      .point-list__grid
+        padding-inline: 12px
+
+@media screen and (min-width: 520px)
+  .point-list
+    .point-list__scrollable
+      .point-list__grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        padding: 18px 22px 22px
+
+@media screen and (min-width: 900px)
+  .point-list
+    .point-list__scrollable
+      .point-list__grid
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+        padding: 20px 28px 28px
+        align-content: start
+
+@media screen and (min-width: 1180px)
+  .point-list
+    .point-list__scrollable
+      .point-list__grid
+        grid-template-columns: repeat(4, minmax(0, 1fr))

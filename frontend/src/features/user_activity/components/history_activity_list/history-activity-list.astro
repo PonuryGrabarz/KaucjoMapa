@@ -1,0 +1,18 @@
+---
+import Styles from "./history-activity-list.module.sass";
+import HistoryActivityItem from "../history_activity_item/history-activity-item.astro";
+
+import type { HistoryActivityItem as HistoryActivityItemData } from "../../lib/history-mock-data";
+
+interface Props {
+    items: HistoryActivityItemData[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class={Styles["history-activity-list"]} aria-label="Historia zwrotów">
+    {items.map((item) => (
+        <HistoryActivityItem {...item} />
+    ))}
+</ul>

@@ -1,0 +1,35 @@
+---
+import Topbar from "@components/topbar/topbar.astro";
+import AppLayout from "@layouts/app_layout/app-layout.astro";
+import MainLayout from "@layouts/main_layout/main-layout.astro";
+import PointListPageView from "@features/return_points/views/point_list_page_view/point-list-page-view.astro";
+
+const rawPage = Astro.url.searchParams.get("page");
+const parsedPage = rawPage === null ? 1 : Number(rawPage);
+const isValidPage = Number.isInteger(parsedPage) && parsedPage >= 1;
+const page = isValidPage ? parsedPage : 1;
+const hasFilters = ["query", "type", "status"].some((parameter) => {
+    return Astro.url.searchParams.has(parameter);
+});
+
+const title = page > 1 && !hasFilters
+    ? `Punkty zwrotu opakowań – strona ${page} | KaucjoMapa`
+    : "Punkty zwrotu opakowań kaucyjnych | KaucjoMapa";
+const description = page > 1 && !hasFilters
+    ? `Przeglądaj listę punktów zwrotu butelek, puszek i opakowań kaucyjnych. Strona ${page}.`
+    : "Wyszukaj i filtruj punkty zwrotu butelek, puszek i opakowań kaucyjnych. Sprawdź adres, godziny otwarcia i aktualny status punktu.";
+const canonical = page > 1 && !hasFilters ? `/punkty?page=${page}` : "/punkty";
+---
+
+<MainLayout
+    title={title}
+    description={description}
+    canonical={canonical}
+    noIndex={hasFilters || !isValidPage}
+>
+    <AppLayout>
+        <Topbar title="Lista punktów zwrotu" />
+
+        <PointListPageView />
+    </AppLayout>
+</MainLayout>

@@ -17,7 +17,8 @@ INSERT INTO return_points (
   updated_at,
   pet,
   can,
-  glass
+  glass,
+  refund_methods
 ) VALUES (
   $1,
   $2,
@@ -36,11 +37,49 @@ INSERT INTO return_points (
   $15,
   $16,
   $17,
-  $18
+  $18,
+  $19
   ) RETURNING *;
 
 -- name: GetAllReturnPoints :many
 SELECT * FROM return_points;
+
+-- name: ListReturnPoints :many
+SELECT *
+FROM return_points
+WHERE (
+    sqlc.narg('query')::TEXT IS NULL
+    OR name ILIKE '%' || sqlc.narg('query')::TEXT || '%'
+    OR COALESCE(address, '') ILIKE '%' || sqlc.narg('query')::TEXT || '%'
+)
+AND (
+    sqlc.narg('point_type')::point_type IS NULL
+    OR type = sqlc.narg('point_type')::point_type
+)
+AND (
+    sqlc.narg('point_status')::point_status IS NULL
+    OR current_status = sqlc.narg('point_status')::point_status
+)
+ORDER BY id
+LIMIT sqlc.arg('limit')::INT
+OFFSET sqlc.arg('offset')::INT;
+
+-- name: CountReturnPoints :one
+SELECT COUNT(*)
+FROM return_points
+WHERE (
+    sqlc.narg('query')::TEXT IS NULL
+    OR name ILIKE '%' || sqlc.narg('query')::TEXT || '%'
+    OR COALESCE(address, '') ILIKE '%' || sqlc.narg('query')::TEXT || '%'
+)
+AND (
+    sqlc.narg('point_type')::point_type IS NULL
+    OR type = sqlc.narg('point_type')::point_type
+)
+AND (
+    sqlc.narg('point_status')::point_status IS NULL
+    OR current_status = sqlc.narg('point_status')::point_status
+);
 
 -- name: GetPointByDistance :one
 SELECT id, name, address FROM return_points
@@ -55,6 +94,7 @@ SELECT * FROM return_points WHERE id = $1;
 
 -- name: DeletePointById :exec
 DELETE FROM return_points WHERE id = $1;
+
 -- name: UpdatePointById :one
 UPDATE return_points AS rp
 SET
@@ -79,7 +119,7 @@ SET
         rp.longitude
     ),
     opening_hours = COALESCE(
-        sqlc.narg('opening_hours')::TEXT,
+        sqlc.narg('opening_hours')::JSONB,
         rp.opening_hours
     ),
     description = COALESCE(
@@ -93,6 +133,10 @@ SET
     can = COALESCE(
         sqlc.narg('can')::BOOLEAN,
         rp.can
+    ),
+    refund_methods = COALESCE(
+      sqlc.narg('refund_methods')::refund_method[],
+      rp.refund_methods
     ),
     glass = COALESCE(
         sqlc.narg('glass')::BOOLEAN,

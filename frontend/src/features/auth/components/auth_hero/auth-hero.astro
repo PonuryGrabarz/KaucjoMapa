@@ -1,0 +1,33 @@
+---
+import Styles from "./auth-hero.module.sass";
+import Button from "@components/button/button";
+---
+
+<div class:list={Styles["auth-hero"]}>
+  <a class={Styles["auth-hero__logo"]} href="/">
+    <img
+      class={Styles["auth-hero__logo-image"]}
+      src="/favicon.svg"
+      alt=""
+      width="42"
+      height="42"
+      decoding="async"
+    />
+
+    <strong>KaucjoMapa</strong>
+  </a>
+
+  <Button
+    class={Styles["auth-hero__return-link"]}
+    href="/"
+    startIcon="mdi:arrow-left"
+    variant="contained"
+    disableRipple
+  >
+    Wróć do strony głównej
+  </Button>
+
+  <p class:list={Styles["auth-hero__slogan"]}>
+    Znajdź czynny <em>butelkomat</em> w okolicy.
+  </p>
+</div>

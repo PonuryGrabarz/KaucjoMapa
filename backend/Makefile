@@ -46,7 +46,7 @@ clean:
 
 # Live Reload
 watch:
-	@swag init -g main.go -d ./cmd/api,./internal/server --parseInternal -o ./docs; if command -v air > /dev/null; then \
+	@swag init -g cmd/api/main.go --parseInternal -o docs; if command -v air > /dev/null; then \
             air; \
             echo "Watching...";\
         else \

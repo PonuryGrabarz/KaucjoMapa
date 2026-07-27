@@ -1,0 +1,129 @@
+.modal
+	width: 100%
+	max-width: none
+	max-height: min(82dvh, 720px)
+	margin: auto 0 0
+	padding: 0
+	background: var(--modal-background, var(--paper-50))
+	border: var(--modal-border, none)
+	border-radius: var(--modal-border-radius, 22px 22px 0 0)
+	box-shadow: var(--modal-shadow, var(--shadow-lg))
+	color: var(--modal-color, var(--ink-900))
+	overflow: hidden
+
+	&[open]
+		animation: modal-sheet-enter 220ms cubic-bezier(.2, .8, .2, 1)
+
+	&::backdrop
+		background: var(--modal-backdrop, rgba(14, 42, 27, 0.42))
+		backdrop-filter: var(--modal-backdrop-filter, blur(2px))
+		animation: modal-backdrop-enter 180ms ease-out
+
+	.modal__surface
+		display: flex
+		flex-direction: column
+		max-height: min(82dvh, 720px)
+		overflow: hidden
+
+	.modal__handle
+		flex: 0 0 auto
+		width: 40px
+		height: 4px
+		margin: 8px auto 6px
+		background: var(--modal-handle-color, var(--ink-200))
+		border-radius: 999px
+
+	.modal__header
+		display: flex
+		flex: 0 0 auto
+		align-items: center
+		justify-content: space-between
+		min-height: 52px
+		gap: 16px
+		padding: 0 16px
+
+	.modal__heading
+		flex: 1 1 auto
+		min-width: 0
+
+	.modal__title
+		margin: 0
+		font-size: var(--modal-title-font-size, 20px)
+		line-height: 1.2
+
+	.modal__subtitle
+		margin-top: 4px
+		color: var(--modal-subtitle-color, var(--muted-500))
+		font-size: var(--modal-subtitle-font-size, 13px)
+		font-weight: var(--modal-subtitle-font-weight, 500)
+		line-height: 1.45
+
+	.modal__close
+		display: inline-flex
+		flex: 0 0 auto
+		align-items: center
+		justify-content: center
+
+	.modal__default-close
+		--icon-button-size: 40px
+		--icon-button-color: var(--muted-500)
+		--icon-button-hover-color: var(--ink-900)
+		--icon-button-focus-outline-color: var(--grass-700)
+
+	.modal__body
+		min-height: 0
+		padding: 8px 16px max(20px, env(safe-area-inset-bottom))
+		overflow-y: auto
+		overscroll-behavior: contain
+
+@media screen and (min-width: 1024px)
+	.modal
+		width: var(--modal-desktop-width, min(calc(100% - 64px), 640px))
+		max-height: min(calc(100dvh - 64px), 720px)
+		margin: auto
+		border-radius: var(--modal-desktop-border-radius, 20px)
+
+		&[open]
+			animation: modal-dialog-enter 180ms cubic-bezier(.2, .8, .2, 1)
+
+		.modal__surface
+			max-height: min(calc(100dvh - 64px), 720px)
+
+		.modal__handle
+			display: none
+
+		.modal__header
+			min-height: 64px
+			padding: 16px 24px 0
+
+		.modal__title
+			font-size: var(--modal-desktop-title-font-size, 24px)
+
+		.modal__subtitle
+			font-size: var(--modal-desktop-subtitle-font-size, 14px)
+
+		.modal__body
+			padding: 12px 24px 24px
+
+@media (prefers-reduced-motion: reduce)
+	.modal,
+	.modal::backdrop
+		animation: none
+
+@keyframes modal-sheet-enter
+	from
+		transform: translateY(100%)
+	to
+		transform: translateY(0)
+
+@keyframes modal-dialog-enter
+	from
+		opacity: 0
+		transform: translateY(12px) scale(.98)
+	to
+		opacity: 1
+		transform: translateY(0) scale(1)
+
+@keyframes modal-backdrop-enter
+	from
+		background: transparent

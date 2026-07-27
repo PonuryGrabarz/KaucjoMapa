@@ -1,0 +1,14 @@
+---
+import Topbar from "@components/topbar/topbar.astro";
+import AppLayout from "@layouts/app_layout/app-layout.astro";
+import MainLayout from "@layouts/main_layout/main-layout.astro";
+import CalculatorPageView from "@features/calculator/views/calculator_page_view/calculator-page-view.astro";
+---
+
+<MainLayout>
+    <AppLayout>
+      <Topbar title="Kalkulator zwrotów" />
+
+      <CalculatorPageView />
+    </AppLayout>
+</MainLayout>

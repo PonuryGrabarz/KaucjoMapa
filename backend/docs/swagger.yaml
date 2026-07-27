@@ -111,7 +111,7 @@ paths:
     get:
       description: Zwraca prostą wiadomość potwierdzającą, że API działa.
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -121,7 +121,7 @@ paths:
             type: object
       summary: Sprawdzenie działania API
       tags:
-      - health
+        - health
   /auth/google:
     get:
       description: Generuje state i PKCE, a następnie przekierowuje do Google OAuth2.
@@ -136,24 +136,25 @@ paths:
             type: object
       summary: Logowanie przez Google
       tags:
-      - auth
+        - auth
   /auth/google/callback:
     get:
-      description: Weryfikuje odpowiedź Google, tworzy lub łączy konto i zwraca użytkownika
+      description:
+        Weryfikuje odpowiedź Google, tworzy lub łączy konto i zwraca użytkownika
         z lokalnym JWT.
       parameters:
-      - description: Authorization code
-        in: query
-        name: code
-        required: true
-        type: string
-      - description: OAuth state
-        in: query
-        name: state
-        required: true
-        type: string
+        - description: Authorization code
+          in: query
+          name: code
+          required: true
+          type: string
+        - description: OAuth state
+          in: query
+          name: state
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -162,7 +163,7 @@ paths:
               description: RefreshToken
               type: string
           schema:
-            $ref: '#/definitions/server.User'
+            $ref: "#/definitions/server.User"
         "400":
           description: Bad Request
           schema:
@@ -195,24 +196,25 @@ paths:
             type: object
       summary: Callback Google OAuth2
       tags:
-      - auth
+        - auth
   /auth/revoke:
     post:
-      description: Weryfikuje access token z nagłówka Authorization i unieważnia refresh
+      description:
+        Weryfikuje access token z nagłówka Authorization i unieważnia refresh
         token przekazany w cookie.
       parameters:
-      - description: Bearer access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: RefreshToken=<refresh_token>
-        in: header
-        name: Cookie
-        required: true
-        type: string
+        - description: Bearer access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: RefreshToken=<refresh_token>
+          in: header
+          name: Cookie
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "204":
           description: No Content
@@ -230,24 +232,25 @@ paths:
             type: object
       summary: Unieważnienie refresh tokenu
       tags:
-      - auth
+        - auth
   /auth/token:
     post:
-      description: Weryfikuje access token z nagłówka Authorization i refresh token
+      description:
+        Weryfikuje access token z nagłówka Authorization i refresh token
         z cookie, a następnie zwraca nowy access token.
       parameters:
-      - description: Bearer access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: RefreshToken=<refresh_token>
-        in: header
-        name: Cookie
-        required: true
-        type: string
+        - description: Bearer access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: RefreshToken=<refresh_token>
+          in: header
+          name: Cookie
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Nowy access token
@@ -269,39 +272,39 @@ paths:
             type: object
       summary: Odświeżenie tokenu JWT
       tags:
-      - auth
+        - auth
   /kaucjomaty:
     get:
       description: Zwraca punkty zwrotu do wyświetlenia na mapie.
       parameters:
-      - description: Typ punktu
-        enum:
-        - butelkomat
-        - sklep
-        - punkt_skupu
-        - inny
-        in: query
-        name: type
-        type: string
-      - description: Status punktu
-        enum:
-        - dostepny
-        - zapelniony
-        - nieczynny
-        - awaria
-        - brak_informacji
-        - do_weryfikacji
-        in: query
-        name: status
-        type: string
+        - description: Typ punktu
+          enum:
+            - butelkomat
+            - sklep
+            - punkt_skupu
+            - inny
+          in: query
+          name: type
+          type: string
+        - description: Status punktu
+          enum:
+            - dostepny
+            - zapelniony
+            - nieczynny
+            - awaria
+            - brak_informacji
+            - do_weryfikacji
+          in: query
+          name: status
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/server.MapPoint'
+              $ref: "#/definitions/server.MapPoint"
             type: array
         "500":
           description: Internal Server Error
@@ -311,33 +314,33 @@ paths:
             type: object
       summary: Lista kaucjomatów
       tags:
-      - kaucjomaty
+        - kaucjomaty
     post:
       consumes:
-      - application/json
+        - application/json
       description: |-
         Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.
         Dozwolone wartości type: butelkomat, sklep, punkt_skupu, inny.
         Dozwolone wartości current_status: dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji.
       parameters:
-      - description: Bearer access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Dane kaucjomatu
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/server.CreateKaucjomatRequest'
+        - description: Bearer access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: Dane kaucjomatu
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/server.CreateKaucjomatRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Utworzony kaucjomat
           schema:
-            $ref: '#/definitions/server.MapPoint'
+            $ref: "#/definitions/server.MapPoint"
         "400":
           description: Nieprawidłowe dane wejściowe
           schema:
@@ -358,24 +361,24 @@ paths:
             type: object
       summary: Dodanie kaucjomatu
       tags:
-      - kaucjomaty
+        - kaucjomaty
   /kaucjomaty/{id}:
     delete:
       description: Usuwa punkt zwrotu. Operacja jest dostępna wyłącznie dla administratora.
       parameters:
-      - description: Bearer access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Identyfikator kaucjomatu
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: Bearer access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: Identyfikator kaucjomatu
+          format: uuid
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "204":
           description: No Content
@@ -405,31 +408,31 @@ paths:
             type: object
       summary: Usunięcie kaucjomatu
       tags:
-      - kaucjomaty
+        - kaucjomaty
     put:
       consumes:
-      - application/json
+        - application/json
       description: Aktualizuje dane punktu zwrotu dla zalogowanego użytkownika.
       parameters:
-      - description: Bearer access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Identyfikator kaucjomatu
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Dane kaucjomatu
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/server.UpdateKaucjomatHandler.UpdateKaucjomatRequest'
+        - description: Bearer access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: Identyfikator kaucjomatu
+          format: uuid
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Dane kaucjomatu
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/server.UpdateKaucjomatHandler.UpdateKaucjomatRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Zaktualizowany kaucjomat
@@ -456,22 +459,23 @@ paths:
             type: object
       summary: Aktualizacja kaucjomatu
       tags:
-      - kaucjomaty
+        - kaucjomaty
   /login:
     post:
       consumes:
-      - application/json
-      description: Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem
+        - application/json
+      description:
+        Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem
         i zapisuje refresh token w cookie.
       parameters:
-      - description: Dane logowania
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/server.LoginUserHandler.parameters'
+        - description: Dane logowania
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/server.LoginUserHandler.parameters"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -480,7 +484,7 @@ paths:
               description: RefreshToken=<token>; Path=/auth; HttpOnly; SameSite=Strict
               type: string
           schema:
-            $ref: '#/definitions/server.User'
+            $ref: "#/definitions/server.User"
         "400":
           description: Bad Request
           schema:
@@ -501,26 +505,26 @@ paths:
             type: object
       summary: Logowanie użytkownika
       tags:
-      - auth
+        - auth
   /users:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Tworzy nowe konto użytkownika i zwraca dane utworzonego użytkownika.
       parameters:
-      - description: Dane rejestracji użytkownika
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/server.CreateUserHandler.parameters'
+        - description: Dane rejestracji użytkownika
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/server.CreateUserHandler.parameters"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.User'
+            $ref: "#/definitions/server.User"
         "400":
           description: Bad Request
           schema:
@@ -535,5 +539,5 @@ paths:
             type: object
       summary: Rejestracja użytkownika
       tags:
-      - users
+        - users
 swagger: "2.0"

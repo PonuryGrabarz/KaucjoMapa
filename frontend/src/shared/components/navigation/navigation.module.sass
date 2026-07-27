@@ -1,0 +1,325 @@
+.navigation
+	position: relative
+	z-index: 10
+	display: flex
+	flex: 0 0 auto
+	width: 100%
+	padding: 6px
+	background: var(--paper-50)
+	border-top: 1px solid var(--ink-100)
+	box-shadow: 0 -8px 24px -20px rgba(14, 42, 27, 0.5)
+
+	.navigation__list
+		display: flex
+		align-items: stretch
+		justify-content: center
+		width: 100%
+		gap: 4px
+		margin: 0 auto
+		padding: 0
+		list-style: none
+
+	.navigation__item
+		flex: 1 1 0
+		min-width: 0
+
+		--iconify-icon-width: 2.2em
+		--iconify-icon-height: 2.2em
+
+		&.navigation__item--mobile-overflow
+			display: none
+
+		&[data-mobile-more]
+			--iconify-icon-width: 1.3em
+			--iconify-icon-height: 1.3em
+
+	.navigation__link
+		display: flex
+		flex-direction: column
+		align-items: center
+		justify-content: center
+		width: 100%
+		min-width: 0
+		min-height: 50px
+		gap: 4px
+		padding: 4px 2px
+		border-radius: 10px
+		color: var(--muted-500)
+		font-size: clamp(11px, calc(8.73px + 0.71vw), 16px)
+		font-weight: 700
+		line-height: 1.2
+		text-decoration: none
+		-webkit-tap-highlight-color: transparent
+		transition: color 160ms ease
+
+		&.navigation__link--active
+			color: var(--grass-700)
+
+			.navigation__indicator
+				background: var(--grass-100)
+
+		&:focus-visible
+			outline: 2px solid var(--grass-700)
+			outline-offset: 1px
+
+	.navigation__indicator
+		display: inline-flex
+		align-items: center
+		justify-content: center
+		width: clamp(44px, calc(34.91px + 2.84vw), 64px)
+		height: clamp(30px, calc(21.82px + 2.56vw), 48px)
+		border-radius: 999px
+		transition: background-color 160ms ease
+
+	.navigation__label
+		max-width: 100%
+		overflow: hidden
+		text-align: center
+		text-overflow: ellipsis
+		white-space: nowrap
+
+@media (hover: hover)
+	.navigation .navigation__link:hover
+		color: var(--grass-700)
+
+		.navigation__indicator
+			background: var(--grass-100)
+
+@media screen and (min-width: 1024px)
+	.navigation
+		display: flex
+		flex: 0 0 clamp(140px, 12vw, 180px)
+		width: clamp(140px, 12vw, 180px)
+		height: 100dvh
+		padding: clamp(10px, 1.1vw, 16px) clamp(6px, 0.8vw, 10px)
+		border-top: none
+		border-right: 1px solid var(--ink-100)
+		box-shadow: none
+		overflow-y: auto
+
+		.navigation__list
+			flex-direction: column
+			align-items: stretch
+			justify-content: flex-start
+			width: 100%
+			max-width: none
+			gap: clamp(4px, 0.5vw, 8px)
+			margin: 0
+
+		.navigation__item
+			flex: 0 0 auto
+			width: 100%
+			max-width: none
+
+			&.navigation__item--mobile-overflow
+				display: block
+
+		.navigation__more
+			display: none
+
+		.navigation__link
+			flex-direction: row
+			justify-content: flex-start
+			min-height: 44px
+			gap: clamp(6px, 0.6vw, 10px)
+			padding: clamp(6px, 0.7vw, 10px) clamp(7px, 0.8vw, 11px)
+			border-radius: clamp(6px, 0.6vw, 10px)
+			font-size: clamp(11px, 0.8vw, 13px)
+			transition: background-color 160ms ease, color 160ms ease
+
+			.navigation__indicator
+				background: transparent !important
+
+			&:hover, &.navigation__link--active
+				background: var(--grass-100)
+
+		.navigation__indicator
+			width: 30px
+			height: 30px
+			background: transparent
+			border-radius: 8px
+
+		.navigation__icon
+			font-size: 18px
+
+		.navigation__label
+			text-align: left
+
+.navigation-sheet
+	width: 100%
+	height: 100%
+
+	.navigation-sheet__trigger
+		display: flex
+		flex-direction: column
+		align-items: center
+		justify-content: center
+		width: 100%
+		min-width: 0
+		min-height: 50px
+		gap: 4px
+		padding: 4px 2px
+		border-radius: 10px
+		color: var(--muted-500)
+		font-size: clamp(11px, calc(8.73px + 0.71vw), 16px)
+		font-weight: 700
+		line-height: 1.2
+		-webkit-tap-highlight-color: transparent
+		transition: color 160ms ease
+
+		&:focus-visible
+			outline: 2px solid var(--grass-700)
+			outline-offset: 1px
+
+		&.navigation-sheet__trigger--active
+			color: var(--grass-700)
+
+			.navigation-sheet__indicator
+				background: var(--grass-100)
+
+	.navigation-sheet__indicator
+		display: inline-flex
+		align-items: center
+		justify-content: center
+		width: clamp(44px, calc(34.91px + 2.84vw), 64px)
+		height: clamp(30px, calc(21.82px + 2.56vw), 48px)
+		border-radius: 999px
+		transition: background-color 160ms ease
+
+	.navigation-sheet__trigger-icon
+		font-size: 2.2em
+
+	.navigation-sheet__trigger-label
+		max-width: 100%
+		overflow: hidden
+		text-overflow: ellipsis
+		white-space: nowrap
+
+.navigation-sheet__dialog
+	width: 100%
+	max-width: none
+	max-height: min(72dvh, 560px)
+	margin: auto 0 0
+	padding: 8px 16px max(20px, env(safe-area-inset-bottom))
+	background: var(--paper-50)
+	border: none
+	border-radius: 22px 22px 0 0
+	box-shadow: var(--shadow-lg)
+	color: var(--ink-900)
+	overflow-y: auto
+	overscroll-behavior: contain
+
+	&[open]
+		animation: navigation-sheet-enter 220ms cubic-bezier(.2, .8, .2, 1)
+
+	&::backdrop
+		background: rgba(14, 42, 27, 0.42)
+		backdrop-filter: blur(2px)
+		animation: navigation-sheet-backdrop-enter 180ms ease-out
+
+	.navigation-sheet__handle
+		width: 40px
+		height: 4px
+		margin: 0 auto 6px
+		background: var(--ink-200)
+		border-radius: 999px
+
+	.navigation-sheet__header
+		display: flex
+		align-items: center
+		justify-content: space-between
+		min-height: 52px
+		gap: 16px
+
+	.navigation-sheet__title
+		font-size: 20px
+		line-height: 1.2
+
+	.navigation-sheet__close
+		display: inline-flex
+		align-items: center
+		justify-content: center
+		width: 40px
+		height: 40px
+		padding: 0
+		border-radius: 999px
+		color: var(--muted-500)
+		font-size: 20px
+		transition: background-color 160ms ease, color 160ms ease
+
+		&:hover
+			background: var(--paper-100)
+			color: var(--ink-900)
+
+		&:focus-visible
+			outline: 2px solid var(--grass-700)
+			outline-offset: 2px
+
+	.navigation-sheet__list
+		display: grid
+		gap: 6px
+		margin: 8px 0 0
+		padding: 0
+		list-style: none
+
+	.navigation-sheet__link
+		display: flex
+		align-items: center
+		min-height: 56px
+		gap: 14px
+		padding: 8px 12px
+		border-radius: 12px
+		color: var(--ink-800)
+		font-size: 14px
+		font-weight: 700
+		line-height: 1.3
+		text-decoration: none
+		-webkit-tap-highlight-color: transparent
+		transition: background-color 160ms ease, color 160ms ease
+
+		&:hover, &.navigation-sheet__link--active
+			background: var(--grass-100)
+			color: var(--grass-700)
+
+		&:focus-visible
+			outline: 2px solid var(--grass-700)
+			outline-offset: 2px
+
+	.navigation-sheet__link-icon
+		display: inline-flex
+		align-items: center
+		justify-content: center
+		width: 38px
+		height: 38px
+		background: var(--mint-100)
+		border-radius: 10px
+		font-size: 20px
+
+@media (hover: hover)
+	.navigation-sheet .navigation-sheet__trigger:hover
+		color: var(--grass-700)
+
+		.navigation-sheet__indicator
+			background: var(--grass-100)
+
+@media screen and (min-width: 1024px)
+	.navigation-sheet
+		display: none
+
+	.navigation-sheet__dialog
+		display: none
+
+@media (prefers-reduced-motion: reduce)
+	.navigation-sheet__dialog,
+	.navigation-sheet__dialog::backdrop
+		animation: none
+
+@keyframes navigation-sheet-enter
+	from
+		transform: translateY(100%)
+	to
+		transform: translateY(0)
+
+@keyframes navigation-sheet-backdrop-enter
+	from
+		background: transparent
