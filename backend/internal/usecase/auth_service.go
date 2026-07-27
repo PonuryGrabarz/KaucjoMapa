@@ -71,7 +71,7 @@ func (s *authService) Login(ctx context.Context, in dto.LoginUserInput) (entity.
 }
 
 func (s *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenInput) (string, error) {
-	claims, err := s.tokenSvc.ValidateJWT(in.AccessToken)
+	claims, err := s.tokenSvc.ExtractClaimsFromJWT(in.AccessToken)
 	if err != nil {
 		return "", err
 	}

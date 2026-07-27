@@ -10,6 +10,8 @@ import (
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const googleUserInfoURL = "https://openidconnect.googleapis.com/v1/userinfo"

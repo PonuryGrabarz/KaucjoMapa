@@ -1,13 +1,262 @@
-basePath: /
+basePath: /api
+consumes:
+- application/json
 definitions:
-  server.CreateKaucjomatRequest:
+  entity.CommunityReport:
     properties:
-      address:
-        type: string
-      current_status:
+      confirmationsCount:
+        type: integer
+      createdAt:
         type: string
       description:
         type: string
+      id:
+        type: string
+      rejectionsCount:
+        type: integer
+      returnPointID:
+        type: string
+      status:
+        $ref: '#/definitions/entity.PointStatus'
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  entity.CommunityReportVote:
+    properties:
+      communityReportID:
+        type: string
+      createdAt:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: string
+      vote:
+        $ref: '#/definitions/entity.CommunityReportVoteValue'
+    type: object
+  entity.CommunityReportVoteValue:
+    enum:
+    - confirm
+    - reject
+    type: string
+    x-enum-varnames:
+    - VoteConfirm
+    - VoteReject
+  entity.PointStatus:
+    enum:
+    - dostepny
+    - nieczynny
+    - brak_informacji
+    type: string
+    x-enum-varnames:
+    - PointStatusDostepny
+    - PointStatusNieczynny
+    - PointStatusBrakInformacji
+  presenter.CreateCommunityReportRequest:
+    properties:
+      description:
+        type: string
+      report_id:
+        type: string
+      status:
+        enum:
+        - dostepny
+        - nieczynny
+        - bark_informacji
+        type: string
+    required:
+    - description
+    - report_id
+    - status
+    type: object
+  presenter.CreateCommunityReportResponse:
+    properties:
+      report:
+        $ref: '#/definitions/entity.CommunityReport'
+      reputation:
+        type: integer
+      username:
+        type: string
+    type: object
+  presenter.CreateCommunityReportVoteRequest:
+    properties:
+      vote:
+        enum:
+        - confirm
+        - reject
+        type: string
+    required:
+    - vote
+    type: object
+  presenter.CreateNotificationRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  presenter.CreateReturnPointRequest:
+    properties:
+      address:
+        type: string
+      can:
+        type: boolean
+      current_status:
+        enum:
+        - dostepny
+        - awaria
+        - brak_informacji
+        type: string
+      description:
+        type: string
+      glass:
+        type: boolean
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        maxLength: 255
+        type: string
+      opening_hours:
+        $ref: '#/definitions/presenter.OpeningHours'
+      pet:
+        type: boolean
+      refund_method:
+        items:
+          enum:
+          - gotowka
+          - bon
+          - karta
+          type: string
+        type: array
+      type:
+        enum:
+        - butelkomat
+        - sklep
+        - punkt_skupu
+        - inny
+        type: string
+    required:
+    - current_status
+    - name
+    - refund_method
+    - type
+    type: object
+  presenter.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  presenter.ErrorResponse:
+    properties:
+      details:
+        items:
+          $ref: '#/definitions/presenter.FieldErrorResponse'
+        type: array
+      error:
+        example: Invalid request body
+        type: string
+    type: object
+  presenter.FieldErrorResponse:
+    properties:
+      field:
+        example: current_status
+        type: string
+      message:
+        example: 'current_status must be one of: dostepny awaria brak_informacji'
+        type: string
+      param:
+        example: dostepny awaria brak_informacji
+        type: string
+      rule:
+        example: oneof
+        type: string
+    type: object
+  presenter.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  presenter.NotificationResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      seen:
+        type: boolean
+      user_id:
+        type: string
+    type: object
+  presenter.OpeningHours:
+    properties:
+      mon-fri:
+        type: string
+      mon-sat:
+        type: string
+      mon-sun:
+        type: string
+      sat:
+        type: string
+      sun: {}
+    type: object
+  presenter.Pagination:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  presenter.ReturnPointDetailsResponse:
+    properties:
+      address:
+        type: string
+      bg_color:
+        type: string
+      can:
+        type: boolean
+      created_at:
+        type: string
+      current_status:
+        enum:
+        - dostepny
+        - awaria
+        - brak_informacji
+        type: string
+      description:
+        type: string
+      glass:
+        type: boolean
+      id:
+        format: uuid
+        type: string
+      is_verified:
+        type: boolean
       latitude:
         type: number
       longitude:
@@ -15,42 +264,51 @@ definitions:
       name:
         type: string
       opening_hours:
-        type: string
-      type:
-        type: string
-    type: object
-  server.CreateUserHandler.parameters:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-      username:
-        type: string
-    type: object
-  server.LoginUserHandler.parameters:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
-  server.MapPoint:
-    properties:
-      bg_color:
-        type: string
-      latitude:
-        type: number
-      longitude:
-        type: number
-      return_point_id:
-        type: string
+        $ref: '#/definitions/presenter.OpeningHours'
+      pet:
+        type: boolean
+      refund_method:
+        items:
+          enum:
+          - gotowka
+          - bon
+          - karta
+          type: string
+        type: array
       short_name:
         type: string
       text_color:
         type: string
+      type:
+        enum:
+        - butelkomat
+        - sklep
+        - punkt_skupu
+        - inny
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        format: uuid
+        type: string
+    required:
+    - current_status
     type: object
-  server.UpdateKaucjomatHandler.UpdateKaucjomatRequest:
+  presenter.ReturnPointPage:
+    properties:
+      pagination:
+        $ref: '#/definitions/presenter.Pagination'
+      return_points:
+        items:
+          $ref: '#/definitions/presenter.ReturnPointDetailsResponse'
+        type: array
+    type: object
+  presenter.TokenResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  presenter.UpdateKaucjomatRequest:
     properties:
       address:
         type: string
@@ -65,63 +323,42 @@ definitions:
       longitude:
         type: number
       name:
+        maxLength: 255
         type: string
       opening_hours:
-        type: string
+        $ref: '#/definitions/presenter.OpeningHours'
       pet:
         type: boolean
+      refund_method:
+        items:
+          enum:
+          - gotowka
+          - bon
+          - karta
+          type: string
+        type: array
       type:
+        enum:
+        - butelkomat
+        - sklep
+        - punkt_skupu
+        - inny
         type: string
-    type: object
-  server.User:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      is_admin:
-        type: boolean
-      is_banned:
-        type: boolean
-      reputation:
-        type: integer
-      token:
-        type: string
-      updated_at:
-        type: string
-      username:
-        type: string
+    required:
+    - name
     type: object
 host: localhost:3000
 info:
   contact:
     email: support@kaucjomapa.pl
-    name: Wsparcie Techniczne
-  description: To jest serwer API dla aplikacji KaucjoMapa.
+    name: Wsparcie techniczne
+  description: API do wyszukiwania i zarządzania punktami zwrotu opakowań kaucyjnych.
   license:
     name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: KaucjoMapa API
   version: "1.0"
 paths:
-  /:
-    get:
-      description: Zwraca prostą wiadomość potwierdzającą, że API działa.
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Sprawdzenie działania API
-      tags:
-        - health
   /auth/google:
     get:
       description: Generuje state i PKCE, a następnie przekierowuje do Google OAuth2.
@@ -129,415 +366,633 @@ paths:
         "302":
           description: Found
         "500":
-          description: Internal Server Error
+          description: Wewnętrzny błąd serwera
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
       summary: Logowanie przez Google
       tags:
-        - auth
+      - auth
   /auth/google/callback:
     get:
-      description:
-        Weryfikuje odpowiedź Google, tworzy lub łączy konto i zwraca użytkownika
-        z lokalnym JWT.
+      description: Weryfikuje odpowiedź Google, tworzy lub łączy konto, zwraca access
+        token i ustawia cookie RefreshToken.
       parameters:
-        - description: Authorization code
-          in: query
-          name: code
-          required: true
-          type: string
-        - description: OAuth state
-          in: query
-          name: state
-          required: true
-          type: string
+      - description: Authorization code
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: OAuth state
+        in: query
+        name: state
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Access token
           headers:
             Set-Cookie:
-              description: RefreshToken
+              description: Cookie RefreshToken; Path=/api/auth; HttpOnly; Secure;
+                SameSite=Strict
               type: string
           schema:
-            $ref: "#/definitions/server.User"
+            $ref: '#/definitions/presenter.TokenResponse'
         "400":
-          description: Bad Request
+          description: Brak authorization code lub email jest już używany
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Błąd OAuth Google lub wymiany kodu
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Nieprawidłowy state/verifier lub konto zbanowane
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Conflict
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Wewnętrzny błąd serwera
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
       summary: Callback Google OAuth2
       tags:
-        - auth
+      - auth
   /auth/revoke:
     post:
-      description:
-        Weryfikuje access token z nagłówka Authorization i unieważnia refresh
-        token przekazany w cookie.
+      description: Unieważnia refresh token przekazany w cookie.
       parameters:
-        - description: Bearer access token
-          in: header
-          name: Authorization
-          required: true
-          type: string
-        - description: RefreshToken=<refresh_token>
-          in: header
-          name: Cookie
-          required: true
-          type: string
+      - description: Cookie w formacie RefreshToken=<token>
+        in: header
+        name: Cookie
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "204":
           description: No Content
         "401":
-          description: Unauthorized
+          description: Brak lub nieprawidłowy access albo refresh token
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Wewnętrzny błąd serwera
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Unieważnienie refresh tokenu
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unieważnij refresh token
       tags:
-        - auth
+      - auth
   /auth/token:
     post:
-      description:
-        Weryfikuje access token z nagłówka Authorization i refresh token
-        z cookie, a następnie zwraca nowy access token.
+      description: Generuje nowy access token na podstawie Bearer JWT i cookie RefreshToken.
       parameters:
-        - description: Bearer access token
-          in: header
-          name: Authorization
-          required: true
-          type: string
-        - description: RefreshToken=<refresh_token>
-          in: header
-          name: Cookie
-          required: true
-          type: string
+      - description: Cookie w formacie RefreshToken=<token>
+        in: header
+        name: Cookie
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Nowy access token
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.TokenResponse'
         "401":
-          description: Brak, nieprawidłowy lub wygasły token
+          description: Brak lub nieprawidłowy access albo refresh token
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Błąd generowania access tokenu
+          description: Wewnętrzny błąd serwera
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Odświeżenie tokenu JWT
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Odśwież access token
       tags:
-        - auth
-  /kaucjomaty:
-    get:
-      description: Zwraca punkty zwrotu do wyświetlenia na mapie.
-      parameters:
-        - description: Typ punktu
-          enum:
-            - butelkomat
-            - sklep
-            - punkt_skupu
-            - inny
-          in: query
-          name: type
-          type: string
-        - description: Status punktu
-          enum:
-            - dostepny
-            - zapelniony
-            - nieczynny
-            - awaria
-            - brak_informacji
-            - do_weryfikacji
-          in: query
-          name: status
-          type: string
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: "#/definitions/server.MapPoint"
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Lista kaucjomatów
-      tags:
-        - kaucjomaty
+      - auth
+  /login:
     post:
       consumes:
-        - application/json
-      description: |-
-        Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.
-        Dozwolone wartości type: butelkomat, sklep, punkt_skupu, inny.
-        Dozwolone wartości current_status: dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji.
+      - application/json
+      description: Weryfikuje dane logowania, zwraca access token i ustawia cookie
+        RefreshToken.
       parameters:
-        - description: Bearer access token
-          in: header
-          name: Authorization
-          required: true
-          type: string
-        - description: Dane kaucjomatu
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/server.CreateKaucjomatRequest"
+      - description: Dane logowania
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.LoginRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
-          description: Utworzony kaucjomat
-          schema:
-            $ref: "#/definitions/server.MapPoint"
-        "400":
-          description: Nieprawidłowe dane wejściowe
-          schema:
-            additionalProperties:
+          description: Access token
+          headers:
+            Set-Cookie:
+              description: Cookie RefreshToken; Path=/api/auth; HttpOnly; Secure;
+                SameSite=Strict
               type: string
-            type: object
+          schema:
+            $ref: '#/definitions/presenter.TokenResponse'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Nieprawidłowa nazwa użytkownika lub hasło
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Wewnętrzny błąd serwera
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Zaloguj użytkownika
+      tags:
+      - auth
+  /notifications:
+    get:
+      description: Zwraca listę powiadomień zalogowanego użytkownika.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista powiadomień
+          schema:
+            items:
+              $ref: '#/definitions/presenter.NotificationResponse'
+            type: array
         "401":
           description: Brak lub nieprawidłowy access token
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Błąd serwera
+          description: Nie udało się pobrać powiadomień
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Dodanie kaucjomatu
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz powiadomienia
       tags:
-        - kaucjomaty
-  /kaucjomaty/{id}:
-    delete:
-      description: Usuwa punkt zwrotu. Operacja jest dostępna wyłącznie dla administratora.
+      - notifications
+    post:
+      consumes:
+      - application/json
+      description: Tworzy powiadomienie przypisane do zalogowanego użytkownika.
       parameters:
-        - description: Bearer access token
-          in: header
-          name: Authorization
-          required: true
-          type: string
-        - description: Identyfikator kaucjomatu
-          format: uuid
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Dane powiadomienia
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateNotificationRequest'
       produces:
-        - application/json
+      - application/json
+      responses:
+        "201":
+          description: Utworzone powiadomienie
+          schema:
+            $ref: '#/definitions/presenter.NotificationResponse'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się utworzyć powiadomienia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Utwórz powiadomienie
+      tags:
+      - notifications
+  /notifications/{id}:
+    delete:
+      description: Usuwa wskazane powiadomienie należące do zalogowanego użytkownika.
+      parameters:
+      - description: Identyfikator powiadomienia
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
       responses:
         "204":
           description: No Content
         "400":
-          description: Nieprawidłowy identyfikator kaucjomatu
+          description: Nieprawidłowy identyfikator powiadomienia
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "401":
           description: Brak lub nieprawidłowy access token
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "403":
-          description: Użytkownik nie jest administratorem
+          description: Powiadomienie nie należy do zalogowanego użytkownika
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Błąd serwera
+          description: Nie udało się usunąć powiadomienia
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Usunięcie kaucjomatu
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń powiadomienie
       tags:
-        - kaucjomaty
+      - notifications
     put:
-      consumes:
-        - application/json
-      description: Aktualizuje dane punktu zwrotu dla zalogowanego użytkownika.
+      description: Oznacza wskazane powiadomienie zalogowanego użytkownika jako przeczytane.
       parameters:
-        - description: Bearer access token
-          in: header
-          name: Authorization
-          required: true
-          type: string
-        - description: Identyfikator kaucjomatu
-          format: uuid
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Dane kaucjomatu
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/server.UpdateKaucjomatHandler.UpdateKaucjomatRequest"
+      - description: Identyfikator powiadomienia
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
-          description: Zaktualizowany kaucjomat
+          description: Zaktualizowane powiadomienie
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/presenter.NotificationResponse'
         "400":
-          description: Nieprawidłowy identyfikator lub body
+          description: Nieprawidłowy identyfikator powiadomienia
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "401":
           description: Brak lub nieprawidłowy access token
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Nie znaleziono kaucjomatu lub błąd serwera
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "403":
+          description: Powiadomienie nie należy do zalogowanego użytkownika
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Aktualizacja kaucjomatu
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zaktualizować powiadomienia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Oznacz powiadomienie jako przeczytane
       tags:
-        - kaucjomaty
-  /login:
+      - notifications
+  /reports:
     post:
       consumes:
-        - application/json
-      description:
-        Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem
-        i zapisuje refresh token w cookie.
+      - application/json
+      description: Tworzy zgłoszenie dotyczące statusu punktu zwrotu, przypisane do
+        zalogowanego użytkownika.
       parameters:
-        - description: Dane logowania
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/server.LoginUserHandler.parameters"
+      - description: Dane zgłoszenia społecznościowego
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateCommunityReportRequest'
       produces:
-        - application/json
+      - application/json
+      responses:
+        "201":
+          description: Utworzone zgłoszenie społecznościowe
+          schema:
+            $ref: '#/definitions/presenter.CreateCommunityReportResponse'
+        "400":
+          description: Nieprawidłowe body żądania lub identyfikator punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się utworzyć zgłoszenia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Utwórz zgłoszenie społecznościowe
+      tags:
+      - community-reports
+  /reports/{id}:
+    delete:
+      description: Usuwa wskazane zgłoszenie społecznościowe należące do zalogowanego
+        użytkownika.
+      parameters:
+      - description: Identyfikator zgłoszenia społecznościowego
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator zgłoszenia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć zgłoszenia
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń zgłoszenie społecznościowe
+      tags:
+      - community-reports
+  /reports/{return_point_id}:
+    get:
+      consumes:
+      - application/json
+      description: Zwraca zgłoszenia społecznościowe dotyczące wskazanego punktu zwrotu.
+      parameters:
+      - description: Identyfikator punktu zwrotu
+        format: uuid
+        in: path
+        name: return_point_id
+        required: true
+        type: string
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
-          headers:
-            Set-Cookie:
-              description: RefreshToken=<token>; Path=/auth; HttpOnly; SameSite=Strict
-              type: string
+          description: Lista zgłoszeń społecznościowych
           schema:
-            $ref: "#/definitions/server.User"
+            items:
+              $ref: '#/definitions/presenter.CreateCommunityReportResponse'
+            type: array
         "400":
-          description: Bad Request
+          description: Nieprawidłowe body żądania lub identyfikator punktu zwrotu
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Nie udało się pobrać zgłoszeń
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Logowanie użytkownika
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Pobierz zgłoszenia społecznościowe
       tags:
-        - auth
+      - community-reports
+  /return_points:
+    get:
+      description: Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej
+        frazie.
+      parameters:
+      - description: Typ punktu
+        enum:
+        - butelkomat
+        - sklep
+        - punkt_skupu
+        - inny
+        in: query
+        name: type
+        type: string
+      - description: Status punktu
+        enum:
+        - dostepny
+        - zapelniony
+        - nieczynny
+        - awaria
+        - brak_informacji
+        - do_weryfikacji
+        in: query
+        name: status
+        type: string
+      - description: Fragment nazwy lub adresu
+        in: query
+        name: query
+        type: string
+      - default: 1
+        description: Numer strony
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Liczba elementów na stronie
+        in: query
+        minimum: 1
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Strona punktów zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ReturnPointPage'
+        "400":
+          description: Nieprawidłowy numer lub rozmiar strony
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać punktów zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Pobierz punkty zwrotu
+      tags:
+      - return-points
+    post:
+      consumes:
+      - application/json
+      description: Tworzy punkt zwrotu przypisany do zalogowanego użytkownika.
+      parameters:
+      - description: Dane punktu zwrotu
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateReturnPointRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Utworzony punkt zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ReturnPointDetailsResponse'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się utworzyć punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dodaj punkt zwrotu
+      tags:
+      - return-points
+  /return_points/{id}:
+    delete:
+      description: Usuwa punkt zwrotu. Operacja jest dostępna tylko dla administratora.
+      parameters:
+      - description: Identyfikator punktu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń punkt zwrotu
+      tags:
+      - return-points
+    put:
+      consumes:
+      - application/json
+      description: Częściowo aktualizuje dane istniejącego punktu zwrotu.
+      parameters:
+      - description: Identyfikator punktu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Pola do aktualizacji
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.UpdateKaucjomatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowany punkt zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ReturnPointDetailsResponse'
+        "400":
+          description: Nieprawidłowy identyfikator lub body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać użytkownika lub zaktualizować punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zaktualizuj punkt zwrotu
+      tags:
+      - return-points
   /users:
     post:
       consumes:
-        - application/json
-      description: Tworzy nowe konto użytkownika i zwraca dane utworzonego użytkownika.
+      - application/json
+      description: Tworzy konto użytkownika i zwraca access token.
       parameters:
-        - description: Dane rejestracji użytkownika
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/server.CreateUserHandler.parameters"
+      - description: Dane nowego użytkownika
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateUserRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Access token
           schema:
-            $ref: "#/definitions/server.User"
+            $ref: '#/definitions/presenter.TokenResponse'
         "400":
-          description: Bad Request
+          description: Nieprawidłowe body żądania
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Nie udało się utworzyć użytkownika
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Rejestracja użytkownika
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Zarejestruj użytkownika
       tags:
-        - users
+      - users
+  /votes/{report_id}:
+    post:
+      consumes:
+      - application/json
+      description: Tworzy lub aktualizuje głos zalogowanego użytkownika na wskazane
+        zgłoszenie społecznościowe.
+      parameters:
+      - description: Identyfikator zgłoszenia społecznościowego
+        format: uuid
+        in: path
+        name: report_id
+        required: true
+        type: string
+      - description: 'Głos: confirm albo reject'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateCommunityReportVoteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Utworzony lub zaktualizowany głos
+          schema:
+            $ref: '#/definitions/entity.CommunityReportVote'
+        "400":
+          description: Nieprawidłowy identyfikator zgłoszenia lub body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zapisać głosu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Oddaj głos na zgłoszenie społecznościowe
+      tags:
+      - community-report-votes
+produces:
+- application/json
+schemes:
+- https
+securityDefinitions:
+  BearerAuth:
+    description: 'Wartość w formacie: Bearer <JWT>'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

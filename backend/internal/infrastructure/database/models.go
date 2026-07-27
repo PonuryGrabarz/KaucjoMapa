@@ -250,6 +250,7 @@ type User struct {
 	UpdatedAt          time.Time
 	TotalConfirmations int32
 	TotalRejections    int32
+	GoogleSubject      sql.NullString
 }
 
 type UserNotification struct {
