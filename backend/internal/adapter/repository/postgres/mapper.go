@@ -446,3 +446,61 @@ func toGoogleUserParams(user entity.User) database.UpsertGoogleUserByEmailParams
 		GoogleSubject: toNullString(user.GoogleID),
 	}
 }
+
+func toCreateBookmarkParams(bookmark entity.Bookmark) database.CreateBookmarkParams {
+	return database.CreateBookmarkParams{
+		ID:            bookmark.ID,
+		UserID:        bookmark.UserID,
+		ReturnPointID: bookmark.ReturnPointID,
+		CreatedAt:     bookmark.CreatedAt,
+	}
+}
+
+func toBookmarkEntity(bookmark database.Bookmark) entity.Bookmark {
+	return entity.Bookmark{
+		ID:            bookmark.ID,
+		UserID:        bookmark.UserID,
+		ReturnPointID: bookmark.ReturnPointID,
+		CreatedAt:     bookmark.CreatedAt,
+	}
+}
+
+func toBookmarksWithReturnPoints(rows []database.ListBookmarksWithReturnPointsByUserIdRow) []entity.BookmarkWithReturnPoint {
+	result := make([]entity.BookmarkWithReturnPoint, 0, len(rows))
+	for _, row := range rows {
+		var openingHours entity.OpeningHours
+		_ = json.Unmarshal(row.OpeningHours, &openingHours)
+
+		refundMethods := make([]entity.RefundMethod, 0, len(row.RefundMethods))
+		for _, method := range row.RefundMethods {
+			refundMethods = append(refundMethods, entity.RefundMethod(method))
+		}
+
+		result = append(result, entity.BookmarkWithReturnPoint{
+			Bookmark: entity.Bookmark{
+				ID:            row.ID,
+				UserID:        row.UserID,
+				ReturnPointID: row.ReturnPointID,
+				CreatedAt:     row.CreatedAt,
+			},
+			ReturnPoint: entity.ReturnPoint{
+				ID:            row.ReturnPointID,
+				Name:          row.Name,
+				Type:          entity.PointType(row.Type),
+				Address:       row.Address.String,
+				Latitude:      row.Latitude,
+				Longitude:     row.Longitude,
+				Pet:           row.Pet,
+				Can:           row.Can,
+				Glass:         row.Glass,
+				OpeningHours:  openingHours,
+				Description:   row.Description.String,
+				CurrentStatus: entity.PointStatus(row.CurrentStatus),
+				IsVerified:    row.IsVerified,
+				RefundMethod:  refundMethods,
+			},
+		})
+	}
+
+	return result
+}
