@@ -13,6 +13,13 @@ import (
 )
 
 func toNullUUID(id *uuid.UUID) uuid.NullUUID {
+	if id == nil {
+		return uuid.NullUUID{
+			UUID:  uuid.Nil,
+			Valid: false,
+		}
+	}
+
 	ID := uuid.NullUUID{
 		UUID:  *id,
 		Valid: id != nil,
@@ -46,6 +53,35 @@ func toNullBool(b bool) sql.NullBool {
 	}
 
 	return nullBool
+}
+
+func toNullableFloat(value *float64) sql.NullFloat64 {
+	if value == nil {
+		return sql.NullFloat64{}
+	}
+
+	return sql.NullFloat64{Float64: *value, Valid: true}
+}
+
+func toNullableBool(value *bool) sql.NullBool {
+	if value == nil {
+		return sql.NullBool{}
+	}
+
+	return sql.NullBool{Bool: *value, Valid: true}
+}
+
+func toDatabaseRefundMethods(methods []entity.RefundMethod) []database.RefundMethod {
+	if methods == nil {
+		return nil
+	}
+
+	result := make([]database.RefundMethod, 0, len(methods))
+	for _, method := range methods {
+		result = append(result, database.RefundMethod(method))
+	}
+
+	return result
 }
 
 func toNullPointStatus(str entity.PointStatus) database.NullPointStatus {
@@ -134,21 +170,74 @@ func toReturnPointEntity(returnPoint database.ReturnPoint) entity.ReturnPoint {
 	}
 }
 
+func toListReturnPointEntity(returnPoint database.ListReturnPointsRow, includeDistance bool) entity.ReturnPoint {
+	var openingHours entity.OpeningHours
+	json.Unmarshal(returnPoint.OpeningHours, &openingHours)
+
+	refundMethods := []entity.RefundMethod{}
+	for _, method := range returnPoint.RefundMethods {
+		refundMethods = append(refundMethods, entity.RefundMethod(method))
+	}
+
+	var distanceKm *float64
+	if includeDistance {
+		distanceKm = &returnPoint.DistanceKm
+	}
+
+	return entity.ReturnPoint{
+		ID:            returnPoint.ID,
+		UserID:        &returnPoint.UserID.UUID,
+		Name:          returnPoint.Name,
+		Type:          entity.PointType(returnPoint.Type),
+		Longitude:     returnPoint.Longitude,
+		Latitude:      returnPoint.Latitude,
+		DistanceKm:    distanceKm,
+		Address:       returnPoint.Address.String,
+		Pet:           returnPoint.Pet,
+		Can:           returnPoint.Can,
+		Glass:         returnPoint.Glass,
+		RefundMethod:  refundMethods,
+		OpeningHours:  openingHours,
+		Description:   returnPoint.Description.String,
+		CurrentStatus: entity.PointStatus(returnPoint.CurrentStatus),
+		IsVerified:    returnPoint.IsVerified,
+		CreatedAt:     returnPoint.CreatedAt,
+		UpdatedAt:     returnPoint.UpdatedAt,
+	}
+}
+
 func toListReturnPointsParams(filters usecase.Filter) database.ListReturnPointsParams {
 	return database.ListReturnPointsParams{
-		Query:       toNullString(filters.Query),
-		PointType:   toNullPointType(filters.Type),
-		PointStatus: toNullPointStatus(filters.Status),
-		Offset:      filters.Offset,
-		Limit:       filters.Limit,
+		UserID:        toNullUUID(filters.UserID),
+		Query:         toNullString(filters.Query),
+		PointType:     toNullPointType(filters.Type),
+		PointStatus:   toNullPointStatus(filters.Status),
+		Latitude:      toNullableFloat(filters.Latitude),
+		Longitude:     toNullableFloat(filters.Longitude),
+		MinDistanceKm: toNullableFloat(filters.MinDistanceKm),
+		MaxDistanceKm: toNullableFloat(filters.MaxDistanceKm),
+		Pet:           toNullableBool(filters.Pet),
+		Can:           toNullableBool(filters.Can),
+		Glass:         toNullableBool(filters.Glass),
+		RefundMethods: toDatabaseRefundMethods(filters.RefundMethods),
+		Offset:        filters.Offset,
+		Limit:         filters.Limit,
 	}
 }
 
 func toCountReturnPointsParams(filters usecase.Filter) database.CountReturnPointsParams {
 	return database.CountReturnPointsParams{
-		Query:       toNullString(filters.Query),
-		PointType:   toNullPointType(filters.Type),
-		PointStatus: toNullPointStatus(filters.Status),
+		Query:         toNullString(filters.Query),
+		PointType:     toNullPointType(filters.Type),
+		PointStatus:   toNullPointStatus(filters.Status),
+		Latitude:      toNullableFloat(filters.Latitude),
+		Longitude:     toNullableFloat(filters.Longitude),
+		MinDistanceKm: toNullableFloat(filters.MinDistanceKm),
+		MaxDistanceKm: toNullableFloat(filters.MaxDistanceKm),
+		Pet:           toNullableBool(filters.Pet),
+		Can:           toNullableBool(filters.Can),
+		Glass:         toNullableBool(filters.Glass),
+		RefundMethods: toDatabaseRefundMethods(filters.RefundMethods),
 	}
 }
 

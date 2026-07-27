@@ -620,7 +620,12 @@ const docTemplate = `{
         },
         "/return_points": {
             "get": {
-                "description": "Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej frazie.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca punkty zwrotu filtrowane po typie, statusie, wyszukiwanej frazie, obsługiwanych opakowaniach i odległości.",
                 "produces": [
                     "application/json"
                 ],
@@ -659,6 +664,61 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Fragment nazwy lub adresu",
                         "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "number",
+                        "description": "Minimalna odległość od użytkownika w km",
+                        "name": "min_distance",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "number",
+                        "description": "Maksymalna odległość od użytkownika w km",
+                        "name": "max_distance",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 90,
+                        "minimum": -90,
+                        "type": "number",
+                        "description": "Szerokość geograficzna użytkownika",
+                        "name": "lat",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 180,
+                        "minimum": -180,
+                        "type": "number",
+                        "description": "Długość geograficzna użytkownika",
+                        "name": "lon",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Czy punkt przyjmuje opakowania PET",
+                        "name": "pet",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Czy punkt przyjmuje puszki",
+                        "name": "can",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Czy punkt przyjmuje szkło",
+                        "name": "glass",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "gotowka,karta",
+                        "description": "Metody rozliczenia rozdzielone przecinkami",
+                        "name": "refund_method",
                         "in": "query"
                     },
                     {
@@ -1345,6 +1405,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "distance_km": {
+                    "type": "number"
                 },
                 "glass": {
                     "type": "boolean"

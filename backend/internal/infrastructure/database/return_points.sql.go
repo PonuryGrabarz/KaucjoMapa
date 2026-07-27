@@ -32,16 +32,87 @@ AND (
     $3::point_status IS NULL
     OR current_status = $3::point_status
 )
+AND (
+    $4::UUID IS NULL
+    OR return_points.user_id = $4::UUID
+)
+AND (
+    $5::BOOLEAN IS NULL
+    OR pet = $5::BOOLEAN
+)
+AND (
+    $6::BOOLEAN IS NULL
+    OR can = $6::BOOLEAN
+)
+AND (
+    $7::BOOLEAN IS NULL
+    OR glass = $7::BOOLEAN
+)
+AND (
+    $8::refund_method[] IS NULL
+    OR return_points.refund_methods && $8::refund_method[]
+)
+AND (
+    $9::DOUBLE PRECISION IS NULL
+    OR earth_distance(
+        ll_to_earth(return_points.latitude, return_points.longitude),
+        ll_to_earth(
+            $10::DOUBLE PRECISION,
+            $11::DOUBLE PRECISION
+        )
+    ) >= $9::DOUBLE PRECISION * 1000.0
+)
+AND (
+    $12::DOUBLE PRECISION IS NULL
+    OR (
+        earth_box(
+            ll_to_earth(
+                $10::DOUBLE PRECISION,
+                $11::DOUBLE PRECISION
+            ),
+            $12::DOUBLE PRECISION * 1000.0
+        ) @> ll_to_earth(return_points.latitude, return_points.longitude)
+        AND earth_distance(
+            ll_to_earth(return_points.latitude, return_points.longitude),
+            ll_to_earth(
+                $10::DOUBLE PRECISION,
+                $11::DOUBLE PRECISION
+            )
+        ) <= $12::DOUBLE PRECISION * 1000.0
+    )
+)
 `
 
 type CountReturnPointsParams struct {
-	Query       sql.NullString
-	PointType   NullPointType
-	PointStatus NullPointStatus
+	Query         sql.NullString
+	PointType     NullPointType
+	PointStatus   NullPointStatus
+	UserID        uuid.NullUUID
+	Pet           sql.NullBool
+	Can           sql.NullBool
+	Glass         sql.NullBool
+	RefundMethods []RefundMethod
+	MinDistanceKm sql.NullFloat64
+	Latitude      sql.NullFloat64
+	Longitude     sql.NullFloat64
+	MaxDistanceKm sql.NullFloat64
 }
 
 func (q *Queries) CountReturnPoints(ctx context.Context, arg CountReturnPointsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countReturnPoints, arg.Query, arg.PointType, arg.PointStatus)
+	row := q.db.QueryRowContext(ctx, countReturnPoints,
+		arg.Query,
+		arg.PointType,
+		arg.PointStatus,
+		arg.UserID,
+		arg.Pet,
+		arg.Can,
+		arg.Glass,
+		pq.Array(arg.RefundMethods),
+		arg.MinDistanceKm,
+		arg.Latitude,
+		arg.Longitude,
+		arg.MaxDistanceKm,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -275,39 +346,139 @@ func (q *Queries) GetPointById(ctx context.Context, id uuid.UUID) (ReturnPoint, 
 }
 
 const listReturnPoints = `-- name: ListReturnPoints :many
-SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods
+SELECT return_points.id, return_points.user_id, return_points.name, return_points.type, return_points.address, return_points.latitude, return_points.longitude, return_points.pet, return_points.can, return_points.glass, return_points.opening_hours, return_points.description, return_points.current_status, return_points.confirmations_count, return_points.rejections_count, return_points.is_verified, return_points.created_at, return_points.updated_at, return_points.refund_methods,
+    CAST(CASE
+        WHEN $1::DOUBLE PRECISION IS NULL THEN 0.0
+        ELSE earth_distance(
+            ll_to_earth(return_points.latitude, return_points.longitude),
+            ll_to_earth(
+                $1::DOUBLE PRECISION,
+                $2::DOUBLE PRECISION
+            )
+        ) / 1000.0
+    END AS DOUBLE PRECISION) AS distance_km
 FROM return_points
 WHERE (
-    $1::TEXT IS NULL
-    OR name ILIKE '%' || $1::TEXT || '%'
-    OR COALESCE(address, '') ILIKE '%' || $1::TEXT || '%'
+    $3::TEXT IS NULL
+    OR name ILIKE '%' || $3::TEXT || '%'
+    OR COALESCE(address, '') ILIKE '%' || $3::TEXT || '%'
 )
 AND (
-    $2::point_type IS NULL
-    OR type = $2::point_type
+    $4::point_type IS NULL
+    OR type = $4::point_type
 )
 AND (
-    $3::point_status IS NULL
-    OR current_status = $3::point_status
+    $5::point_status IS NULL
+    OR current_status = $5::point_status
 )
-ORDER BY id
-LIMIT $5::INT
-OFFSET $4::INT
+AND (
+    $6::UUID IS NULL
+    OR return_points.user_id = $6::UUID
+)
+AND (
+    $7::BOOLEAN IS NULL
+    OR pet = $7::BOOLEAN
+)
+AND (
+    $8::BOOLEAN IS NULL
+    OR can = $8::BOOLEAN
+)
+AND (
+    $9::BOOLEAN IS NULL
+    OR glass = $9::BOOLEAN
+)
+AND (
+    $10::refund_method[] IS NULL
+    OR return_points.refund_methods && $10::refund_method[]
+)
+AND (
+    $11::DOUBLE PRECISION IS NULL
+    OR earth_distance(
+        ll_to_earth(return_points.latitude, return_points.longitude),
+        ll_to_earth(
+            $1::DOUBLE PRECISION,
+            $2::DOUBLE PRECISION
+        )
+    ) >= $11::DOUBLE PRECISION * 1000.0
+)
+AND (
+    $12::DOUBLE PRECISION IS NULL
+    OR (
+        earth_box(
+            ll_to_earth(
+                $1::DOUBLE PRECISION,
+                $2::DOUBLE PRECISION
+            ),
+            $12::DOUBLE PRECISION * 1000.0
+        ) @> ll_to_earth(return_points.latitude, return_points.longitude)
+        AND earth_distance(
+            ll_to_earth(return_points.latitude, return_points.longitude),
+            ll_to_earth(
+                $1::DOUBLE PRECISION,
+                $2::DOUBLE PRECISION
+            )
+        ) <= $12::DOUBLE PRECISION * 1000.0
+    )
+)
+ORDER BY distance_km ASC NULLS LAST, id
+LIMIT $14::INT
+OFFSET $13::INT
 `
 
 type ListReturnPointsParams struct {
-	Query       sql.NullString
-	PointType   NullPointType
-	PointStatus NullPointStatus
-	Offset      int32
-	Limit       int32
+	Latitude      sql.NullFloat64
+	Longitude     sql.NullFloat64
+	Query         sql.NullString
+	PointType     NullPointType
+	PointStatus   NullPointStatus
+	UserID        uuid.NullUUID
+	Pet           sql.NullBool
+	Can           sql.NullBool
+	Glass         sql.NullBool
+	RefundMethods []RefundMethod
+	MinDistanceKm sql.NullFloat64
+	MaxDistanceKm sql.NullFloat64
+	Offset        int32
+	Limit         int32
 }
 
-func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsParams) ([]ReturnPoint, error) {
+type ListReturnPointsRow struct {
+	ID                 uuid.UUID
+	UserID             uuid.NullUUID
+	Name               string
+	Type               PointType
+	Address            sql.NullString
+	Latitude           float64
+	Longitude          float64
+	Pet                bool
+	Can                bool
+	Glass              bool
+	OpeningHours       json.RawMessage
+	Description        sql.NullString
+	CurrentStatus      PointStatus
+	ConfirmationsCount int32
+	RejectionsCount    int32
+	IsVerified         bool
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	RefundMethods      []RefundMethod
+	DistanceKm         float64
+}
+
+func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsParams) ([]ListReturnPointsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listReturnPoints,
+		arg.Latitude,
+		arg.Longitude,
 		arg.Query,
 		arg.PointType,
 		arg.PointStatus,
+		arg.UserID,
+		arg.Pet,
+		arg.Can,
+		arg.Glass,
+		pq.Array(arg.RefundMethods),
+		arg.MinDistanceKm,
+		arg.MaxDistanceKm,
 		arg.Offset,
 		arg.Limit,
 	)
@@ -315,9 +486,9 @@ func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsPara
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ReturnPoint
+	var items []ListReturnPointsRow
 	for rows.Next() {
-		var i ReturnPoint
+		var i ListReturnPointsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -338,6 +509,7 @@ func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			pq.Array(&i.RefundMethods),
+			&i.DistanceKm,
 		); err != nil {
 			return nil, err
 		}

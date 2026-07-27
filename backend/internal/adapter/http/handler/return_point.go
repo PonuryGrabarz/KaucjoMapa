@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"math"
 	"strconv"
 	"strings"
 
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/middleware"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/presenter"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
@@ -81,12 +83,21 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 
 // GetReturnPoints godoc
 // @Summary Pobierz punkty zwrotu
-// @Description Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej frazie.
+// @Description Zwraca punkty zwrotu filtrowane po typie, statusie, wyszukiwanej frazie, obsługiwanych opakowaniach i odległości.
 // @Tags return-points
 // @Produce json
+// @Security BearerAuth
 // @Param type query string false "Typ punktu" Enums(butelkomat, sklep, punkt_skupu, inny)
 // @Param status query string false "Status punktu" Enums(dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji)
 // @Param query query string false "Fragment nazwy lub adresu"
+// @Param min_distance query number false "Minimalna odległość od użytkownika w km" minimum(0)
+// @Param max_distance query number false "Maksymalna odległość od użytkownika w km" minimum(0)
+// @Param lat query number false "Szerokość geograficzna użytkownika" minimum(-90) maximum(90)
+// @Param lon query number false "Długość geograficzna użytkownika" minimum(-180) maximum(180)
+// @Param pet query boolean false "Czy punkt przyjmuje opakowania PET"
+// @Param can query boolean false "Czy punkt przyjmuje puszki"
+// @Param glass query boolean false "Czy punkt przyjmuje szkło"
+// @Param refund_method query string false "Metody rozliczenia rozdzielone przecinkami" example(gotowka,karta)
 // @Param page query int false "Numer strony" default(1) minimum(1)
 // @Param page_size query int false "Liczba elementów na stronie" default(10) minimum(1)
 // @Success 200 {object} presenter.ReturnPointPage "Strona punktów zwrotu"
@@ -94,9 +105,57 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 // @Failure 500 {object} presenter.ErrorResponse "Nie udało się pobrać punktów zwrotu"
 // @Router /return_points [get]
 func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
+	token, _ := middleware.GetBearerToken(c.GetHeaders())
+
 	pointType := c.Query("type")
 	pointStatus := c.Query("status")
 	query := strings.TrimSpace(c.Query("query", ""))
+	minDistance, err := parseOptionalFloat(c.Query("min_distance", ""))
+	if err != nil || (minDistance != nil && *minDistance < 0) {
+		return entity.NewBadRequest("invalid minimum distance")
+	}
+
+	maxDistance, err := parseOptionalFloat(c.Query("max_distance", ""))
+	if err != nil || (maxDistance != nil && *maxDistance < 0) {
+		return entity.NewBadRequest("invalid maximum distance")
+	}
+
+	latitude, err := parseOptionalFloat(c.Query("lat", ""))
+	if err != nil || (latitude != nil && (*latitude < -90 || *latitude > 90)) {
+		return entity.NewBadRequest("invalid latitude")
+	}
+
+	longitude, err := parseOptionalFloat(c.Query("lon", ""))
+	if err != nil || (longitude != nil && (*longitude < -180 || *longitude > 180)) {
+		return entity.NewBadRequest("invalid longitude")
+	}
+
+	if (latitude == nil) != (longitude == nil) {
+		return entity.NewBadRequest("latitude and longitude must be provided together")
+	}
+	if (minDistance != nil || maxDistance != nil) && latitude == nil {
+		return entity.NewBadRequest("latitude and longitude are required for distance filters")
+	}
+	if minDistance != nil && maxDistance != nil && *minDistance > *maxDistance {
+		return entity.NewBadRequest("minimum distance cannot exceed maximum distance")
+	}
+
+	pet, err := parseOptionalBool(c.Query("pet", ""))
+	if err != nil {
+		return entity.NewBadRequest("invalid pet filter")
+	}
+	can, err := parseOptionalBool(c.Query("can", ""))
+	if err != nil {
+		return entity.NewBadRequest("invalid can filter")
+	}
+	glass, err := parseOptionalBool(c.Query("glass", ""))
+	if err != nil {
+		return entity.NewBadRequest("invalid glass filter")
+	}
+	refundMethods, err := parseRefundMethods(c.Query("refund_method", ""))
+	if err != nil {
+		return entity.NewBadRequest("invalid refund method filter")
+	}
 
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil || (page < 1 && page != -1) {
@@ -109,9 +168,17 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 	}
 
 	filters := usecase.Filter{
-		Query:  query,
-		Type:   entity.PointType(pointType),
-		Status: entity.PointStatus(pointStatus),
+		Query:         query,
+		Type:          entity.PointType(pointType),
+		Status:        entity.PointStatus(pointStatus),
+		Latitude:      latitude,
+		Longitude:     longitude,
+		MinDistanceKm: minDistance,
+		MaxDistanceKm: maxDistance,
+		Pet:           pet,
+		Can:           can,
+		Glass:         glass,
+		RefundMethods: refundMethods,
 	}
 
 	listSize, err := h.svc.ListSize(c.Context(), filters)
@@ -135,12 +202,66 @@ func (h *ReturnPointHandler) GetReturnPoints(c fiber.Ctx) error {
 		maxPage = (listSize + int64(pageSize) - 1) / int64(pageSize)
 	}
 
-	returnPoints, err := h.svc.List(c.Context(), filters)
+	returnPoints, err := h.svc.List(c.Context(), token, filters)
 	if err != nil {
 		return err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(presenter.GetReturnPointSuccessResponse(returnPoints, maxPage, int64(page), int64(pageSize), listSize))
+}
+
+func parseOptionalFloat(value string) (*float64, error) {
+	if value == "" {
+		return nil, nil
+	}
+
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil || math.IsNaN(parsed) || math.IsInf(parsed, 0) {
+		if err == nil {
+			err = strconv.ErrSyntax
+		}
+		return nil, err
+	}
+
+	return &parsed, nil
+}
+
+func parseOptionalBool(value string) (*bool, error) {
+	if value == "" {
+		return nil, nil
+	}
+
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return nil, err
+	}
+
+	return &parsed, nil
+}
+
+func parseRefundMethods(value string) ([]entity.RefundMethod, error) {
+	if value == "" {
+		return nil, nil
+	}
+
+	methods := make([]entity.RefundMethod, 0)
+	seen := make(map[entity.RefundMethod]struct{})
+	for _, value := range strings.Split(value, ",") {
+		method := entity.RefundMethod(strings.TrimSpace(value))
+		switch method {
+		case entity.RefundMethodCash, entity.RefundMethodVoucher, entity.RefundMethodCard:
+		default:
+			return nil, strconv.ErrSyntax
+		}
+
+		if _, exists := seen[method]; exists {
+			continue
+		}
+		seen[method] = struct{}{}
+		methods = append(methods, method)
+	}
+
+	return methods, nil
 }
 
 // DeletePoint godoc

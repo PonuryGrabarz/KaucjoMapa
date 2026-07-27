@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
@@ -65,6 +66,7 @@ func (r *ReturnPointRepo) GetByID(ctx context.Context, id uuid.UUID) (entity.Ret
 
 func (r *ReturnPointRepo) List(ctx context.Context, f usecase.Filter) ([]entity.ReturnPoint, error) {
 	var returnPoints []entity.ReturnPoint
+	fmt.Println(toListReturnPointsParams(f))
 	row, err := r.q.ListReturnPoints(ctx, toListReturnPointsParams(f))
 	if mapped := mapError(err); mapped != nil {
 		// Pusta lista to nie błąd.
@@ -75,7 +77,7 @@ func (r *ReturnPointRepo) List(ctx context.Context, f usecase.Filter) ([]entity.
 	}
 
 	for _, point := range row {
-		returnPoints = append(returnPoints, toReturnPointEntity(point))
+		returnPoints = append(returnPoints, toListReturnPointEntity(point, f.Latitude != nil))
 	}
 
 	return returnPoints, nil

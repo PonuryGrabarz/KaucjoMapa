@@ -40,6 +40,7 @@ type ReturnPoint struct {
 	Type          PointType
 	Latitude      float64
 	Longitude     float64
+	DistanceKm    *float64
 	Address       string
 	Pet           bool
 	Can           bool

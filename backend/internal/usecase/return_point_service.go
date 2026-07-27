@@ -6,11 +6,12 @@ import (
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/dto"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
 	"github.com/google/uuid"
 )
 
 type IReturnPointService interface {
-	List(ctx context.Context, f Filter) ([]entity.ReturnPoint, error)
+	List(ctx context.Context, token string, f Filter) ([]entity.ReturnPoint, error)
 	ListSize(ctx context.Context, f Filter) (int64, error)
 	GetByID(ctx context.Context, id uuid.UUID) (entity.ReturnPoint, error)
 	ExistsNearby(ctx context.Context, lat, lng float64) (bool, error)
@@ -20,15 +21,32 @@ type IReturnPointService interface {
 }
 
 type returnPointService struct {
-	repo    IReturnPointRepository
-	userSvc IUserService
+	repo     IReturnPointRepository
+	userSvc  IUserService
+	tokenSvc port.ITokenSigner
 }
 
-func NewReturnPointService(repo IReturnPointRepository, userSvc IUserService) IReturnPointService {
-	return &returnPointService{repo: repo, userSvc: userSvc}
+func NewReturnPointService(repo IReturnPointRepository, userSvc IUserService, tokenSvc port.ITokenSigner) IReturnPointService {
+	return &returnPointService{repo: repo, userSvc: userSvc, tokenSvc: tokenSvc}
 }
 
-func (s *returnPointService) List(ctx context.Context, f Filter) ([]entity.ReturnPoint, error) {
+func (s *returnPointService) List(ctx context.Context, token string, f Filter) ([]entity.ReturnPoint, error) {
+	if token != "" {
+		claims, err := s.tokenSvc.ExtractClaimsFromJWT(token)
+		if err != nil {
+			return []entity.ReturnPoint{}, err
+		}
+
+		f.UserID = &claims.UserID
+
+		retPoints, err := s.repo.List(ctx, f)
+		if err != nil {
+			return []entity.ReturnPoint{}, err
+		}
+
+		return retPoints, nil
+	}
+
 	retPoints, err := s.repo.List(ctx, f)
 	if err != nil {
 		return []entity.ReturnPoint{}, err

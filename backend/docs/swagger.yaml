@@ -250,6 +250,8 @@ definitions:
         type: string
       description:
         type: string
+      distance_km:
+        type: number
       glass:
         type: boolean
       id:
@@ -747,8 +749,8 @@ paths:
       - community-reports
   /return_points:
     get:
-      description: Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej
-        frazie.
+      description: Zwraca punkty zwrotu filtrowane po typie, statusie, wyszukiwanej
+        frazie, obsługiwanych opakowaniach i odległości.
       parameters:
       - description: Typ punktu
         enum:
@@ -773,6 +775,45 @@ paths:
       - description: Fragment nazwy lub adresu
         in: query
         name: query
+        type: string
+      - description: Minimalna odległość od użytkownika w km
+        in: query
+        minimum: 0
+        name: min_distance
+        type: number
+      - description: Maksymalna odległość od użytkownika w km
+        in: query
+        minimum: 0
+        name: max_distance
+        type: number
+      - description: Szerokość geograficzna użytkownika
+        in: query
+        maximum: 90
+        minimum: -90
+        name: lat
+        type: number
+      - description: Długość geograficzna użytkownika
+        in: query
+        maximum: 180
+        minimum: -180
+        name: lon
+        type: number
+      - description: Czy punkt przyjmuje opakowania PET
+        in: query
+        name: pet
+        type: boolean
+      - description: Czy punkt przyjmuje puszki
+        in: query
+        name: can
+        type: boolean
+      - description: Czy punkt przyjmuje szkło
+        in: query
+        name: glass
+        type: boolean
+      - description: Metody rozliczenia rozdzielone przecinkami
+        example: gotowka,karta
+        in: query
+        name: refund_method
         type: string
       - default: 1
         description: Numer strony
@@ -801,6 +842,8 @@ paths:
           description: Nie udało się pobrać punktów zwrotu
           schema:
             $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Pobierz punkty zwrotu
       tags:
       - return-points
