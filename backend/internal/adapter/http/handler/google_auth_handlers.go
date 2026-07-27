@@ -42,7 +42,7 @@ func NewOAuthHandler(userSvc usecase.IUserService, hasherSvc usecase.IPasswordHa
 //	@Description	Generuje state i PKCE, a następnie przekierowuje do Google OAuth2.
 //	@Tags			auth
 //	@Success		302
-//	@Failure		500	{object}	map[string]string
+//	@Failure		500	{object}	presenter.ErrorResponse	"Wewnętrzny błąd serwera"
 //	@Router			/auth/google [get]
 func (h *OAuthHandler) GoogleLoginHandler(c fiber.Ctx) error {
 	config, err := auth.GoogleOAuthConfig()
@@ -70,18 +70,17 @@ func (h *OAuthHandler) GoogleLoginHandler(c fiber.Ctx) error {
 // GoogleCallbackHandler godoc
 //
 //	@Summary		Callback Google OAuth2
-//	@Description	Weryfikuje odpowiedź Google, tworzy lub łączy konto i zwraca użytkownika z lokalnym JWT.
+//	@Description	Weryfikuje odpowiedź Google, tworzy lub łączy konto, zwraca access token i ustawia cookie RefreshToken.
 //	@Tags			auth
 //	@Produce		json
 //	@Param			code	query		string	true	"Authorization code"
 //	@Param			state	query		string	true	"OAuth state"
-//	@Success		200		{object}	entity.User
-//	@Header			200		{string}	Set-Cookie	"RefreshToken"
-//	@Failure		400		{object}	map[string]string
-//	@Failure		401		{object}	map[string]string
-//	@Failure		403		{object}	map[string]string
-//	@Failure		409		{object}	map[string]string
-//	@Failure		500		{object}	map[string]string
+//	@Success		200		{object}	presenter.TokenResponse	"Access token"
+//	@Header			200		{string}	Set-Cookie				"Cookie RefreshToken; Path=/api/auth; HttpOnly; Secure; SameSite=Strict"
+//	@Failure		400		{object}	presenter.ErrorResponse	"Brak authorization code lub email jest już używany"
+//	@Failure		401		{object}	presenter.ErrorResponse	"Błąd OAuth Google lub wymiany kodu"
+//	@Failure		403		{object}	presenter.ErrorResponse	"Nieprawidłowy state/verifier lub konto zbanowane"
+//	@Failure		500		{object}	presenter.ErrorResponse	"Wewnętrzny błąd serwera"
 //	@Router			/auth/google/callback [get]
 func (h *OAuthHandler) GoogleCallbackHandler(c fiber.Ctx) error {
 	if c.Query("error") != "" {

@@ -25,7 +25,7 @@ func UsersRouter(app fiber.Router, userHandler handler.UserHandler) {
 
 func AuthRouter(app fiber.Router, authHandler handler.AuthHandler, oAuthHandler handler.OAuthHandler, JWTSecret string, auth port.ITokenSigner) {
 	app.Post("/login", authHandler.Login)
-	app.Post("/auth/token", middleware.RequireJWT(auth, JWTSecret), authHandler.RefreshToken)
+	app.Post("/auth/token", middleware.ExtractJWT(auth, JWTSecret), authHandler.RefreshToken)
 	app.Post("/auth/revoke", middleware.RequireJWT(auth, JWTSecret), authHandler.RevokeToken)
 	app.Get("/auth/google", oAuthHandler.GoogleLoginHandler)
 	app.Get("/auth/google/callback", oAuthHandler.GoogleCallbackHandler)

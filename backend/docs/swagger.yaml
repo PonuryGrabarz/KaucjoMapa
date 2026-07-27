@@ -54,38 +54,6 @@ definitions:
     - PointStatusDostepny
     - PointStatusNieczynny
     - PointStatusBrakInformacji
-  entity.User:
-    properties:
-      createdAt:
-        type: string
-      email:
-        type: string
-      googleID:
-        type: string
-      id:
-        type: string
-      isAdmin:
-        type: boolean
-      isBanned:
-        type: boolean
-      passwordHash:
-        type: string
-      reputation:
-        format: int32
-        type: integer
-      token:
-        type: string
-      totalConfirmations:
-        format: int32
-        type: integer
-      totalRejections:
-        format: int32
-        type: integer
-      updatedAt:
-        type: string
-      username:
-        type: string
-    type: object
   presenter.CreateCommunityReportRequest:
     properties:
       description:
@@ -398,18 +366,16 @@ paths:
         "302":
           description: Found
         "500":
-          description: Internal Server Error
+          description: Wewnętrzny błąd serwera
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
       summary: Logowanie przez Google
       tags:
       - auth
   /auth/google/callback:
     get:
-      description: Weryfikuje odpowiedź Google, tworzy lub łączy konto i zwraca użytkownika
-        z lokalnym JWT.
+      description: Weryfikuje odpowiedź Google, tworzy lub łączy konto, zwraca access
+        token i ustawia cookie RefreshToken.
       parameters:
       - description: Authorization code
         in: query
@@ -425,43 +391,30 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Access token
           headers:
             Set-Cookie:
-              description: RefreshToken
+              description: Cookie RefreshToken; Path=/api/auth; HttpOnly; Secure;
+                SameSite=Strict
               type: string
           schema:
-            $ref: '#/definitions/entity.User'
+            $ref: '#/definitions/presenter.TokenResponse'
         "400":
-          description: Bad Request
+          description: Brak authorization code lub email jest już używany
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Błąd OAuth Google lub wymiany kodu
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Nieprawidłowy state/verifier lub konto zbanowane
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Conflict
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Wewnętrzny błąd serwera
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/presenter.ErrorResponse'
       summary: Callback Google OAuth2
       tags:
       - auth

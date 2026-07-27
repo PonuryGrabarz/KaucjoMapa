@@ -40,12 +40,9 @@ const docTemplate = `{
                         "description": "Found"
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Wewnętrzny błąd serwera",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
@@ -53,7 +50,7 @@ const docTemplate = `{
         },
         "/auth/google/callback": {
             "get": {
-                "description": "Weryfikuje odpowiedź Google, tworzy lub łączy konto i zwraca użytkownika z lokalnym JWT.",
+                "description": "Weryfikuje odpowiedź Google, tworzy lub łączy konto, zwraca access token i ustawia cookie RefreshToken.",
                 "produces": [
                     "application/json"
                 ],
@@ -79,60 +76,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Access token",
                         "schema": {
-                            "$ref": "#/definitions/entity.User"
+                            "$ref": "#/definitions/presenter.TokenResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
                                 "type": "string",
-                                "description": "RefreshToken"
+                                "description": "Cookie RefreshToken; Path=/api/auth; HttpOnly; Secure; SameSite=Strict"
                             }
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Brak authorization code lub email jest już używany",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Błąd OAuth Google lub wymiany kodu",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Nieprawidłowy state/verifier lub konto zbanowane",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Wewnętrzny błąd serwera",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
@@ -1080,53 +1056,6 @@ const docTemplate = `{
                 "PointStatusNieczynny",
                 "PointStatusBrakInformacji"
             ]
-        },
-        "entity.User": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "googleID": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isAdmin": {
-                    "type": "boolean"
-                },
-                "isBanned": {
-                    "type": "boolean"
-                },
-                "passwordHash": {
-                    "type": "string"
-                },
-                "reputation": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "totalConfirmations": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "totalRejections": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
         },
         "presenter.CreateCommunityReportRequest": {
             "type": "object",
