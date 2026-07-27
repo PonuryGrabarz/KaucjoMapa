@@ -5,47 +5,29 @@ import "github.com/swaggo/swag"
 
 const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
         "contact": {
-            "name": "Wsparcie Techniczne",
+            "name": "Wsparcie techniczne",
             "email": "support@kaucjomapa.pl"
         },
         "license": {
             "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
         },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/": {
-            "get": {
-                "description": "Zwraca prostą wiadomość potwierdzającą, że API działa.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Sprawdzenie działania API",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/auth/google": {
             "get": {
                 "description": "Generuje state i PKCE, a następnie przekierowuje do Google OAuth2.",
@@ -99,7 +81,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.User"
+                            "$ref": "#/definitions/entity.User"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -158,25 +140,23 @@ const docTemplate = `{
         },
         "/auth/revoke": {
             "post": {
-                "description": "Weryfikuje access token z nagłówka Authorization i unieważnia refresh token przekazany w cookie.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Unieważnia refresh token przekazany w cookie.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "auth"
                 ],
-                "summary": "Unieważnienie refresh tokenu",
+                "summary": "Unieważnij refresh token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "RefreshToken=\u003crefresh_token\u003e",
+                        "description": "Cookie w formacie RefreshToken=\u003ctoken\u003e",
                         "name": "Cookie",
                         "in": "header",
                         "required": true
@@ -187,21 +167,15 @@ const docTemplate = `{
                         "description": "No Content"
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Brak lub nieprawidłowy access albo refresh token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Wewnętrzny błąd serwera",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
@@ -209,25 +183,23 @@ const docTemplate = `{
         },
         "/auth/token": {
             "post": {
-                "description": "Weryfikuje access token z nagłówka Authorization i refresh token z cookie, a następnie zwraca nowy access token.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generuje nowy access token na podstawie Bearer JWT i cookie RefreshToken.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "auth"
                 ],
-                "summary": "Odświeżenie tokenu JWT",
+                "summary": "Odśwież access token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "RefreshToken=\u003crefresh_token\u003e",
+                        "description": "Cookie w formacie RefreshToken=\u003ctoken\u003e",
                         "name": "Cookie",
                         "in": "header",
                         "required": true
@@ -237,43 +209,449 @@ const docTemplate = `{
                     "200": {
                         "description": "Nowy access token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.TokenResponse"
                         }
                     },
                     "401": {
-                        "description": "Brak, nieprawidłowy lub wygasły token",
+                        "description": "Brak lub nieprawidłowy access albo refresh token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Błąd generowania access tokenu",
+                        "description": "Wewnętrzny błąd serwera",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/kaucjomaty": {
-            "get": {
-                "description": "Zwraca punkty zwrotu do wyświetlenia na mapie.",
+        "/login": {
+            "post": {
+                "description": "Weryfikuje dane logowania, zwraca access token i ustawia cookie RefreshToken.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "kaucjomaty"
+                    "auth"
                 ],
-                "summary": "Lista kaucjomatów",
+                "summary": "Zaloguj użytkownika",
+                "parameters": [
+                    {
+                        "description": "Dane logowania",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.TokenResponse"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "Cookie RefreshToken; Path=/api/auth; HttpOnly; Secure; SameSite=Strict"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Nieprawidłowa nazwa użytkownika lub hasło",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca listę powiadomień zalogowanego użytkownika.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Pobierz powiadomienia",
+                "responses": {
+                    "200": {
+                        "description": "Lista powiadomień",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/presenter.NotificationResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać powiadomień",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy powiadomienie przypisane do zalogowanego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Utwórz powiadomienie",
+                "parameters": [
+                    {
+                        "description": "Dane powiadomienia",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateNotificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzone powiadomienie",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.NotificationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się utworzyć powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Oznacza wskazane powiadomienie zalogowanego użytkownika jako przeczytane.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Oznacz powiadomienie jako przeczytane",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator powiadomienia",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowane powiadomienie",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.NotificationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Powiadomienie nie należy do zalogowanego użytkownika",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zaktualizować powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa wskazane powiadomienie należące do zalogowanego użytkownika.",
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Usuń powiadomienie",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator powiadomienia",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Powiadomienie nie należy do zalogowanego użytkownika",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się usunąć powiadomienia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy zgłoszenie dotyczące statusu punktu zwrotu, przypisane do zalogowanego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community-reports"
+                ],
+                "summary": "Utwórz zgłoszenie społecznościowe",
+                "parameters": [
+                    {
+                        "description": "Dane zgłoszenia społecznościowego",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateCommunityReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzone zgłoszenie społecznościowe",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateCommunityReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania lub identyfikator punktu zwrotu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się utworzyć zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa wskazane zgłoszenie społecznościowe należące do zalogowanego użytkownika.",
+                "tags": [
+                    "community-reports"
+                ],
+                "summary": "Usuń zgłoszenie społecznościowe",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator zgłoszenia społecznościowego",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się usunąć zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{return_point_id}": {
+            "get": {
+                "description": "Zwraca zgłoszenia społecznościowe dotyczące wskazanego punktu zwrotu.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community-reports"
+                ],
+                "summary": "Pobierz zgłoszenia społecznościowe",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator punktu zwrotu",
+                        "name": "return_point_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista zgłoszeń społecznościowych",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/presenter.CreateCommunityReportResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania lub identyfikator punktu zwrotu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać zgłoszeń",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_points": {
+            "get": {
+                "description": "Zwraca punkty zwrotu filtrowane po typie, statusie i wyszukiwanej frazie.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-points"
+                ],
+                "summary": "Pobierz punkty zwrotu",
                 "parameters": [
                     {
                         "enum": [
@@ -300,31 +678,58 @@ const docTemplate = `{
                         "description": "Status punktu",
                         "name": "status",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fragment nazwy lub adresu",
+                        "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Numer strony",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Liczba elementów na stronie",
+                        "name": "page_size",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Strona punktów zwrotu",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/server.MapPoint"
-                            }
+                            "$ref": "#/definitions/presenter.ReturnPointPage"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy numer lub rozmiar strony",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Nie udało się pobrać punktów zwrotu",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
             },
             "post": {
-                "description": "Tworzy nowy punkt zwrotu/kaucjomat dla zalogowanego użytkownika.\nDozwolone wartości type: butelkomat, sklep, punkt_skupu, inny.\nDozwolone wartości current_status: dostepny, zapelniony, nieczynny, awaria, brak_informacji, do_weryfikacji.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy punkt zwrotu przypisany do zalogowanego użytkownika.",
                 "consumes": [
                     "application/json"
                 ],
@@ -332,67 +737,56 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "kaucjomaty"
+                    "return-points"
                 ],
-                "summary": "Dodanie kaucjomatu",
+                "summary": "Dodaj punkt zwrotu",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Dane kaucjomatu",
+                        "description": "Dane punktu zwrotu",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.CreateKaucjomatRequest"
+                            "$ref": "#/definitions/presenter.CreateReturnPointRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Utworzony kaucjomat",
+                        "description": "Utworzony punkt zwrotu",
                         "schema": {
-                            "$ref": "#/definitions/server.MapPoint"
+                            "$ref": "#/definitions/presenter.ReturnPointDetailsResponse"
                         }
                     },
                     "400": {
-                        "description": "Nieprawidłowe dane wejściowe",
+                        "description": "Nieprawidłowe body żądania",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Brak lub nieprawidłowy access token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Błąd serwera",
+                        "description": "Nie udało się utworzyć punktu zwrotu",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/kaucjomaty/{id}": {
+        "/return_points/{id}": {
             "put": {
-                "description": "Aktualizuje dane punktu zwrotu dla zalogowanego użytkownika.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Częściowo aktualizuje dane istniejącego punktu zwrotu.",
                 "consumes": [
                     "application/json"
                 ],
@@ -400,93 +794,74 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "kaucjomaty"
+                    "return-points"
                 ],
-                "summary": "Aktualizacja kaucjomatu",
+                "summary": "Zaktualizuj punkt zwrotu",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "format": "uuid",
-                        "description": "Identyfikator kaucjomatu",
+                        "description": "Identyfikator punktu",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dane kaucjomatu",
+                        "description": "Pola do aktualizacji",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.UpdateKaucjomatHandler.UpdateKaucjomatRequest"
+                            "$ref": "#/definitions/presenter.UpdateKaucjomatRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Zaktualizowany kaucjomat",
+                        "description": "Zaktualizowany punkt zwrotu",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/presenter.ReturnPointDetailsResponse"
                         }
                     },
                     "400": {
-                        "description": "Nieprawidłowy identyfikator lub body",
+                        "description": "Nieprawidłowy identyfikator lub body żądania",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Brak lub nieprawidłowy access token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Nie znaleziono kaucjomatu lub błąd serwera",
+                        "description": "Nie udało się pobrać użytkownika lub zaktualizować punktu",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "Usuwa punkt zwrotu. Operacja jest dostępna wyłącznie dla administratora.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa punkt zwrotu. Operacja jest dostępna tylko dla administratora.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "kaucjomaty"
+                    "return-points"
                 ],
-                "summary": "Usunięcie kaucjomatu",
+                "summary": "Usuń punkt zwrotu",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "format": "uuid",
-                        "description": "Identyfikator kaucjomatu",
+                        "description": "Identyfikator punktu",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -497,106 +872,21 @@ const docTemplate = `{
                         "description": "No Content"
                     },
                     "400": {
-                        "description": "Nieprawidłowy identyfikator kaucjomatu",
+                        "description": "Nieprawidłowy identyfikator punktu",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Brak lub nieprawidłowy access token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Użytkownik nie jest administratorem",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Błąd serwera",
+                        "description": "Nie udało się usunąć punktu zwrotu",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/login": {
-            "post": {
-                "description": "Weryfikuje dane logowania, zwraca dane użytkownika z access tokenem i zapisuje refresh token w cookie.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Logowanie użytkownika",
-                "parameters": [
-                    {
-                        "description": "Dane logowania",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.LoginUserHandler.parameters"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/server.User"
-                        },
-                        "headers": {
-                            "Set-Cookie": {
-                                "type": "string",
-                                "description": "RefreshToken=\u003ctoken\u003e; Path=/auth; HttpOnly; SameSite=Strict"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
@@ -604,7 +894,7 @@ const docTemplate = `{
         },
         "/users": {
             "post": {
-                "description": "Tworzy nowe konto użytkownika i zwraca dane utworzonego użytkownika.",
+                "description": "Tworzy konto użytkownika i zwraca access token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -614,41 +904,100 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Rejestracja użytkownika",
+                "summary": "Zarejestruj użytkownika",
                 "parameters": [
                     {
-                        "description": "Dane rejestracji użytkownika",
+                        "description": "Dane nowego użytkownika",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.CreateUserHandler.parameters"
+                            "$ref": "#/definitions/presenter.CreateUserRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Access token",
                         "schema": {
-                            "$ref": "#/definitions/server.User"
+                            "$ref": "#/definitions/presenter.TokenResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Nieprawidłowe body żądania",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Nie udało się utworzyć użytkownika",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/votes/{report_id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy lub aktualizuje głos zalogowanego użytkownika na wskazane zgłoszenie społecznościowe.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "community-report-votes"
+                ],
+                "summary": "Oddaj głos na zgłoszenie społecznościowe",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator zgłoszenia społecznościowego",
+                        "name": "report_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Głos: confirm albo reject",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateCommunityReportVoteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzony lub zaktualizowany głos",
+                        "schema": {
+                            "$ref": "#/definitions/entity.CommunityReportVote"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator zgłoszenia lub body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zapisać głosu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }
@@ -656,17 +1005,427 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "server.CreateKaucjomatRequest": {
+        "entity.CommunityReport": {
             "type": "object",
             "properties": {
-                "address": {
-                    "type": "string"
+                "confirmationsCount": {
+                    "type": "integer"
                 },
-                "current_status": {
+                "createdAt": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "rejectionsCount": {
+                    "type": "integer"
+                },
+                "returnPointID": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/entity.PointStatus"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.CommunityReportVote": {
+            "type": "object",
+            "properties": {
+                "communityReportID": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                },
+                "vote": {
+                    "$ref": "#/definitions/entity.CommunityReportVoteValue"
+                }
+            }
+        },
+        "entity.CommunityReportVoteValue": {
+            "type": "string",
+            "enum": [
+                "confirm",
+                "reject"
+            ],
+            "x-enum-varnames": [
+                "VoteConfirm",
+                "VoteReject"
+            ]
+        },
+        "entity.PointStatus": {
+            "type": "string",
+            "enum": [
+                "dostepny",
+                "nieczynny",
+                "brak_informacji"
+            ],
+            "x-enum-varnames": [
+                "PointStatusDostepny",
+                "PointStatusNieczynny",
+                "PointStatusBrakInformacji"
+            ]
+        },
+        "entity.User": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "googleID": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAdmin": {
+                    "type": "boolean"
+                },
+                "isBanned": {
+                    "type": "boolean"
+                },
+                "passwordHash": {
+                    "type": "string"
+                },
+                "reputation": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "totalConfirmations": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "totalRejections": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.CreateCommunityReportRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "report_id",
+                "status"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "report_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "dostepny",
+                        "nieczynny",
+                        "bark_informacji"
+                    ]
+                }
+            }
+        },
+        "presenter.CreateCommunityReportResponse": {
+            "type": "object",
+            "properties": {
+                "report": {
+                    "$ref": "#/definitions/entity.CommunityReport"
+                },
+                "reputation": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.CreateCommunityReportVoteRequest": {
+            "type": "object",
+            "required": [
+                "vote"
+            ],
+            "properties": {
+                "vote": {
+                    "type": "string",
+                    "enum": [
+                        "confirm",
+                        "reject"
+                    ]
+                }
+            }
+        },
+        "presenter.CreateNotificationRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.CreateReturnPointRequest": {
+            "type": "object",
+            "required": [
+                "current_status",
+                "name",
+                "refund_method",
+                "type"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "can": {
+                    "type": "boolean"
+                },
+                "current_status": {
+                    "type": "string",
+                    "enum": [
+                        "dostepny",
+                        "awaria",
+                        "brak_informacji"
+                    ]
+                },
+                "description": {
+                    "type": "string"
+                },
+                "glass": {
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "opening_hours": {
+                    "$ref": "#/definitions/presenter.OpeningHours"
+                },
+                "pet": {
+                    "type": "boolean"
+                },
+                "refund_method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "gotowka",
+                            "bon",
+                            "karta"
+                        ]
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "butelkomat",
+                        "sklep",
+                        "punkt_skupu",
+                        "inny"
+                    ]
+                }
+            }
+        },
+        "presenter.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.FieldErrorResponse"
+                    }
+                },
+                "error": {
+                    "type": "string",
+                    "example": "Invalid request body"
+                }
+            }
+        },
+        "presenter.FieldErrorResponse": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string",
+                    "example": "current_status"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "current_status must be one of: dostepny awaria brak_informacji"
+                },
+                "param": {
+                    "type": "string",
+                    "example": "dostepny awaria brak_informacji"
+                },
+                "rule": {
+                    "type": "string",
+                    "example": "oneof"
+                }
+            }
+        },
+        "presenter.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.NotificationResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "seen": {
+                    "type": "boolean"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.OpeningHours": {
+            "type": "object",
+            "properties": {
+                "mon-fri": {
+                    "type": "string"
+                },
+                "mon-sat": {
+                    "type": "string"
+                },
+                "mon-sun": {
+                    "type": "string"
+                },
+                "sat": {
+                    "type": "string"
+                },
+                "sun": {}
+            }
+        },
+        "presenter.Pagination": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ReturnPointDetailsResponse": {
+            "type": "object",
+            "required": [
+                "current_status"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "bg_color": {
+                    "type": "string"
+                },
+                "can": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_status": {
+                    "type": "string",
+                    "enum": [
+                        "dostepny",
+                        "awaria",
+                        "brak_informacji"
+                    ]
+                },
+                "description": {
+                    "type": "string"
+                },
+                "glass": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "is_verified": {
+                    "type": "boolean"
                 },
                 "latitude": {
                     "type": "number"
@@ -678,63 +1437,73 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "opening_hours": {
-                    "type": "string"
+                    "$ref": "#/definitions/presenter.OpeningHours"
                 },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.CreateUserHandler.parameters": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
+                "pet": {
+                    "type": "boolean"
                 },
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.LoginUserHandler.parameters": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.MapPoint": {
-            "type": "object",
-            "properties": {
-                "bg_color": {
-                    "type": "string"
-                },
-                "latitude": {
-                    "type": "number"
-                },
-                "longitude": {
-                    "type": "number"
-                },
-                "return_point_id": {
-                    "type": "string"
+                "refund_method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "gotowka",
+                            "bon",
+                            "karta"
+                        ]
+                    }
                 },
                 "short_name": {
                     "type": "string"
                 },
                 "text_color": {
                     "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "butelkomat",
+                        "sklep",
+                        "punkt_skupu",
+                        "inny"
+                    ]
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "server.UpdateKaucjomatHandler.UpdateKaucjomatRequest": {
+        "presenter.ReturnPointPage": {
             "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/presenter.Pagination"
+                },
+                "return_points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.ReturnPointDetailsResponse"
+                    }
+                }
+            }
+        },
+        "presenter.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.UpdateKaucjomatRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "address": {
                     "type": "string"
@@ -755,50 +1524,44 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "opening_hours": {
-                    "type": "string"
+                    "$ref": "#/definitions/presenter.OpeningHours"
                 },
                 "pet": {
                     "type": "boolean"
                 },
+                "refund_method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "gotowka",
+                            "bon",
+                            "karta"
+                        ]
+                    }
+                },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "butelkomat",
+                        "sklep",
+                        "punkt_skupu",
+                        "inny"
+                    ]
                 }
             }
-        },
-        "server.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_admin": {
-                    "type": "boolean"
-                },
-                "is_banned": {
-                    "type": "boolean"
-                },
-                "reputation": {
-                    "type": "integer"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Wartość w formacie: Bearer \u003cJWT\u003e",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -807,10 +1570,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:3000",
-	BasePath:         "/",
-	Schemes:          []string{},
+	BasePath:         "/api",
+	Schemes:          []string{"https"},
 	Title:            "KaucjoMapa API",
-	Description:      "To jest serwer API dla aplikacji KaucjoMapa.",
+	Description:      "API do wyszukiwania i zarządzania punktami zwrotu opakowań kaucyjnych.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

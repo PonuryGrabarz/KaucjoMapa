@@ -17,6 +17,7 @@ type User struct {
 	TotalRejections    int32
 	IsAdmin            bool
 	IsBanned           bool
+	GoogleID           string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }

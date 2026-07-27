@@ -30,6 +30,8 @@ type FiberServer struct {
 	ReportSvc        usecase.ICommunityReportsService
 	VoteSvc          usecase.ICommunityReportVoteService
 	NotificationsSvc usecase.INotificationsService
+	OAuthSvc         usecase.IGoogleOAuthService
+	HasherSvc        usecase.IPasswordHasher
 	cfg              *config.Config
 }
 
@@ -99,7 +101,7 @@ func translateFieldError(fe validator.FieldError) string {
 	}
 }
 
-func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, notSvc usecase.INotificationsService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
+func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, notSvc usecase.INotificationsService, oAuthSvc usecase.IGoogleOAuthService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
@@ -113,6 +115,8 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 		ReportSvc:        reportSvc,
 		VoteSvc:          voteSvc,
 		NotificationsSvc: notSvc,
+		OAuthSvc:         oAuthSvc,
+		HasherSvc:        hasherSvc,
 		cfg:              cfg,
 	}
 
@@ -153,10 +157,11 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	reportsHandler := handler.NewCommunityReportHandler(server.ReportSvc, server.UserSvc)
 	voteHandler := handler.NewCommunityReportVoteHandler(server.VoteSvc)
 	notificationsHandler := handler.NewNotificationsHandler(server.NotificationsSvc)
+	oAuthHandler := handler.NewOAuthHandler(server.UserSvc, server.HasherSvc, server.OAuthSvc)
 
 	ReturnPointRouter(api, *returnPointHandler, cfg.JWTSecret, tokenSvc)
 	UsersRouter(api, *userHandler)
-	AuthRouter(api, *authHandler, cfg.JWTSecret, tokenSvc)
+	AuthRouter(api, *authHandler, *oAuthHandler, cfg.JWTSecret, tokenSvc)
 	CommunityReportRouter(api, *reportsHandler, cfg.JWTSecret, tokenSvc)
 	CommunityReportVoteRouter(api, *voteHandler, cfg.JWTSecret, tokenSvc)
 	NotificationsRouter(api, *notificationsHandler, cfg.JWTSecret, tokenSvc)

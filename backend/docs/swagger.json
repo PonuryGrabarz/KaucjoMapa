@@ -25,30 +25,6 @@
     "host": "localhost:3000",
     "basePath": "/api",
     "paths": {
-<<<<<<< HEAD
-        "/": {
-            "get": {
-                "description": "Zwraca prostą wiadomość potwierdzającą, że API działa.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Sprawdzenie działania API",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/auth/google": {
             "get": {
                 "description": "Generuje state i PKCE, a następnie przekierowuje do Google OAuth2.",
@@ -102,7 +78,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.User"
+                            "$ref": "#/definitions/entity.User"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -159,8 +135,6 @@
                 }
             }
         },
-=======
->>>>>>> origin/main
         "/auth/revoke": {
             "post": {
                 "security": [
@@ -1103,6 +1077,53 @@
                 "PointStatusNieczynny",
                 "PointStatusBrakInformacji"
             ]
+        },
+        "entity.User": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "googleID": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAdmin": {
+                    "type": "boolean"
+                },
+                "isBanned": {
+                    "type": "boolean"
+                },
+                "passwordHash": {
+                    "type": "string"
+                },
+                "reputation": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "totalConfirmations": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "totalRejections": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
         },
         "presenter.CreateCommunityReportRequest": {
             "type": "object",

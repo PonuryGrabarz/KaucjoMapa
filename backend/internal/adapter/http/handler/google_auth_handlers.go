@@ -1,18 +1,19 @@
-package server
+package handler
 
 import (
 	"crypto/rand"
 	"crypto/subtle"
-	"database/sql"
 	"encoding/hex"
-	"errors"
 	"os"
 	"time"
 
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/presenter"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/database"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/oauth2"
 )
 
@@ -20,6 +21,20 @@ const (
 	oauthStateCookie    = "GoogleOAuthState"
 	oauthVerifierCookie = "GoogleOAuthVerifier"
 )
+
+type OAuthHandler struct {
+	userSvc   usecase.IUserService
+	hasherSvc usecase.IPasswordHasher
+	oAuthSvc  usecase.IGoogleOAuthService
+}
+
+func NewOAuthHandler(userSvc usecase.IUserService, hasherSvc usecase.IPasswordHasher, oAuthSvc usecase.IGoogleOAuthService) *OAuthHandler {
+	return &OAuthHandler{
+		userSvc:   userSvc,
+		hasherSvc: hasherSvc,
+		oAuthSvc:  oAuthSvc,
+	}
+}
 
 // GoogleLoginHandler godoc
 //
@@ -29,15 +44,15 @@ const (
 //	@Success		302
 //	@Failure		500	{object}	map[string]string
 //	@Router			/auth/google [get]
-func (s *FiberServer) GoogleLoginHandler(c fiber.Ctx) error {
+func (h *OAuthHandler) GoogleLoginHandler(c fiber.Ctx) error {
 	config, err := auth.GoogleOAuthConfig()
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Google OAuth is not configured")
+		return entity.NewInternal(err)
 	}
 
 	state, err := randomOAuthState()
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate OAuth state")
+		return entity.NewInternal(err)
 	}
 
 	verifier := oauth2.GenerateVerifier()
@@ -60,7 +75,7 @@ func (s *FiberServer) GoogleLoginHandler(c fiber.Ctx) error {
 //	@Produce		json
 //	@Param			code	query		string	true	"Authorization code"
 //	@Param			state	query		string	true	"OAuth state"
-//	@Success		200		{object}	User
+//	@Success		200		{object}	entity.User
 //	@Header			200		{string}	Set-Cookie	"RefreshToken"
 //	@Failure		400		{object}	map[string]string
 //	@Failure		401		{object}	map[string]string
@@ -68,11 +83,11 @@ func (s *FiberServer) GoogleLoginHandler(c fiber.Ctx) error {
 //	@Failure		409		{object}	map[string]string
 //	@Failure		500		{object}	map[string]string
 //	@Router			/auth/google/callback [get]
-func (s *FiberServer) GoogleCallbackHandler(c fiber.Ctx) error {
+func (h *OAuthHandler) GoogleCallbackHandler(c fiber.Ctx) error {
 	if c.Query("error") != "" {
 		clearOAuthCookie(c, oauthStateCookie)
 		clearOAuthCookie(c, oauthVerifierCookie)
-		return fiber.NewError(fiber.StatusUnauthorized, "Google login was cancelled")
+		return entity.NewUnauthorized("Google OAuth error: " + c.Query("error"))
 	}
 
 	cookieState := c.Cookies(oauthStateCookie)
@@ -83,62 +98,74 @@ func (s *FiberServer) GoogleCallbackHandler(c fiber.Ctx) error {
 	clearOAuthCookie(c, oauthVerifierCookie)
 
 	if cookieState == "" || queryState == "" || subtle.ConstantTimeCompare([]byte(cookieState), []byte(queryState)) != 1 {
-		return fiber.NewError(fiber.StatusForbidden, "Invalid OAuth state")
+		return entity.NewForbidden("Invalid OAuth state")
 	}
 
 	if verifier == "" {
-		return fiber.NewError(fiber.StatusForbidden, "Missing OAuth verifier")
+		return entity.NewForbidden("Missing auth verifier")
 	}
 
 	code := c.Query("code")
 	if code == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Missing authorization code")
+		return entity.NewBadRequest("Missing authorization code")
 	}
 
 	config, err := auth.GoogleOAuthConfig()
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Google OAuth is not configured")
+		return entity.NewInternal(err)
 	}
 
 	googleToken, err := config.Exchange(c.Context(), code, oauth2.VerifierOption(verifier))
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Failed to exchange Google authorization code")
+		return entity.NewUnauthorized("Failed to exchange code for token: " + err.Error())
 	}
 
 	googleUser, err := auth.GetGoogleUser(c.Context(), config, googleToken)
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Failed to verify Google account")
+		return entity.NewUnauthorized("Failed to get Google user info: " + err.Error())
 	}
 
-	googleSubject := sql.NullString{String: googleUser.Subject, Valid: true}
-	user, err := s.db.Queries.GetUserByGoogleSubject(c.Context(), googleSubject)
-	if errors.Is(err, sql.ErrNoRows) {
-		randomPasswordHash, hashErr := auth.HashPassword(auth.MakeRefreshToken())
+	user, err := h.oAuthSvc.GetUserByGoogleID(c.Context(), googleUser.Subject)
+	if entity.IsKind(err, entity.KindNotFound) {
+		randomPasswordHash, hashErr := h.hasherSvc.HashPassword(uuid.NewString())
 		if hashErr != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, "Failed to prepare Google account")
+			return entity.NewInternal(hashErr)
 		}
 
-		user, err = s.db.Queries.UpsertGoogleUserByEmail(c.Context(), database.UpsertGoogleUserByEmailParams{
-			ID:            uuid.New(),
-			Email:         googleUser.Email,
-			Username:      "google_" + uuid.NewString(),
-			PasswordHash:  randomPasswordHash,
-			GoogleSubject: googleSubject,
+		user, err = h.oAuthSvc.CreateUser(c.Context(), entity.User{
+			ID:           uuid.New(),
+			Email:        googleUser.Email,
+			Username:     googleUser.Name,
+			PasswordHash: randomPasswordHash,
+			GoogleID:     googleUser.Subject,
 		})
-		if errors.Is(err, sql.ErrNoRows) {
-			return fiber.NewError(fiber.StatusConflict, "Email is already linked to another Google account")
+		if entity.IsKind(err, entity.KindNotFound) {
+			return entity.NewBadRequest("email is already used")
 		}
 	}
 
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to load Google account")
+		return entity.NewInternal(err)
 	}
 
 	if user.IsBanned {
-		return fiber.NewError(fiber.StatusForbidden, "User account is banned")
+		return entity.NewForbidden("You are banned")
 	}
 
-	return s.issueSession(c, user)
+	rToken, token, err := h.oAuthSvc.IssueSession(c.Context(), user)
+
+	cookie := fiber.Cookie{
+		Name:     "RefreshToken",
+		Value:    rToken.Token,
+		Path:     "/api/auth",
+		Expires:  rToken.ExpiresAt,
+		HTTPOnly: true,
+		SameSite: "strict",
+		Secure:   true,
+	}
+
+	c.Cookie(&cookie)
+	return c.JSON(presenter.UserSuccessResponse(token))
 }
 
 func randomOAuthState() (string, error) {
@@ -154,7 +181,7 @@ func newOAuthCookie(name, value string) *fiber.Cookie {
 	return &fiber.Cookie{
 		Name:     name,
 		Value:    value,
-		Path:     "/auth/google",
+		Path:     "/api/auth/google",
 		MaxAge:   600,
 		Expires:  time.Now().Add(10 * time.Minute),
 		HTTPOnly: true,
@@ -167,7 +194,7 @@ func clearOAuthCookie(c fiber.Ctx, name string) {
 	c.Cookie(&fiber.Cookie{
 		Name:     name,
 		Value:    "",
-		Path:     "/auth/google",
+		Path:     "/api/auth/google",
 		MaxAge:   -1,
 		Expires:  time.Unix(0, 0),
 		HTTPOnly: true,

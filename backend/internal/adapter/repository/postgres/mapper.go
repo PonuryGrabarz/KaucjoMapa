@@ -208,6 +208,7 @@ func toUserEntity(user database.User) entity.User {
 		TotalRejections:    user.TotalRejections,
 		IsAdmin:            user.IsAdmin,
 		IsBanned:           user.IsBanned,
+		GoogleID:           user.GoogleSubject.String,
 		CreatedAt:          user.CreatedAt,
 		UpdatedAt:          user.UpdatedAt,
 	}
@@ -344,5 +345,15 @@ func toNotificationEntity(notification database.UserNotification) entity.Notific
 		Description: notification.Description,
 		Seen:        notification.Seen,
 		CreatedAt:   notification.CreatedAt,
+	}
+}
+
+func toGoogleUserParams(user entity.User) database.UpsertGoogleUserByEmailParams {
+	return database.UpsertGoogleUserByEmailParams{
+		ID:            user.ID,
+		Username:      user.Username,
+		Email:         user.Email,
+		PasswordHash:  user.PasswordHash,
+		GoogleSubject: toNullString(user.GoogleID),
 	}
 }
