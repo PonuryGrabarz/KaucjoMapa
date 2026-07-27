@@ -8,11 +8,20 @@ import (
 )
 
 type Filter struct {
-	Query  string
-	Type   entity.PointType
-	Status entity.PointStatus
-	Offset int32
-	Limit  int32
+	UserID        *uuid.UUID
+	Query         string
+	Type          entity.PointType
+	Status        entity.PointStatus
+	Latitude      *float64
+	Longitude     *float64
+	MinDistanceKm *float64
+	MaxDistanceKm *float64
+	Pet           *bool
+	Can           *bool
+	Glass         *bool
+	RefundMethods []entity.RefundMethod
+	Offset        int32
+	Limit         int32
 }
 
 type IReturnPointRepository interface {

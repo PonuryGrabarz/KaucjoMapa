@@ -54,6 +54,7 @@ type ReturnPointDetailsResponse struct {
 	Type          string       `json:"type" enums:"butelkomat,sklep,punkt_skupu,inny"`
 	Latitude      float64      `json:"latitude"`
 	Longitude     float64      `json:"longitude"`
+	DistanceKm    *float64     `json:"distance_km,omitempty"`
 	Address       string       `json:"address"`
 	Pet           bool         `json:"pet"`
 	Can           bool         `json:"can"`
@@ -97,6 +98,7 @@ func CreateReturnPointSuccessResponse(p entity.ReturnPoint) ReturnPointDetailsRe
 		TextColor:    style.TextColor,
 		Latitude:     p.Latitude,
 		Longitude:    p.Longitude,
+		DistanceKm:   p.DistanceKm,
 		Address:      p.Address,
 		Pet:          p.Pet,
 		Can:          p.Can,

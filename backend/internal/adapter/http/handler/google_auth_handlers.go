@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/presenter"
-	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/auth"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
+	auth "github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/oAuth"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"

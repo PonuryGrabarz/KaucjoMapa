@@ -56,7 +56,7 @@ func main() {
 	hasher := crypto.NewHasher()
 
 	userSvc := usecase.NewUserService(userRepo, hasher, tokenSigner)
-	returnPointSvc := usecase.NewReturnPointService(returnPointRepo, userSvc)
+	returnPointSvc := usecase.NewReturnPointService(returnPointRepo, userSvc, tokenSigner)
 	authSvc := usecase.NewAuthService(tokenRepo, userSvc, hasher, tokenSigner)
 	reportSvc := usecase.NewCommunityReportsService(reportsRepo, userSvc)
 	voteSvc := usecase.NewCommunityReportVoteService(voteRepo, userSvc, reportSvc)

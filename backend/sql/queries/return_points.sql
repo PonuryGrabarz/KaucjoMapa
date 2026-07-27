@@ -45,7 +45,17 @@ INSERT INTO return_points (
 SELECT * FROM return_points;
 
 -- name: ListReturnPoints :many
-SELECT *
+SELECT return_points.*,
+    CAST(CASE
+        WHEN sqlc.narg('latitude')::DOUBLE PRECISION IS NULL THEN 0.0
+        ELSE earth_distance(
+            ll_to_earth(return_points.latitude, return_points.longitude),
+            ll_to_earth(
+                sqlc.narg('latitude')::DOUBLE PRECISION,
+                sqlc.narg('longitude')::DOUBLE PRECISION
+            )
+        ) / 1000.0
+    END AS DOUBLE PRECISION) AS distance_km
 FROM return_points
 WHERE (
     sqlc.narg('query')::TEXT IS NULL
@@ -60,7 +70,56 @@ AND (
     sqlc.narg('point_status')::point_status IS NULL
     OR current_status = sqlc.narg('point_status')::point_status
 )
-ORDER BY id
+AND (
+    sqlc.narg('user_id')::UUID IS NULL
+    OR return_points.user_id = sqlc.narg('user_id')::UUID
+)
+AND (
+    sqlc.narg('pet')::BOOLEAN IS NULL
+    OR pet = sqlc.narg('pet')::BOOLEAN
+)
+AND (
+    sqlc.narg('can')::BOOLEAN IS NULL
+    OR can = sqlc.narg('can')::BOOLEAN
+)
+AND (
+    sqlc.narg('glass')::BOOLEAN IS NULL
+    OR glass = sqlc.narg('glass')::BOOLEAN
+)
+AND (
+    sqlc.narg('refund_methods')::refund_method[] IS NULL
+    OR return_points.refund_methods && sqlc.narg('refund_methods')::refund_method[]
+)
+AND (
+    sqlc.narg('min_distance_km')::DOUBLE PRECISION IS NULL
+    OR earth_distance(
+        ll_to_earth(return_points.latitude, return_points.longitude),
+        ll_to_earth(
+            sqlc.narg('latitude')::DOUBLE PRECISION,
+            sqlc.narg('longitude')::DOUBLE PRECISION
+        )
+    ) >= sqlc.narg('min_distance_km')::DOUBLE PRECISION * 1000.0
+)
+AND (
+    sqlc.narg('max_distance_km')::DOUBLE PRECISION IS NULL
+    OR (
+        earth_box(
+            ll_to_earth(
+                sqlc.narg('latitude')::DOUBLE PRECISION,
+                sqlc.narg('longitude')::DOUBLE PRECISION
+            ),
+            sqlc.narg('max_distance_km')::DOUBLE PRECISION * 1000.0
+        ) @> ll_to_earth(return_points.latitude, return_points.longitude)
+        AND earth_distance(
+            ll_to_earth(return_points.latitude, return_points.longitude),
+            ll_to_earth(
+                sqlc.narg('latitude')::DOUBLE PRECISION,
+                sqlc.narg('longitude')::DOUBLE PRECISION
+            )
+        ) <= sqlc.narg('max_distance_km')::DOUBLE PRECISION * 1000.0
+    )
+)
+ORDER BY distance_km ASC NULLS LAST, id
 LIMIT sqlc.arg('limit')::INT
 OFFSET sqlc.arg('offset')::INT;
 
@@ -79,6 +138,55 @@ AND (
 AND (
     sqlc.narg('point_status')::point_status IS NULL
     OR current_status = sqlc.narg('point_status')::point_status
+)
+AND (
+    sqlc.narg('user_id')::UUID IS NULL
+    OR return_points.user_id = sqlc.narg('user_id')::UUID
+)
+AND (
+    sqlc.narg('pet')::BOOLEAN IS NULL
+    OR pet = sqlc.narg('pet')::BOOLEAN
+)
+AND (
+    sqlc.narg('can')::BOOLEAN IS NULL
+    OR can = sqlc.narg('can')::BOOLEAN
+)
+AND (
+    sqlc.narg('glass')::BOOLEAN IS NULL
+    OR glass = sqlc.narg('glass')::BOOLEAN
+)
+AND (
+    sqlc.narg('refund_methods')::refund_method[] IS NULL
+    OR return_points.refund_methods && sqlc.narg('refund_methods')::refund_method[]
+)
+AND (
+    sqlc.narg('min_distance_km')::DOUBLE PRECISION IS NULL
+    OR earth_distance(
+        ll_to_earth(return_points.latitude, return_points.longitude),
+        ll_to_earth(
+            sqlc.narg('latitude')::DOUBLE PRECISION,
+            sqlc.narg('longitude')::DOUBLE PRECISION
+        )
+    ) >= sqlc.narg('min_distance_km')::DOUBLE PRECISION * 1000.0
+)
+AND (
+    sqlc.narg('max_distance_km')::DOUBLE PRECISION IS NULL
+    OR (
+        earth_box(
+            ll_to_earth(
+                sqlc.narg('latitude')::DOUBLE PRECISION,
+                sqlc.narg('longitude')::DOUBLE PRECISION
+            ),
+            sqlc.narg('max_distance_km')::DOUBLE PRECISION * 1000.0
+        ) @> ll_to_earth(return_points.latitude, return_points.longitude)
+        AND earth_distance(
+            ll_to_earth(return_points.latitude, return_points.longitude),
+            ll_to_earth(
+                sqlc.narg('latitude')::DOUBLE PRECISION,
+                sqlc.narg('longitude')::DOUBLE PRECISION
+            )
+        ) <= sqlc.narg('max_distance_km')::DOUBLE PRECISION * 1000.0
+    )
 );
 
 -- name: GetPointByDistance :one
