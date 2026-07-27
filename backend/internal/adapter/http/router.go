@@ -48,6 +48,16 @@ func NotificationsRouter(app fiber.Router, notificationsHandler handler.Notifica
 	app.Delete("/notifications/:id", middleware.RequireJWT(auth, JWTSecret), notificationsHandler.Delete)
 }
 
+func BookmarksRouter(app fiber.Router, bookmarkHandler handler.BookmarkHandler, JWTSecret string, auth port.ITokenSigner) {
+	app.Post("/bookmarks", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.Create)
+	app.Get("/bookmarks", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.List)
+	app.Get("/bookmarks/return_point/:return_point_id", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.GetByReturnPointID)
+	app.Delete("/bookmarks/return_point/:return_point_id", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.DeleteByReturnPointID)
+	app.Get("/bookmarks/:id", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.GetByID)
+	app.Put("/bookmarks/:id", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.Update)
+	app.Delete("/bookmarks/:id", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.Delete)
+}
+
 func DocsRouter(app fiber.Router) {
 	openAPISepcDir, err := filepath.Abs("docs")
 	if err != nil {

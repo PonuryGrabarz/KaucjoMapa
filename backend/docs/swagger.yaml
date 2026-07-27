@@ -54,6 +54,41 @@ definitions:
     - PointStatusDostepny
     - PointStatusNieczynny
     - PointStatusBrakInformacji
+  presenter.BookmarkResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        format: uuid
+        type: string
+      return_point_id:
+        format: uuid
+        type: string
+      user_id:
+        format: uuid
+        type: string
+    type: object
+  presenter.BookmarkWithReturnPointResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        format: uuid
+        type: string
+      return_point:
+        $ref: '#/definitions/presenter.ReturnPointDetailsResponse'
+      user_id:
+        format: uuid
+        type: string
+    type: object
+  presenter.CreateBookmarkRequest:
+    properties:
+      return_point_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - return_point_id
+    type: object
   presenter.CreateCommunityReportRequest:
     properties:
       description:
@@ -310,6 +345,14 @@ definitions:
       token:
         type: string
     type: object
+  presenter.UpdateBookmarkRequest:
+    properties:
+      return_point_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - return_point_id
+    type: object
   presenter.UpdateKaucjomatRequest:
     properties:
       address:
@@ -476,6 +519,260 @@ paths:
       summary: Odśwież access token
       tags:
       - auth
+  /bookmarks:
+    get:
+      description: Zwraca zakładki zalogowanego użytkownika wraz z danymi punktów
+        zwrotu.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista zakładek
+          schema:
+            items:
+              $ref: '#/definitions/presenter.BookmarkWithReturnPointResponse'
+            type: array
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać zakładek
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lista zakładek
+      tags:
+      - bookmarks
+    post:
+      consumes:
+      - application/json
+      description: Tworzy zakładkę punktu zwrotu dla zalogowanego użytkownika.
+      parameters:
+      - description: Dane zakładki
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateBookmarkRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Utworzona zakładka
+          schema:
+            $ref: '#/definitions/presenter.BookmarkResponse'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "409":
+          description: Zakładka już istnieje
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się utworzyć zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dodaj zakładkę
+      tags:
+      - bookmarks
+  /bookmarks/{id}:
+    delete:
+      description: Usuwa zakładkę należącą do zalogowanego użytkownika.
+      parameters:
+      - description: Identyfikator zakładki
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń zakładkę
+      tags:
+      - bookmarks
+    get:
+      description: Zwraca zakładkę po identyfikatorze, jeśli należy do zalogowanego
+        użytkownika.
+      parameters:
+      - description: Identyfikator zakładki
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zakładka
+          schema:
+            $ref: '#/definitions/presenter.BookmarkResponse'
+        "400":
+          description: Nieprawidłowy identyfikator zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "403":
+          description: Zakładka nie należy do zalogowanego użytkownika
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz zakładkę
+      tags:
+      - bookmarks
+    put:
+      consumes:
+      - application/json
+      description: Zmienia punkt zwrotu przypisany do zakładki zalogowanego użytkownika.
+      parameters:
+      - description: Identyfikator zakładki
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nowe dane zakładki
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.UpdateBookmarkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowana zakładka
+          schema:
+            $ref: '#/definitions/presenter.BookmarkResponse'
+        "400":
+          description: Nieprawidłowe body lub identyfikator
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "409":
+          description: Konflikt unikalności zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zaktualizować zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zaktualizuj zakładkę
+      tags:
+      - bookmarks
+  /bookmarks/return_point/{return_point_id}:
+    delete:
+      description: Usuwa zakładkę zalogowanego użytkownika dla wskazanego punktu zwrotu.
+      parameters:
+      - description: Identyfikator punktu zwrotu
+        format: uuid
+        in: path
+        name: return_point_id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń zakładkę po punkcie zwrotu
+      tags:
+      - bookmarks
+    get:
+      description: Zwraca zakładkę zalogowanego użytkownika dla wskazanego punktu
+        zwrotu.
+      parameters:
+      - description: Identyfikator punktu zwrotu
+        format: uuid
+        in: path
+        name: return_point_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zakładka
+          schema:
+            $ref: '#/definitions/presenter.BookmarkResponse'
+        "400":
+          description: Nieprawidłowy identyfikator punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać zakładki
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz zakładkę po punkcie zwrotu
+      tags:
+      - bookmarks
   /login:
     post:
       consumes:

@@ -186,6 +186,13 @@ func (ns NullRefundMethod) Value() (driver.Value, error) {
 	return string(ns.RefundMethod), nil
 }
 
+type Bookmark struct {
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	ReturnPointID uuid.UUID
+	CreatedAt     time.Time
+}
+
 type CommunityReport struct {
 	ID                 uuid.UUID
 	UserID             uuid.UUID
