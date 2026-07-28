@@ -465,6 +465,125 @@ func toBookmarkEntity(bookmark database.Bookmark) entity.Bookmark {
 	}
 }
 
+func toCreateReturnPlanParams(plan entity.ReturnPlan) database.CreateReturnPlanParams {
+	var userID uuid.UUID
+	if plan.UserID != nil {
+		userID = *plan.UserID
+	}
+
+	createdAt := plan.CreatedAt
+	if createdAt.IsZero() {
+		createdAt = time.Now()
+	}
+	updatedAt := plan.UpdatedAt
+	if updatedAt.IsZero() {
+		updatedAt = createdAt
+	}
+
+	status := database.ReturnPlanStatus(plan.Status)
+	if status == "" {
+		status = database.ReturnPlanStatusDraft
+	}
+
+	return database.CreateReturnPlanParams{
+		ID:              plan.ID,
+		UserID:          userID,
+		Status:          status,
+		TargetPet:       int32(plan.TargetPet),
+		TargetCan:       int32(plan.TargetCan),
+		TargetGlass:     int32(plan.TargetGlass),
+		RatePetGrosze:   int32(plan.RatePet),
+		RateCanGrosze:   int32(plan.RateCan),
+		RateGlassGrosze: int32(plan.RateGlass),
+		CreatedAt:       createdAt,
+		UpdatedAt:       updatedAt,
+	}
+}
+
+func toReturnPlanEntity(plan database.ReturnPlan) entity.ReturnPlan {
+	userID := plan.UserID
+
+	var confirmedAt *time.Time
+	if plan.ConfirmedAt.Valid {
+		confirmedAt = &plan.ConfirmedAt.Time
+	}
+
+	return entity.ReturnPlan{
+		ID:          plan.ID,
+		UserID:      &userID,
+		Status:      entity.PlanStatus(plan.Status),
+		TargetPet:   int(plan.TargetPet),
+		TargetCan:   int(plan.TargetCan),
+		TargetGlass: int(plan.TargetGlass),
+		RatePet:     int(plan.RatePetGrosze),
+		RateCan:     int(plan.RateCanGrosze),
+		RateGlass:   int(plan.RateGlassGrosze),
+		ConfirmedAt: confirmedAt,
+		CreatedAt:   plan.CreatedAt,
+		UpdatedAt:   plan.UpdatedAt,
+	}
+}
+
+func toCreateReturnPlanPointParams(point entity.ReturnPlanPoint) database.CreateReturnPlanPointParams {
+	createdAt := point.CreatedAt
+	if createdAt.IsZero() {
+		createdAt = time.Now()
+	}
+	updatedAt := point.UpdatedAt
+	if updatedAt.IsZero() {
+		updatedAt = createdAt
+	}
+
+	status := database.ReturnPlanPointStatus(point.Status)
+	if status == "" {
+		status = database.ReturnPlanPointStatusPending
+	}
+
+	return database.CreateReturnPlanPointParams{
+		ID:            point.ID,
+		ReturnPlanID:  point.ReturnPlanID,
+		ReturnPointID: point.ReturnPointID,
+		PointName:     point.PointName,
+		PointAddress:  toNullString(point.PointAddress),
+		PetQty:        int32(point.PetCount),
+		CanQty:        int32(point.CanCount),
+		GlassQty:      int32(point.GlassCount),
+		Status:        status,
+		CreatedAt:     createdAt,
+		UpdatedAt:     updatedAt,
+	}
+}
+
+func toReturnPlanPointEntity(point database.ReturnPlanPoint) entity.ReturnPlanPoint {
+	var confirmedAt *time.Time
+	if point.ConfirmedAt.Valid {
+		confirmedAt = &point.ConfirmedAt.Time
+	}
+
+	return entity.ReturnPlanPoint{
+		ID:            point.ID,
+		ReturnPlanID:  point.ReturnPlanID,
+		ReturnPointID: point.ReturnPointID,
+		PointName:     point.PointName,
+		PointAddress:  point.PointAddress.String,
+		PetCount:      int(point.PetQty),
+		CanCount:      int(point.CanQty),
+		GlassCount:    int(point.GlassQty),
+		Status:        entity.PlanPointStatus(point.Status),
+		ConfirmedAt:   confirmedAt,
+		CreatedAt:     point.CreatedAt,
+		UpdatedAt:     point.UpdatedAt,
+	}
+}
+
+func toReturnPlanPointEntities(rows []database.ReturnPlanPoint) []entity.ReturnPlanPoint {
+	result := make([]entity.ReturnPlanPoint, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, toReturnPlanPointEntity(row))
+	}
+	return result
+}
+
 func toBookmarksWithReturnPoints(rows []database.ListBookmarksWithReturnPointsByUserIdRow) []entity.BookmarkWithReturnPoint {
 	result := make([]entity.BookmarkWithReturnPoint, 0, len(rows))
 	for _, row := range rows {

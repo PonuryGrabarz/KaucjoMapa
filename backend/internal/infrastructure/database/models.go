@@ -186,6 +186,92 @@ func (ns NullRefundMethod) Value() (driver.Value, error) {
 	return string(ns.RefundMethod), nil
 }
 
+type ReturnPlanPointStatus string
+
+const (
+	ReturnPlanPointStatusPending   ReturnPlanPointStatus = "pending"
+	ReturnPlanPointStatusConfirmed ReturnPlanPointStatus = "confirmed"
+)
+
+func (e *ReturnPlanPointStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ReturnPlanPointStatus(s)
+	case string:
+		*e = ReturnPlanPointStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ReturnPlanPointStatus: %T", src)
+	}
+	return nil
+}
+
+type NullReturnPlanPointStatus struct {
+	ReturnPlanPointStatus ReturnPlanPointStatus
+	Valid                 bool // Valid is true if ReturnPlanPointStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullReturnPlanPointStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ReturnPlanPointStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ReturnPlanPointStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullReturnPlanPointStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ReturnPlanPointStatus), nil
+}
+
+type ReturnPlanStatus string
+
+const (
+	ReturnPlanStatusDraft              ReturnPlanStatus = "draft"
+	ReturnPlanStatusSaved              ReturnPlanStatus = "saved"
+	ReturnPlanStatusPartiallyConfirmed ReturnPlanStatus = "partially_confirmed"
+	ReturnPlanStatusConfirmed          ReturnPlanStatus = "confirmed"
+)
+
+func (e *ReturnPlanStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ReturnPlanStatus(s)
+	case string:
+		*e = ReturnPlanStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ReturnPlanStatus: %T", src)
+	}
+	return nil
+}
+
+type NullReturnPlanStatus struct {
+	ReturnPlanStatus ReturnPlanStatus
+	Valid            bool // Valid is true if ReturnPlanStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullReturnPlanStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ReturnPlanStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ReturnPlanStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullReturnPlanStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ReturnPlanStatus), nil
+}
+
 type Bookmark struct {
 	ID            uuid.UUID
 	UserID        uuid.UUID
@@ -221,6 +307,36 @@ type RefreshToken struct {
 	RevokedAt sql.NullTime
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type ReturnPlan struct {
+	ID              uuid.UUID
+	UserID          uuid.UUID
+	Status          ReturnPlanStatus
+	TargetPet       int32
+	TargetCan       int32
+	TargetGlass     int32
+	RatePetGrosze   int32
+	RateCanGrosze   int32
+	RateGlassGrosze int32
+	ConfirmedAt     sql.NullTime
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+type ReturnPlanPoint struct {
+	ID            uuid.UUID
+	ReturnPlanID  uuid.UUID
+	ReturnPointID uuid.UUID
+	PointName     string
+	PointAddress  sql.NullString
+	PetQty        int32
+	CanQty        int32
+	GlassQty      int32
+	Status        ReturnPlanPointStatus
+	ConfirmedAt   sql.NullTime
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type ReturnPoint struct {
