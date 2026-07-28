@@ -62,6 +62,21 @@ func BookmarksRouter(app fiber.Router, bookmarkHandler handler.BookmarkHandler, 
 	app.Delete("/bookmarks/:id", middleware.RequireJWT(auth, JWTSecret), bookmarkHandler.Delete)
 }
 
+func ReturnPlansRouter(app fiber.Router, returnPlanHandler handler.ReturnPlanHandler, JWTSecret string, auth port.ITokenSigner) {
+	app.Post("/return_plans", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.Create)
+	app.Get("/return_plans", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.List)
+	app.Get("/return_plans/draft", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.GetDraft)
+	app.Get("/return_plans/:id", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.GetByID)
+	app.Put("/return_plans/:id/targets", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.UpdateTargets)
+	app.Post("/return_plans/:id/save", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.Save)
+	app.Post("/return_plans/:id/confirm", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.ConfirmAll)
+	app.Delete("/return_plans/:id", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.Delete)
+	app.Post("/return_plans/:id/points", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.AddPoint)
+	app.Put("/return_plans/:id/points/:point_id", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.UpdatePointQuantities)
+	app.Post("/return_plans/:id/points/:point_id/confirm", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.ConfirmPoint)
+	app.Delete("/return_plans/:id/points/:point_id", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.DeletePoint)
+}
+
 func DocsRouter(app fiber.Router) {
 	openAPISepcDir, err := filepath.Abs("docs")
 	if err != nil {

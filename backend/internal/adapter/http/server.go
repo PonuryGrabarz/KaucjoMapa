@@ -33,6 +33,7 @@ type FiberServer struct {
 	BookmarkSvc         usecase.IBookmarkService
 	OAuthSvc            usecase.IGoogleOAuthService
 	PasswordRecoverySvc usecase.IPasswordRecoveryService
+  ReturnPlanSvc       usecase.IReturnPlanService
 	HasherSvc           usecase.IPasswordHasher
 	cfg                 *config.Config
 }
@@ -103,7 +104,7 @@ func translateFieldError(fe validator.FieldError) string {
 	}
 }
 
-func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, notSvc usecase.INotificationsService, bookmarkSvc usecase.IBookmarkService, oAuthSvc usecase.IGoogleOAuthService, passwordRecoverySvc usecase.IPasswordRecoveryService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
+func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, notSvc usecase.INotificationsService, bookmarkSvc usecase.IBookmarkService, returnPlanSvc usecase.IReturnPlanService, oAuthSvc usecase.IGoogleOAuthService, passwordRecoverySvc usecase.IPasswordRecoveryService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
@@ -111,17 +112,18 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 			ErrorHandler:    middleware.ErrorHandler,
 			StructValidator: &structValidator{validate: newValidator()},
 		}),
-		ReturnPointSvc:      returnPointSvc,
-		UserSvc:             userSvc,
-		AuthSvc:             authSvc,
-		ReportSvc:           reportSvc,
-		VoteSvc:             voteSvc,
-		NotificationsSvc:    notSvc,
-		BookmarkSvc:         bookmarkSvc,
-		OAuthSvc:            oAuthSvc,
-		PasswordRecoverySvc: passwordRecoverySvc,
-		HasherSvc:           hasherSvc,
-		cfg:                 cfg,
+		ReturnPointSvc:   returnPointSvc,
+		UserSvc:          userSvc,
+		AuthSvc:          authSvc,
+		ReportSvc:        reportSvc,
+		VoteSvc:          voteSvc,
+		NotificationsSvc: notSvc,
+		BookmarkSvc:      bookmarkSvc,
+		ReturnPlanSvc:    returnPlanSvc,
+    PasswordRecoverySvc: passwordRecoverySvc,
+		OAuthSvc:         oAuthSvc,
+		HasherSvc:        hasherSvc,
+		cfg:              cfg,
 	}
 
 	server.Use(cors.New(cors.Config{
@@ -162,6 +164,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	voteHandler := handler.NewCommunityReportVoteHandler(server.VoteSvc)
 	notificationsHandler := handler.NewNotificationsHandler(server.NotificationsSvc)
 	bookmarkHandler := handler.NewBookmarkHandler(server.BookmarkSvc)
+	returnPlanHandler := handler.NewReturnPlanHandler(server.ReturnPlanSvc)
 	oAuthHandler := handler.NewOAuthHandler(server.UserSvc, server.HasherSvc, server.OAuthSvc)
 	recoveryHandler := handler.NewPasswordRecoveryHandler(server.PasswordRecoverySvc)
 
@@ -172,6 +175,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	CommunityReportVoteRouter(api, *voteHandler, cfg.JWTSecret, tokenSvc)
 	NotificationsRouter(api, *notificationsHandler, cfg.JWTSecret, tokenSvc)
 	BookmarksRouter(api, *bookmarkHandler, cfg.JWTSecret, tokenSvc)
+	ReturnPlansRouter(api, *returnPlanHandler, cfg.JWTSecret, tokenSvc)
 	DocsRouter(api)
 
 	return server

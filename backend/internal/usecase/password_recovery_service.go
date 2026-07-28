@@ -50,10 +50,9 @@ func NewPasswordRecoveryService(recoveryRepo IPasswordRecoveryRepository, userRe
 }
 
 func (s *passwordRecoveryService) StartRecovery(ctx context.Context, in dto.StartRecoveryInput) (entity.PasswordResetChallenge, error) {
-	// Anti-enumeration: nieznany e-mail tworzy "shadow challenge" (bez user_id
-	// i bez wysyłki), więc odpowiedź API jest identyczna dla obu przypadków.
 	var userID *uuid.UUID
 	user, err := s.userRepo.GetUserByEmail(ctx, in.Email)
+
 	switch {
 	case err == nil:
 		userID = &user.ID
@@ -104,8 +103,6 @@ func (s *passwordRecoveryService) VerifyCode(ctx context.Context, in dto.VerifyC
 		return "", time.Time{}, err
 	}
 
-	// Shadow challenge nigdy nie przechodzi weryfikacji — zachowanie jak
-	// błędny kod, łącznie z licznikiem prób.
 	if challenge.UserID == nil || challenge.ResetTokenHash != "" {
 		return "", time.Time{}, s.failAttempt(ctx, challenge)
 	}
@@ -219,8 +216,6 @@ func (s *passwordRecoveryService) ResetPassword(ctx context.Context, in dto.Rese
 	return nil
 }
 
-// getActiveChallenge zwraca wyzwanie, które wciąż można zweryfikować:
-// niezużyte i niewygasłe. Zużyte/wygasłe traktujemy jak nieistniejące.
 func (s *passwordRecoveryService) getActiveChallenge(ctx context.Context, id uuid.UUID) (entity.PasswordResetChallenge, error) {
 	challenge, err := s.recoveryRepo.GetByID(ctx, id)
 	if err != nil {
@@ -238,8 +233,6 @@ func (s *passwordRecoveryService) getActiveChallenge(ctx context.Context, id uui
 	return challenge, nil
 }
 
-// failAttempt zlicza błędną próbę weryfikacji; przy osiągnięciu limitu
-// wyzwanie jest konsumowane i zgłaszany jest błąd 403 zamiast 401.
 func (s *passwordRecoveryService) failAttempt(ctx context.Context, challenge entity.PasswordResetChallenge) error {
 	updated, err := s.recoveryRepo.IncrementAttempts(ctx, challenge.ID)
 	if err != nil {
