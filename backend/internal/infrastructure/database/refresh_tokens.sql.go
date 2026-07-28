@@ -125,6 +125,17 @@ func (q *Queries) GetUserTokens(ctx context.Context, userID uuid.UUID) ([]Refres
 	return items, nil
 }
 
+const revokeAllUserTokens = `-- name: RevokeAllUserTokens :exec
+UPDATE refresh_tokens
+    SET revoked_at = NOW(), updated_at = NOW()
+    WHERE user_id = $1 AND revoked_at IS NULL
+`
+
+func (q *Queries) RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, revokeAllUserTokens, userID)
+	return err
+}
+
 const revokeToken = `-- name: RevokeToken :exec
 UPDATE refresh_tokens
     SET revoked_at = NOW(), updated_at = NOW()

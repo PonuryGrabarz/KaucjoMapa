@@ -213,6 +213,20 @@ type CommunityReportVote struct {
 	UpdatedAt         time.Time
 }
 
+type PasswordResetChallenge struct {
+	ID                  uuid.UUID
+	UserID              uuid.NullUUID
+	CodeHash            string
+	Attempts            int32
+	ExpiresAt           time.Time
+	ResendAvailableAt   time.Time
+	ResetTokenHash      sql.NullString
+	ResetTokenExpiresAt sql.NullTime
+	ConsumedAt          sql.NullTime
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+}
+
 type RefreshToken struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID

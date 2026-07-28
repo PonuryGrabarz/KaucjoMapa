@@ -11,5 +11,12 @@ services:
     volumes:
       - psql_volume_bp_18:/var/lib/postgresql
 
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   psql_volume_bp_18:

@@ -114,6 +114,235 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/password-recovery": {
+            "post": {
+                "description": "Tworzy wyzwanie resetowania hasła i wysyła 8-cyfrowy kod na podany e-mail. Odpowiedź jest zawsze taka sama, niezależnie od tego, czy e-mail istnieje w systemie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Rozpocznij odzyskiwanie hasła",
+                "parameters": [
+                    {
+                        "description": "Adres e-mail konta",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.StartRecoveryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Wyzwanie utworzone, kod wysłany",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.RecoveryChallengeEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-recovery/{challenge_id}/resend": {
+            "post": {
+                "description": "Generuje nowy kod (stary traci ważność), zeruje licznik prób i przedłuża wyzwanie o 10 minut. Dostępne najwcześniej 60 sekund po poprzedniej wysyłce.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Wyślij kod resetowania ponownie",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID wyzwania (UUID)",
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Nowy kod wysłany",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.RecoveryChallengeEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe ID wyzwania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Wyzwanie nie istnieje lub zostało zużyte",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Ponowna wysyłka jeszcze niedostępna",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-recovery/{challenge_id}/reset": {
+            "post": {
+                "description": "Ustawia nowe hasło na podstawie reset tokenu z weryfikacji kodu. Unieważnia wszystkie aktywne sesje użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Ustaw nowe hasło",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID wyzwania (UUID)",
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reset token i nowe hasło",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Nieprawidłowy lub wygasły reset token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Wyzwanie nie istnieje",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-recovery/{challenge_id}/verify": {
+            "post": {
+                "description": "Sprawdza 8-cyfrowy kod i zwraca jednorazowy reset token ważny 10 minut. Maksymalnie 5 prób na wyzwanie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Zweryfikuj kod resetowania hasła",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID wyzwania (UUID)",
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Kod z wiadomości e-mail",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.VerifyCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reset token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ResetTokenEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Nieprawidłowy kod",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Przekroczono limit prób",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Wyzwanie nie istnieje lub wygasło",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/revoke": {
             "post": {
                 "security": [
@@ -1818,6 +2047,63 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.RecoveryChallengeEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/presenter.RecoveryChallengeResponse"
+                }
+            }
+        },
+        "presenter.RecoveryChallengeResponse": {
+            "type": "object",
+            "properties": {
+                "challenge_id": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "resend_available_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "reset_token"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "reset_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.ResetTokenEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/presenter.ResetTokenResponse"
+                }
+            }
+        },
+        "presenter.ResetTokenResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "reset_token": {
+                    "type": "string"
+                }
+            }
+        },
         "presenter.ReturnPointDetailsResponse": {
             "type": "object",
             "required": [
@@ -1924,6 +2210,17 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.StartRecoveryRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "presenter.TokenResponse": {
             "type": "object",
             "properties": {
@@ -1997,6 +2294,17 @@ const docTemplate = `{
                         "punkt_skupu",
                         "inny"
                     ]
+                }
+            }
+        },
+        "presenter.VerifyCodeRequest": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
                 }
             }
         }
