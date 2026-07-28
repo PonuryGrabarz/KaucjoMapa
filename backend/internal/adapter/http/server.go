@@ -31,6 +31,7 @@ type FiberServer struct {
 	VoteSvc          usecase.ICommunityReportVoteService
 	NotificationsSvc usecase.INotificationsService
 	BookmarkSvc      usecase.IBookmarkService
+	ReturnPlanSvc    usecase.IReturnPlanService
 	OAuthSvc         usecase.IGoogleOAuthService
 	HasherSvc        usecase.IPasswordHasher
 	cfg              *config.Config
@@ -102,7 +103,7 @@ func translateFieldError(fe validator.FieldError) string {
 	}
 }
 
-func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, notSvc usecase.INotificationsService, bookmarkSvc usecase.IBookmarkService, oAuthSvc usecase.IGoogleOAuthService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
+func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserService, authSvc usecase.IAuthService, reportSvc usecase.ICommunityReportsService, voteSvc usecase.ICommunityReportVoteService, notSvc usecase.INotificationsService, bookmarkSvc usecase.IBookmarkService, returnPlanSvc usecase.IReturnPlanService, oAuthSvc usecase.IGoogleOAuthService, tokenSvc port.ITokenSigner, hasherSvc port.IPasswordHasher, cfg *config.Config) *FiberServer {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
@@ -117,6 +118,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 		VoteSvc:          voteSvc,
 		NotificationsSvc: notSvc,
 		BookmarkSvc:      bookmarkSvc,
+		ReturnPlanSvc:    returnPlanSvc,
 		OAuthSvc:         oAuthSvc,
 		HasherSvc:        hasherSvc,
 		cfg:              cfg,
@@ -160,6 +162,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	voteHandler := handler.NewCommunityReportVoteHandler(server.VoteSvc)
 	notificationsHandler := handler.NewNotificationsHandler(server.NotificationsSvc)
 	bookmarkHandler := handler.NewBookmarkHandler(server.BookmarkSvc)
+	returnPlanHandler := handler.NewReturnPlanHandler(server.ReturnPlanSvc)
 	oAuthHandler := handler.NewOAuthHandler(server.UserSvc, server.HasherSvc, server.OAuthSvc)
 
 	ReturnPointRouter(api, *returnPointHandler, cfg.JWTSecret, tokenSvc)
@@ -169,6 +172,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	CommunityReportVoteRouter(api, *voteHandler, cfg.JWTSecret, tokenSvc)
 	NotificationsRouter(api, *notificationsHandler, cfg.JWTSecret, tokenSvc)
 	BookmarksRouter(api, *bookmarkHandler, cfg.JWTSecret, tokenSvc)
+	ReturnPlansRouter(api, *returnPlanHandler, cfg.JWTSecret, tokenSvc)
 	DocsRouter(api)
 
 	return server

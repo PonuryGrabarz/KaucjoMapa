@@ -52,6 +52,7 @@ func main() {
 	voteRepo := postgres.NewCommunityReportVoteRepo(db.Queries)
 	notificationsRepo := postgres.NewNotificationsRepo(db.Queries)
 	bookmarkRepo := postgres.NewBookmarkRepo(db.Queries)
+	returnPlanRepo := postgres.NewReturnPlanRepo(db.Queries)
 	oAuthRepo := postgres.NewOAuthRepo(db.Queries)
 	tokenSigner := token.NewTokenSigner(cfg.JWTSecret, time.Second*3600)
 	hasher := crypto.NewHasher()
@@ -63,6 +64,7 @@ func main() {
 	voteSvc := usecase.NewCommunityReportVoteService(voteRepo, userSvc, reportSvc)
 	notificationsSvc := usecase.NewNotificationService(notificationsRepo, userSvc)
 	bookmarkSvc := usecase.NewBookmarkService(bookmarkRepo)
+	returnPlanSvc := usecase.NewReturnPlanService(returnPlanRepo, returnPointRepo)
 	oAuthSvc := usecase.NewGoogleOAuthService(oAuthRepo, tokenRepo, tokenSigner)
 
 	seedSvc := usecase.NewSeedService(returnPointRepo, userRepo, &scraper, cfg.AdminUsername, hasher)
@@ -81,7 +83,7 @@ func main() {
 		fmt.Printf("Error scraping points: %v", err)
 	}
 
-	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, notificationsSvc, bookmarkSvc, oAuthSvc, tokenSigner, hasher, cfg)
+	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, notificationsSvc, bookmarkSvc, returnPlanSvc, oAuthSvc, tokenSigner, hasher, cfg)
 
 	certsDir, err := filepath.Abs("certs")
 	if err != nil {

@@ -47,3 +47,24 @@ func (r *UserRepo) GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, 
 
 	return toUserEntity(row), nil
 }
+
+func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
+	row, err := r.q.GetUserByEmail(ctx, email)
+	if err != nil {
+		return entity.User{}, mapError(err)
+	}
+
+	return toUserEntity(row), nil
+}
+
+func (r *UserRepo) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
+	err := r.q.UpdateUserPassword(ctx, database.UpdateUserPasswordParams{
+		ID:           id,
+		PasswordHash: passwordHash,
+	})
+	if err != nil {
+		return mapError(err)
+	}
+
+	return nil
+}

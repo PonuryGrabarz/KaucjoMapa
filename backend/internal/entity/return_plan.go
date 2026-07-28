@@ -50,3 +50,14 @@ type ReturnPlanPoint struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
+
+type ReturnPlanWithPoints struct {
+	Plan   ReturnPlan
+	Points []ReturnPlanPoint
+}
+
+const (
+	DefaultRatePetGrosze   = 50
+	DefaultRateCanGrosze   = 50
+	DefaultRateGlassGrosze = 100
+)

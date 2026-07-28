@@ -303,6 +303,67 @@ func toUserEntity(user database.User) entity.User {
 	}
 }
 
+func toCreatePasswordResetChallengeParams(c entity.PasswordResetChallenge) database.CreatePasswordResetChallengeParams {
+	return database.CreatePasswordResetChallengeParams{
+		ID:                c.ID,
+		UserID:            toNullUUID(c.UserID),
+		CodeHash:          c.CodeHash,
+		ExpiresAt:         c.ExpiresAt,
+		ResendAvailableAt: c.ResendAvailableAt,
+		CreatedAt:         c.CreatedAt,
+		UpdatedAt:         c.UpdatedAt,
+	}
+}
+
+func toUpdatePasswordResetChallengeCodeParams(c entity.PasswordResetChallenge) database.UpdatePasswordResetChallengeCodeParams {
+	return database.UpdatePasswordResetChallengeCodeParams{
+		ID:                c.ID,
+		CodeHash:          c.CodeHash,
+		ExpiresAt:         c.ExpiresAt,
+		ResendAvailableAt: c.ResendAvailableAt,
+	}
+}
+
+func toSetPasswordResetTokenParams(id uuid.UUID, tokenHash string, expiresAt time.Time) database.SetPasswordResetTokenParams {
+	return database.SetPasswordResetTokenParams{
+		ID:                  id,
+		ResetTokenHash:      sql.NullString{String: tokenHash, Valid: true},
+		ResetTokenExpiresAt: sql.NullTime{Time: expiresAt, Valid: true},
+	}
+}
+
+func toPasswordResetChallengeEntity(c database.PasswordResetChallenge) entity.PasswordResetChallenge {
+	var userID *uuid.UUID
+	if c.UserID.Valid {
+		id := c.UserID.UUID
+		userID = &id
+	}
+
+	var resetTokenExpiresAt *time.Time
+	if c.ResetTokenExpiresAt.Valid {
+		resetTokenExpiresAt = &c.ResetTokenExpiresAt.Time
+	}
+
+	var consumedAt *time.Time
+	if c.ConsumedAt.Valid {
+		consumedAt = &c.ConsumedAt.Time
+	}
+
+	return entity.PasswordResetChallenge{
+		ID:                  c.ID,
+		UserID:              userID,
+		CodeHash:            c.CodeHash,
+		Attempts:            int(c.Attempts),
+		ExpiresAt:           c.ExpiresAt,
+		ResendAvailableAt:   c.ResendAvailableAt,
+		ResetTokenHash:      c.ResetTokenHash.String,
+		ResetTokenExpiresAt: resetTokenExpiresAt,
+		ConsumedAt:          consumedAt,
+		CreatedAt:           c.CreatedAt,
+		UpdatedAt:           c.UpdatedAt,
+	}
+}
+
 func toCreateRefreshTokenParams(token entity.RefreshToken) database.CreateRefreshTokenParams {
 	return database.CreateRefreshTokenParams{
 		ID:        token.ID,
