@@ -16,6 +16,7 @@ import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/config"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/crypto"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/mail"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/token"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/dto"
@@ -54,8 +55,10 @@ func main() {
 	bookmarkRepo := postgres.NewBookmarkRepo(db.Queries)
 	returnPlanRepo := postgres.NewReturnPlanRepo(db.Queries)
 	oAuthRepo := postgres.NewOAuthRepo(db.Queries)
+	recoveryRepo := postgres.NewPasswordRecoveryRepo(db.Queries)
 	tokenSigner := token.NewTokenSigner(cfg.JWTSecret, time.Second*3600)
 	hasher := crypto.NewHasher()
+	mailSender := mail.NewSMTPSender(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPFrom)
 
 	userSvc := usecase.NewUserService(userRepo, hasher, tokenSigner)
 	returnPointSvc := usecase.NewReturnPointService(returnPointRepo, userSvc, tokenSigner)
@@ -66,6 +69,7 @@ func main() {
 	bookmarkSvc := usecase.NewBookmarkService(bookmarkRepo)
 	returnPlanSvc := usecase.NewReturnPlanService(returnPlanRepo, returnPointRepo)
 	oAuthSvc := usecase.NewGoogleOAuthService(oAuthRepo, tokenRepo, tokenSigner)
+	recoverySvc := usecase.NewPasswordRecoveryService(recoveryRepo, userRepo, tokenRepo, hasher, mailSender)
 
 	seedSvc := usecase.NewSeedService(returnPointRepo, userRepo, &scraper, cfg.AdminUsername, hasher)
 
@@ -83,7 +87,7 @@ func main() {
 		fmt.Printf("Error scraping points: %v", err)
 	}
 
-	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, notificationsSvc, bookmarkSvc, returnPlanSvc, oAuthSvc, tokenSigner, hasher, cfg)
+	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, notificationsSvc, bookmarkSvc, returnPlanSvc, oAuthSvc, recoverySvc, tokenSigner, hasher, cfg)
 
 	certsDir, err := filepath.Abs("certs")
 	if err != nil {
