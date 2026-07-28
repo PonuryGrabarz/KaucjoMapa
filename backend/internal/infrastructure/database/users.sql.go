@@ -71,6 +71,30 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject FROM users WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Username,
+		&i.PasswordHash,
+		&i.Reputation,
+		&i.IsAdmin,
+		&i.IsBanned,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.TotalConfirmations,
+		&i.TotalRejections,
+		&i.GoogleSubject,
+	)
+	return i, err
+}
+
 const getUserByGoogleSubject = `-- name: GetUserByGoogleSubject :one
 SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject FROM users WHERE google_subject = $1
 `
@@ -189,6 +213,22 @@ DELETE FROM users
 
 func (q *Queries) ResetUsers(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, resetUsers)
+	return err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users
+    SET password_hash = $2, updated_at = NOW()
+    WHERE id = $1
+`
+
+type UpdateUserPasswordParams struct {
+	ID           uuid.UUID
+	PasswordHash string
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
 	return err
 }
 

@@ -267,6 +267,43 @@ definitions:
       total_pages:
         type: integer
     type: object
+  presenter.RecoveryChallengeEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/presenter.RecoveryChallengeResponse'
+    type: object
+  presenter.RecoveryChallengeResponse:
+    properties:
+      challenge_id:
+        type: string
+      expires_at:
+        type: string
+      resend_available_at:
+        type: string
+    type: object
+  presenter.ResetPasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      reset_token:
+        type: string
+    required:
+    - new_password
+    - reset_token
+    type: object
+  presenter.ResetTokenEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/presenter.ResetTokenResponse'
+    type: object
+  presenter.ResetTokenResponse:
+    properties:
+      expires_at:
+        type: string
+      reset_token:
+        type: string
+    type: object
   presenter.ReturnPointDetailsResponse:
     properties:
       address:
@@ -340,6 +377,13 @@ definitions:
           $ref: '#/definitions/presenter.ReturnPointDetailsResponse'
         type: array
     type: object
+  presenter.StartRecoveryRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   presenter.TokenResponse:
     properties:
       token:
@@ -391,6 +435,13 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  presenter.VerifyCodeRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
     type: object
 host: localhost:3000
 info:
@@ -461,6 +512,163 @@ paths:
           schema:
             $ref: '#/definitions/presenter.ErrorResponse'
       summary: Callback Google OAuth2
+      tags:
+      - auth
+  /auth/password-recovery:
+    post:
+      consumes:
+      - application/json
+      description: Tworzy wyzwanie resetowania hasła i wysyła 8-cyfrowy kod na podany
+        e-mail. Odpowiedź jest zawsze taka sama, niezależnie od tego, czy e-mail istnieje
+        w systemie.
+      parameters:
+      - description: Adres e-mail konta
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.StartRecoveryRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Wyzwanie utworzone, kod wysłany
+          schema:
+            $ref: '#/definitions/presenter.RecoveryChallengeEnvelope'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Wewnętrzny błąd serwera
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Rozpocznij odzyskiwanie hasła
+      tags:
+      - auth
+  /auth/password-recovery/{challenge_id}/resend:
+    post:
+      description: Generuje nowy kod (stary traci ważność), zeruje licznik prób i
+        przedłuża wyzwanie o 10 minut. Dostępne najwcześniej 60 sekund po poprzedniej
+        wysyłce.
+      parameters:
+      - description: ID wyzwania (UUID)
+        in: path
+        name: challenge_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Nowy kod wysłany
+          schema:
+            $ref: '#/definitions/presenter.RecoveryChallengeEnvelope'
+        "400":
+          description: Nieprawidłowe ID wyzwania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Wyzwanie nie istnieje lub zostało zużyte
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "409":
+          description: Ponowna wysyłka jeszcze niedostępna
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Wewnętrzny błąd serwera
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Wyślij kod resetowania ponownie
+      tags:
+      - auth
+  /auth/password-recovery/{challenge_id}/reset:
+    post:
+      consumes:
+      - application/json
+      description: Ustawia nowe hasło na podstawie reset tokenu z weryfikacji kodu.
+        Unieważnia wszystkie aktywne sesje użytkownika.
+      parameters:
+      - description: ID wyzwania (UUID)
+        in: path
+        name: challenge_id
+        required: true
+        type: string
+      - description: Reset token i nowe hasło
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.ResetPasswordRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Nieprawidłowy lub wygasły reset token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Wyzwanie nie istnieje
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Wewnętrzny błąd serwera
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Ustaw nowe hasło
+      tags:
+      - auth
+  /auth/password-recovery/{challenge_id}/verify:
+    post:
+      consumes:
+      - application/json
+      description: Sprawdza 8-cyfrowy kod i zwraca jednorazowy reset token ważny 10
+        minut. Maksymalnie 5 prób na wyzwanie.
+      parameters:
+      - description: ID wyzwania (UUID)
+        in: path
+        name: challenge_id
+        required: true
+        type: string
+      - description: Kod z wiadomości e-mail
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.VerifyCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reset token
+          schema:
+            $ref: '#/definitions/presenter.ResetTokenEnvelope'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Nieprawidłowy kod
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "403":
+          description: Przekroczono limit prób
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Wyzwanie nie istnieje lub wygasło
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Wewnętrzny błąd serwera
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      summary: Zweryfikuj kod resetowania hasła
       tags:
       - auth
   /auth/revoke:

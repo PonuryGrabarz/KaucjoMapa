@@ -66,3 +66,12 @@ func (r *RefreshTokenRepo) RevokeToken(ctx context.Context, id uuid.UUID, tokenS
 
 	return nil
 }
+
+func (r *RefreshTokenRepo) RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error {
+	err := r.q.RevokeAllUserTokens(ctx, userID)
+	if err != nil {
+		return mapError(err)
+	}
+
+	return nil
+}

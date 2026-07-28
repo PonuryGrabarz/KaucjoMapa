@@ -19,6 +19,11 @@ type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	GootleRedirectURL  string
+	SMTPHost           string
+	SMTPPort           string
+	SMTPUsername       string
+	SMTPPassword       string
+	SMTPFrom           string
 }
 
 func NewConfig() *Config {
@@ -48,5 +53,10 @@ func NewConfig() *Config {
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		GootleRedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
+		SMTPHost:           os.Getenv("SMTP_HOST"),
+		SMTPPort:           os.Getenv("SMTP_PORT"),
+		SMTPUsername:       os.Getenv("SMTP_USERNAME"),
+		SMTPPassword:       os.Getenv("SMTP_PASSWORD"),
+		SMTPFrom:           os.Getenv("SMTP_FROM"),
 	}
 }

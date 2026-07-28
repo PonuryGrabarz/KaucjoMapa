@@ -12,4 +12,5 @@ type IRefreshTokenRepository interface {
 	GetTokensByUserID(ctx context.Context, id uuid.UUID) ([]entity.RefreshToken, error)
 	GetToken(ctx context.Context, id uuid.UUID, tokenString string) (entity.RefreshToken, error)
 	RevokeToken(ctx context.Context, id uuid.UUID, tokenString string) error
+	RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error
 }
