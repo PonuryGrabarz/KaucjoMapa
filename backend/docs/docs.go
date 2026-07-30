@@ -2318,6 +2318,107 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/avatar": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca plik avatara zalogowanego użytkownika.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Pobierz avatar",
+                "responses": {
+                    "200": {
+                        "description": "Plik avatara",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak tokenu lub nieprawidłowa autentikacja",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar nie istnieje",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać avatara",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zapisuje avatar zalogowanego użytkownika z surowych bajtów obrazu (Content-Type: image/jpeg, image/png lub image/webp; max 2MiB).",
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Zmień avatar",
+                "parameters": [
+                    {
+                        "description": "Bajty obrazu (raw body)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowany użytkownik",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ChangeAvatarResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body lub typ treści",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak tokenu lub nieprawidłowa autentikacja",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zmienić avatara",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/password": {
             "put": {
                 "security": [
@@ -2575,6 +2676,29 @@ const docTemplate = `{
                 "user_id": {
                     "type": "string",
                     "format": "uuid"
+                }
+            }
+        },
+        "presenter.ChangeAvatarResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "has_avatar": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_admin": {
+                    "type": "boolean"
+                },
+                "reputation": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },

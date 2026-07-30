@@ -109,6 +109,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
 			AppName:         "KaucjoMapa",
+			BodyLimit:       2 * 1024 * 1024,
 			ErrorHandler:    middleware.ErrorHandler,
 			StructValidator: &structValidator{validate: newValidator()},
 		}),

@@ -48,7 +48,7 @@ func (s *googleOAuthService) CreateUser(ctx context.Context, user entity.User) (
 }
 
 func (s *googleOAuthService) IssueSession(ctx context.Context, user entity.User) (entity.RefreshToken, string, error) {
-	token, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email)
+	token, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email, avatarClaim(user.AvatarPath))
 	if err != nil {
 		return entity.RefreshToken{}, "", err
 	}

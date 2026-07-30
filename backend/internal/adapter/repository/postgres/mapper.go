@@ -291,6 +291,7 @@ func toUserEntity(user database.User) entity.User {
 		Email:              user.Email,
 		Username:           user.Username,
 		PasswordHash:       user.PasswordHash,
+		AvatarPath:         user.AvatarPath.String,
 		Token:              "",
 		Reputation:         user.Reputation,
 		TotalConfirmations: user.TotalConfirmations,

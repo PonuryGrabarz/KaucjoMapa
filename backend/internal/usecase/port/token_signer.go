@@ -6,12 +6,13 @@ type JWTClaims struct {
 	UserID     uuid.UUID `json:"user_id"`
 	Username   string    `json:"username"`
 	Email      string    `json:"email"`
+	AvatarURL  string    `json:"avatar_url"`
 	IsAdmin    bool      `json:"is_admin"`
 	Reputation int32     `json:"reputation"`
 }
 
 type ITokenSigner interface {
-	MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, username, email string) (string, error)
+	MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, username, email string, avatarURL string) (string, error)
 	MakeRefreshToken() string
 	ValidateJWT(tokenString string) (JWTClaims, error)
 	ExtractClaimsFromJWT(tokenString string) (JWTClaims, error)

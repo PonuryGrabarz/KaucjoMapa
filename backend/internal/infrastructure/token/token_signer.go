@@ -31,7 +31,7 @@ func NewTokenSigner(jwtSecret string, expTime time.Duration) *TokenSigner {
 	}
 }
 
-func (t *TokenSigner) MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, username, email string) (string, error) {
+func (t *TokenSigner) MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, username, email string, avatarURL string) (string, error) {
 	issuedAt := jwt.NewNumericDate(time.Now())
 	expiresAt := jwt.NewNumericDate(time.Now().Add(t.ExpirationTime))
 
@@ -40,6 +40,7 @@ func (t *TokenSigner) MakeJWT(userID uuid.UUID, isAdmin bool, reputation int32, 
 			UserID:     userID,
 			Username:   username,
 			Email:      email,
+			AvatarURL:  avatarURL,
 			IsAdmin:    isAdmin,
 			Reputation: reputation,
 		},

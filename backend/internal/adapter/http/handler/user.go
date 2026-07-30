@@ -110,3 +110,71 @@ func (h *UserHandler) ChangePassword(c fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusOK)
 }
+
+// ChangeAvatar godoc
+// @Summary Zmień avatar
+// @Description Zapisuje avatar zalogowanego użytkownika z surowych bajtów obrazu (Content-Type: image/jpeg, image/png lub image/webp; max 2MiB).
+// @Tags users
+// @Accept octet-stream
+// @Produce json
+// @Security BearerAuth
+// @Param body body []byte true "Bajty obrazu (raw body)"
+// @Success 200 {object} presenter.ChangeAvatarResponse "Zaktualizowany użytkownik"
+// @Failure 400 {object} presenter.ErrorResponse "Nieprawidłowe body lub typ treści"
+// @Failure 401 {object} presenter.ErrorResponse "Brak tokenu lub nieprawidłowa autentikacja"
+// @Failure 500 {object} presenter.ErrorResponse "Nie udało się zmienić avatara"
+// @Router /users/avatar [put]
+func (h *UserHandler) ChangeAvatar(c fiber.Ctx) error {
+	claims, ok := c.Locals("claims").(*port.JWTClaims)
+	if !ok {
+		return entity.NewUnauthorized("invalid or missing authentication")
+	}
+
+	contentType := string(c.Request().Header.ContentType())
+	data := c.Body()
+
+	err := h.userSvc.ChangeAvatar(c.Context(), claims.UserID, contentType, data)
+	if err != nil {
+		return err
+	}
+
+	user, err := h.userSvc.GetUserByID(c.Context(), claims.UserID)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(presenter.ChangeAvatarResponse{
+		ID:         user.ID.String(),
+		Username:   user.Username,
+		Email:      user.Email,
+		HasAvatar:  user.AvatarPath != "",
+		Reputation: int(user.Reputation),
+		IsAdmin:    user.IsAdmin,
+	})
+}
+
+// GetAvatar godoc
+// @Summary Pobierz avatar
+// @Description Zwraca plik avatara zalogowanego użytkownika.
+// @Tags users
+// @Produce octet-stream
+// @Security BearerAuth
+// @Success 200 {file} binary "Plik avatara"
+// @Failure 401 {object} presenter.ErrorResponse "Brak tokenu lub nieprawidłowa autentikacja"
+// @Failure 404 {object} presenter.ErrorResponse "Avatar nie istnieje"
+// @Failure 500 {object} presenter.ErrorResponse "Nie udało się pobrać avatara"
+// @Router /users/avatar [get]
+func (h *UserHandler) GetAvatar(c fiber.Ctx) error {
+	claims, ok := c.Locals("claims").(*port.JWTClaims)
+	if !ok {
+		return entity.NewUnauthorized("invalid or missing authentication")
+	}
+
+	data, contentType, err := h.userSvc.GetAvatar(c.Context(), claims.UserID)
+	if err != nil {
+		return err
+	}
+
+	c.Set("Content-Type", contentType)
+	return c.Status(fiber.StatusOK).Send(data)
+}

@@ -12,6 +12,15 @@ type ChangePasswordRequest struct {
 	RepeatNewPassword string `json:"repeat_new_password" validate:"required,min=8"`
 }
 
+type ChangeAvatarResponse struct {
+	ID         string `json:"id"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	HasAvatar  bool   `json:"has_avatar"`
+	Reputation int    `json:"reputation"`
+	IsAdmin    bool   `json:"is_admin"`
+}
+
 func UserSuccessResponse(token string) TokenResponse {
 	return TokenResponse{
 		Token: token,

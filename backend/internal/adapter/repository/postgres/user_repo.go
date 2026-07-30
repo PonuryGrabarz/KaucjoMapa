@@ -68,3 +68,15 @@ func (r *UserRepo) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHas
 
 	return nil
 }
+
+func (r *UserRepo) ChangeAvatar(ctx context.Context, id uuid.UUID, avatarPath string) error {
+	err := r.q.UpdateUserAvatar(ctx, database.UpdateUserAvatarParams{
+		ID:         id,
+		AvatarPath: toNullString(avatarPath),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -101,6 +101,21 @@ definitions:
         format: uuid
         type: string
     type: object
+  presenter.ChangeAvatarResponse:
+    properties:
+      email:
+        type: string
+      has_avatar:
+        type: boolean
+      id:
+        type: string
+      is_admin:
+        type: boolean
+      reputation:
+        type: integer
+      username:
+        type: string
+    type: object
   presenter.ChangePasswordRequest:
     properties:
       new_password:
@@ -2141,6 +2156,71 @@ paths:
           schema:
             $ref: '#/definitions/presenter.ErrorResponse'
       summary: Zarejestruj użytkownika
+      tags:
+      - users
+  /users/avatar:
+    get:
+      description: Zwraca plik avatara zalogowanego użytkownika.
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Plik avatara
+          schema:
+            type: file
+        "401":
+          description: Brak tokenu lub nieprawidłowa autentikacja
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Avatar nie istnieje
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać avatara
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz avatar
+      tags:
+      - users
+    put:
+      consumes:
+      - application/octet-stream
+      description: 'Zapisuje avatar zalogowanego użytkownika z surowych bajtów obrazu
+        (Content-Type: image/jpeg, image/png lub image/webp; max 2MiB).'
+      parameters:
+      - description: Bajty obrazu (raw body)
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowany użytkownik
+          schema:
+            $ref: '#/definitions/presenter.ChangeAvatarResponse'
+        "400":
+          description: Nieprawidłowe body lub typ treści
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak tokenu lub nieprawidłowa autentikacja
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zmienić avatara
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zmień avatar
       tags:
       - users
   /users/password:

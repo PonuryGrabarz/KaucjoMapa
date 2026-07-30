@@ -17,6 +17,7 @@ import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/crypto"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/database"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/mail"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/storage"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/token"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/dto"
@@ -59,8 +60,12 @@ func main() {
 	tokenSigner := token.NewTokenSigner(cfg.JWTSecret, time.Second*3600)
 	hasher := crypto.NewHasher()
 	mailSender := mail.NewSMTPSender(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPFrom)
+	avatarStorage, err := storage.NewAvatarFS(cfg.AvatarStoragePath)
+	if err != nil {
+		log.Fatalf("init avatar storage: %v", err)
+	}
 
-	userSvc := usecase.NewUserService(userRepo, hasher, tokenSigner)
+	userSvc := usecase.NewUserService(userRepo, hasher, tokenSigner, avatarStorage)
 	returnPointSvc := usecase.NewReturnPointService(returnPointRepo, userSvc, tokenSigner)
 	authSvc := usecase.NewAuthService(tokenRepo, userSvc, hasher, tokenSigner)
 	reportSvc := usecase.NewCommunityReportsService(reportsRepo, userSvc)
@@ -73,7 +78,7 @@ func main() {
 
 	seedSvc := usecase.NewSeedService(returnPointRepo, userRepo, &scraper, cfg.AdminUsername, hasher)
 
-	err := seedSvc.SeedAdminUser(context.Background(), dto.SeedAdminInput{
+	err = seedSvc.SeedAdminUser(context.Background(), dto.SeedAdminInput{
 		Username: cfg.AdminUsername,
 		Password: cfg.AdminPassword,
 		Email:    cfg.AdminEmail,

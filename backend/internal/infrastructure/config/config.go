@@ -24,6 +24,7 @@ type Config struct {
 	SMTPUsername       string
 	SMTPPassword       string
 	SMTPFrom           string
+	AvatarStoragePath  string
 }
 
 func NewConfig() *Config {
@@ -58,5 +59,13 @@ func NewConfig() *Config {
 		SMTPUsername:       os.Getenv("SMTP_USERNAME"),
 		SMTPPassword:       os.Getenv("SMTP_PASSWORD"),
 		SMTPFrom:           os.Getenv("SMTP_FROM"),
+		AvatarStoragePath:  avatarStoragePath(),
 	}
+}
+
+func avatarStoragePath() string {
+	if path := os.Getenv("AVATAR_STORAGE_PATH"); path != "" {
+		return path
+	}
+	return "./uploads/avatars"
 }
