@@ -14,6 +14,7 @@ type IUserService interface {
 	Create(ctx context.Context, in dto.CreateUserInput) (entity.User, error)
 	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, error)
+	ChangePassword(ctx context.Context, in dto.ChangePasswordInput) error
 }
 
 type userService struct {
@@ -83,4 +84,36 @@ func (s *userService) GetUserByID(ctx context.Context, id uuid.UUID) (entity.Use
 	}
 
 	return user, nil
+}
+
+func (s *userService) ChangePassword(ctx context.Context, in dto.ChangePasswordInput) error {
+	user, err := s.userRepo.GetUserByID(ctx, in.UserID)
+	if err != nil {
+		return entity.NewUnauthorized("user not found")
+	}
+
+	if in.NewPassword != in.RepeatNewPassword {
+		return entity.NewBadRequest("new password and repeat new password do not match")
+	}
+
+	isPasswordValid, err := s.hasherSvc.CheckPasswordHash(in.OldPassword, user.PasswordHash)
+	if err != nil {
+		return entity.NewUnauthorized("invalid old password")
+	}
+
+	if !isPasswordValid {
+		return entity.NewUnauthorized("invalid old password")
+	}
+
+	hashedPassword, err := s.hasherSvc.HashPassword(in.NewPassword)
+	if err != nil {
+		return entity.NewInternal(err)
+	}
+
+	err = s.userRepo.UpdatePassword(ctx, in.UserID, hashedPassword)
+	if err != nil {
+		return entity.NewInternal(err)
+	}
+
+	return nil
 }

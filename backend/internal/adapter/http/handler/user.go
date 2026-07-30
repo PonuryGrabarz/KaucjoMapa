@@ -73,3 +73,40 @@ func (h *UserHandler) Create(c fiber.Ctx) error {
 
 	return c.JSON(presenter.UserSuccessResponse(newToken))
 }
+
+// ChangePassword godoc
+// @Summary Zmień hasło
+// @Description Zmienia hasło zalogowanego użytkownika po weryfikacji starego hasła.
+// @Tags users
+// @Accept json
+// @Security BearerAuth
+// @Param request body presenter.ChangePasswordRequest true "Stare i nowe hasło"
+// @Success 200 "Hasło zostało zmienione"
+// @Failure 400 {object} presenter.ErrorResponse "Nieprawidłowe body lub hasła się nie zgadzają"
+// @Failure 401 {object} presenter.ErrorResponse "Brak tokenu albo nieprawidłowe stare hasło"
+// @Failure 500 {object} presenter.ErrorResponse "Nie udało się zmienić hasła"
+// @Router /users/password [put]
+func (h *UserHandler) ChangePassword(c fiber.Ctx) error {
+	claims, ok := c.Locals("claims").(*port.JWTClaims)
+	if !ok {
+		return entity.NewUnauthorized("invalid or missing authentication")
+	}
+
+	var req presenter.ChangePasswordRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+
+	err := h.userSvc.ChangePassword(c.Context(), dto.ChangePasswordInput{
+		RepeatNewPassword: req.RepeatNewPassword,
+		NewPassword:       req.NewPassword,
+		OldPassword:       req.OldPassword,
+		UserID:            claims.UserID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
+}
