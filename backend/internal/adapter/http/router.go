@@ -19,8 +19,11 @@ func ReturnPointRouter(app fiber.Router, returnPointHandler handler.ReturnPointH
 	app.Put("/return_points/:id", middleware.RequireJWT(auth, JWTSecret), returnPointHandler.UpdatePoint)
 }
 
-func UsersRouter(app fiber.Router, userHandler handler.UserHandler) {
+func UsersRouter(app fiber.Router, userHandler handler.UserHandler, auth port.ITokenSigner, JWTSecret string) {
 	app.Post("/users", userHandler.Create)
+	app.Put("/users/password", middleware.RequireJWT(auth, JWTSecret), userHandler.ChangePassword)
+	app.Put("/users/avatar", middleware.RequireJWT(auth, JWTSecret), userHandler.ChangeAvatar)
+	app.Get("/users/avatar", middleware.RequireJWT(auth, JWTSecret), userHandler.GetAvatar)
 }
 
 func AuthRouter(app fiber.Router, authHandler handler.AuthHandler, oAuthHandler handler.OAuthHandler, recoveryHandler handler.PasswordRecoveryHandler, JWTSecret string, auth port.ITokenSigner) {

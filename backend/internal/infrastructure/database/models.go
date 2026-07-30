@@ -388,6 +388,7 @@ type User struct {
 	TotalConfirmations int32
 	TotalRejections    int32
 	GoogleSubject      sql.NullString
+	AvatarPath         sql.NullString
 }
 
 type UserNotification struct {

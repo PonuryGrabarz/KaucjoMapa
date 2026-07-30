@@ -54,6 +54,26 @@ definitions:
     - PointStatusDostepny
     - PointStatusNieczynny
     - PointStatusBrakInformacji
+  presenter.AddReturnPlanPointRequest:
+    properties:
+      can_count:
+        example: 3
+        minimum: 0
+        type: integer
+      glass_count:
+        example: 0
+        minimum: 0
+        type: integer
+      pet_count:
+        example: 5
+        minimum: 0
+        type: integer
+      return_point_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - return_point_id
+    type: object
   presenter.BookmarkResponse:
     properties:
       created_at:
@@ -80,6 +100,36 @@ definitions:
       user_id:
         format: uuid
         type: string
+    type: object
+  presenter.ChangeAvatarResponse:
+    properties:
+      email:
+        type: string
+      has_avatar:
+        type: boolean
+      id:
+        type: string
+      is_admin:
+        type: boolean
+      reputation:
+        type: integer
+      username:
+        type: string
+    type: object
+  presenter.ChangePasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      old_password:
+        type: string
+      repeat_new_password:
+        minLength: 8
+        type: string
+    required:
+    - new_password
+    - old_password
+    - repeat_new_password
     type: object
   presenter.CreateBookmarkRequest:
     properties:
@@ -131,6 +181,21 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  presenter.CreateReturnPlanRequest:
+    properties:
+      target_can:
+        example: 15
+        minimum: 0
+        type: integer
+      target_glass:
+        example: 10
+        minimum: 0
+        type: integer
+      target_pet:
+        example: 11
+        minimum: 0
+        type: integer
     type: object
   presenter.CreateReturnPointRequest:
     properties:
@@ -304,6 +369,107 @@ definitions:
       reset_token:
         type: string
     type: object
+  presenter.ReturnPlanPointResponse:
+    properties:
+      can_count:
+        type: integer
+      confirmed_at:
+        type: string
+      created_at:
+        type: string
+      glass_count:
+        type: integer
+      id:
+        format: uuid
+        type: string
+      pet_count:
+        type: integer
+      point_address:
+        type: string
+      point_name:
+        type: string
+      return_plan_id:
+        format: uuid
+        type: string
+      return_point_id:
+        format: uuid
+        type: string
+      status:
+        example: pending
+        type: string
+      updated_at:
+        type: string
+      value_grosze:
+        type: integer
+    type: object
+  presenter.ReturnPlanResponse:
+    properties:
+      assigned_can:
+        type: integer
+      assigned_glass:
+        type: integer
+      assigned_pet:
+        type: integer
+      confirmed_at:
+        type: string
+      created_at:
+        type: string
+      id:
+        format: uuid
+        type: string
+      is_complete:
+        type: boolean
+      points:
+        items:
+          $ref: '#/definitions/presenter.ReturnPlanPointResponse'
+        type: array
+      rate_can_grosze:
+        type: integer
+      rate_glass_grosze:
+        type: integer
+      rate_pet_grosze:
+        type: integer
+      status:
+        example: draft
+        type: string
+      target_can:
+        type: integer
+      target_glass:
+        type: integer
+      target_pet:
+        type: integer
+      total_value_grosze:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        format: uuid
+        type: string
+    type: object
+  presenter.ReturnPlanSummaryResponse:
+    properties:
+      confirmed_at:
+        type: string
+      created_at:
+        type: string
+      id:
+        format: uuid
+        type: string
+      status:
+        example: saved
+        type: string
+      target_can:
+        type: integer
+      target_glass:
+        type: integer
+      target_pet:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        format: uuid
+        type: string
+    type: object
   presenter.ReturnPointDetailsResponse:
     properties:
       address:
@@ -435,6 +601,36 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  presenter.UpdateReturnPlanPointQuantitiesRequest:
+    properties:
+      can_count:
+        example: 3
+        minimum: 0
+        type: integer
+      glass_count:
+        example: 2
+        minimum: 0
+        type: integer
+      pet_count:
+        example: 5
+        minimum: 0
+        type: integer
+    type: object
+  presenter.UpdateReturnPlanTargetsRequest:
+    properties:
+      target_can:
+        example: 15
+        minimum: 0
+        type: integer
+      target_glass:
+        example: 10
+        minimum: 0
+        type: integer
+      target_pet:
+        example: 11
+        minimum: 0
+        type: integer
     type: object
   presenter.VerifyCodeRequest:
     properties:
@@ -1252,6 +1448,478 @@ paths:
       summary: Pobierz zgłoszenia społecznościowe
       tags:
       - community-reports
+  /return_plans:
+    get:
+      description: Zwraca historię planów zwrotu zalogowanego użytkownika.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista planów
+          schema:
+            items:
+              $ref: '#/definitions/presenter.ReturnPlanSummaryResponse'
+            type: array
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać planów
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lista planów zwrotu
+      tags:
+      - return-plans
+    post:
+      consumes:
+      - application/json
+      description: Tworzy nowy draft planu zwrotu dla zalogowanego użytkownika (max.
+        jeden draft na użytkownika).
+      parameters:
+      - description: Cele planu
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.CreateReturnPlanRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Utworzony plan
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanResponse'
+        "400":
+          description: Nieprawidłowe body żądania
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "409":
+          description: Draft już istnieje
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się utworzyć planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Utwórz draft planu zwrotu
+      tags:
+      - return-plans
+  /return_plans/{id}:
+    delete:
+      description: Usuwa niepotwierdzony plan należący do zalogowanego użytkownika.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Nieprawidłowy identyfikator lub plan potwierdzony
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń plan zwrotu
+      tags:
+      - return-plans
+    get:
+      description: Zwraca plan zwrotu po ID wraz z alokacjami punktów.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Plan zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanResponse'
+        "400":
+          description: Nieprawidłowy identyfikator
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz plan zwrotu
+      tags:
+      - return-plans
+  /return_plans/{id}/confirm:
+    post:
+      description: Potwierdza wszystkie pending punkty i zamyka plan, gdy alokacja
+        jest kompletna.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Potwierdzony plan
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanResponse'
+        "400":
+          description: Plan niekompletny lub nieedytowalny
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się potwierdzić planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Potwierdź cały zwrot
+      tags:
+      - return-plans
+  /return_plans/{id}/points:
+    post:
+      consumes:
+      - application/json
+      description: Dodaje punkt zwrotu do planu i opcjonalnie ustawia początkowe ilości.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Punkt i ilości
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.AddReturnPlanPointRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Dodany punkt planu
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanPointResponse'
+        "400":
+          description: Nieprawidłowe body lub punkt nie przyjmuje typu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu lub punktu zwrotu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "409":
+          description: Punkt już jest w planie
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się dodać punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dodaj punkt do planu
+      tags:
+      - return-plans
+  /return_plans/{id}/points/{point_id}:
+    delete:
+      description: Usuwa pending punkt z planu zwrotu.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Identyfikator punktu planu
+        format: uuid
+        in: path
+        name: point_id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Punkt potwierdzony lub nieprawidłowy identyfikator
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu lub punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się usunąć punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Usuń punkt z planu
+      tags:
+      - return-plans
+    put:
+      consumes:
+      - application/json
+      description: Zmienia ilości opakowań przypisane do pending punktu w planie.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Identyfikator punktu planu
+        format: uuid
+        in: path
+        name: point_id
+        required: true
+        type: string
+      - description: Nowe ilości
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.UpdateReturnPlanPointQuantitiesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowany punkt planu
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanPointResponse'
+        "400":
+          description: Nieprawidłowe body lub przekroczony cel
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu lub punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zaktualizować punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zaktualizuj ilości w punkcie planu
+      tags:
+      - return-plans
+  /return_plans/{id}/points/{point_id}/confirm:
+    post:
+      description: Potwierdza pending punkt planu i aktualizuje status planu.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Identyfikator punktu planu
+        format: uuid
+        in: path
+        name: point_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowany plan
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanResponse'
+        "400":
+          description: Punkt nie może zostać potwierdzony
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu lub punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się potwierdzić punktu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Potwierdź oddanie w punkcie
+      tags:
+      - return-plans
+  /return_plans/{id}/save:
+    post:
+      description: Zmienia status draftu na saved.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zapisany plan
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanResponse'
+        "400":
+          description: Plan nie może zostać zapisany
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zapisać planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zapisz plan
+      tags:
+      - return-plans
+  /return_plans/{id}/targets:
+    put:
+      consumes:
+      - application/json
+      description: Zmienia docelowe ilości opakowań w planie.
+      parameters:
+      - description: Identyfikator planu
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nowe cele
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.UpdateReturnPlanTargetsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowany plan
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanResponse'
+        "400":
+          description: Nieprawidłowe body lub cele poniżej alokacji
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Nie znaleziono planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zaktualizować planu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zaktualizuj cele planu
+      tags:
+      - return-plans
+  /return_plans/draft:
+    get:
+      description: Zwraca aktualny draft planu zwrotu zalogowanego użytkownika wraz
+        z punktami.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Draft planu
+          schema:
+            $ref: '#/definitions/presenter.ReturnPlanResponse'
+        "401":
+          description: Brak lub nieprawidłowy access token
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Brak draftu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać draftu
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz draft planu
+      tags:
+      - return-plans
   /return_points:
     get:
       description: Zwraca punkty zwrotu filtrowane po typie, statusie, wyszukiwanej
@@ -1488,6 +2156,103 @@ paths:
           schema:
             $ref: '#/definitions/presenter.ErrorResponse'
       summary: Zarejestruj użytkownika
+      tags:
+      - users
+  /users/avatar:
+    get:
+      description: Zwraca plik avatara zalogowanego użytkownika.
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Plik avatara
+          schema:
+            type: file
+        "401":
+          description: Brak tokenu lub nieprawidłowa autentikacja
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "404":
+          description: Avatar nie istnieje
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się pobrać avatara
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pobierz avatar
+      tags:
+      - users
+    put:
+      consumes:
+      - application/octet-stream
+      description: 'Zapisuje avatar zalogowanego użytkownika z surowych bajtów obrazu
+        (Content-Type: image/jpeg, image/png lub image/webp; max 2MiB).'
+      parameters:
+      - description: Bajty obrazu (raw body)
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Zaktualizowany użytkownik
+          schema:
+            $ref: '#/definitions/presenter.ChangeAvatarResponse'
+        "400":
+          description: Nieprawidłowe body lub typ treści
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak tokenu lub nieprawidłowa autentikacja
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zmienić avatara
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zmień avatar
+      tags:
+      - users
+  /users/password:
+    put:
+      consumes:
+      - application/json
+      description: Zmienia hasło zalogowanego użytkownika po weryfikacji starego hasła.
+      parameters:
+      - description: Stare i nowe hasło
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.ChangePasswordRequest'
+      responses:
+        "200":
+          description: Hasło zostało zmienione
+        "400":
+          description: Nieprawidłowe body lub hasła się nie zgadzają
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "401":
+          description: Brak tokenu albo nieprawidłowe stare hasło
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+        "500":
+          description: Nie udało się zmienić hasła
+          schema:
+            $ref: '#/definitions/presenter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Zmień hasło
       tags:
       - users
   /votes/{report_id}:

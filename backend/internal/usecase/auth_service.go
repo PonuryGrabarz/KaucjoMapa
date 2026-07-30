@@ -47,7 +47,7 @@ func (s *authService) Login(ctx context.Context, in dto.LoginUserInput) (entity.
 		return entity.RefreshToken{}, "", entity.NewInvalidCredentials()
 	}
 
-	token, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email)
+	token, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email, avatarClaim(user.AvatarPath))
 	if err != nil {
 		return entity.RefreshToken{}, "", err
 	}
@@ -90,7 +90,7 @@ func (s *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenInput
 		return "", err
 	}
 
-	newToken, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email)
+	newToken, err := s.tokenSvc.MakeJWT(user.ID, user.IsAdmin, user.Reputation, user.Username, user.Email, avatarClaim(user.AvatarPath))
 	if err != nil {
 		return "", err
 	}

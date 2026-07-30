@@ -58,6 +58,11 @@ DELETE FROM users;
 -- name: GetUsers :many
 SELECT * FROM users;
 
+-- name: UpdateUserAvatar :exec
+UPDATE users
+SET avatar_path = $2, updated_at = NOW()
+WHERE id = $1;
+
 -- name: UpsertAdminUser :exec
 INSERT INTO users (
     id,

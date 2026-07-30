@@ -33,7 +33,7 @@ type FiberServer struct {
 	BookmarkSvc         usecase.IBookmarkService
 	OAuthSvc            usecase.IGoogleOAuthService
 	PasswordRecoverySvc usecase.IPasswordRecoveryService
-  ReturnPlanSvc       usecase.IReturnPlanService
+	ReturnPlanSvc       usecase.IReturnPlanService
 	HasherSvc           usecase.IPasswordHasher
 	cfg                 *config.Config
 }
@@ -109,21 +109,22 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 		App: fiber.New(fiber.Config{
 			ServerHeader:    "KaucjoMapa",
 			AppName:         "KaucjoMapa",
+			BodyLimit:       2 * 1024 * 1024,
 			ErrorHandler:    middleware.ErrorHandler,
 			StructValidator: &structValidator{validate: newValidator()},
 		}),
-		ReturnPointSvc:   returnPointSvc,
-		UserSvc:          userSvc,
-		AuthSvc:          authSvc,
-		ReportSvc:        reportSvc,
-		VoteSvc:          voteSvc,
-		NotificationsSvc: notSvc,
-		BookmarkSvc:      bookmarkSvc,
-		ReturnPlanSvc:    returnPlanSvc,
-    PasswordRecoverySvc: passwordRecoverySvc,
-		OAuthSvc:         oAuthSvc,
-		HasherSvc:        hasherSvc,
-		cfg:              cfg,
+		ReturnPointSvc:      returnPointSvc,
+		UserSvc:             userSvc,
+		AuthSvc:             authSvc,
+		ReportSvc:           reportSvc,
+		VoteSvc:             voteSvc,
+		NotificationsSvc:    notSvc,
+		BookmarkSvc:         bookmarkSvc,
+		ReturnPlanSvc:       returnPlanSvc,
+		PasswordRecoverySvc: passwordRecoverySvc,
+		OAuthSvc:            oAuthSvc,
+		HasherSvc:           hasherSvc,
+		cfg:                 cfg,
 	}
 
 	server.Use(cors.New(cors.Config{
@@ -169,7 +170,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	recoveryHandler := handler.NewPasswordRecoveryHandler(server.PasswordRecoverySvc)
 
 	ReturnPointRouter(api, *returnPointHandler, cfg.JWTSecret, tokenSvc)
-	UsersRouter(api, *userHandler)
+	UsersRouter(api, *userHandler, tokenSvc, cfg.JWTSecret)
 	AuthRouter(api, *authHandler, *oAuthHandler, *recoveryHandler, cfg.JWTSecret, tokenSvc)
 	CommunityReportRouter(api, *reportsHandler, cfg.JWTSecret, tokenSvc)
 	CommunityReportVoteRouter(api, *voteHandler, cfg.JWTSecret, tokenSvc)

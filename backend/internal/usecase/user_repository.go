@@ -13,4 +13,5 @@ type IUserRepository interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, error)
 	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
 	UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error
+	ChangeAvatar(ctx context.Context, id uuid.UUID, avatarPath string) error
 }

@@ -1237,6 +1237,731 @@ const docTemplate = `{
                 }
             }
         },
+        "/return_plans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca historię planów zwrotu zalogowanego użytkownika.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Lista planów zwrotu",
+                "responses": {
+                    "200": {
+                        "description": "Lista planów",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/presenter.ReturnPlanSummaryResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać planów",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy nowy draft planu zwrotu dla zalogowanego użytkownika (max. jeden draft na użytkownika).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Utwórz draft planu zwrotu",
+                "parameters": [
+                    {
+                        "description": "Cele planu",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateReturnPlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzony plan",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Draft już istnieje",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się utworzyć planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/draft": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca aktualny draft planu zwrotu zalogowanego użytkownika wraz z punktami.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Pobierz draft planu",
+                "responses": {
+                    "200": {
+                        "description": "Draft planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Brak draftu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać draftu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca plan zwrotu po ID wraz z alokacjami punktów.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Pobierz plan zwrotu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plan zwrotu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa niepotwierdzony plan należący do zalogowanego użytkownika.",
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Usuń plan zwrotu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator lub plan potwierdzony",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się usunąć planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/{id}/confirm": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Potwierdza wszystkie pending punkty i zamyka plan, gdy alokacja jest kompletna.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Potwierdź cały zwrot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Potwierdzony plan",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Plan niekompletny lub nieedytowalny",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się potwierdzić planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/{id}/points": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dodaje punkt zwrotu do planu i opcjonalnie ustawia początkowe ilości.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Dodaj punkt do planu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Punkt i ilości",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.AddReturnPlanPointRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Dodany punkt planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanPointResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body lub punkt nie przyjmuje typu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu lub punktu zwrotu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Punkt już jest w planie",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się dodać punktu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/{id}/points/{point_id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zmienia ilości opakowań przypisane do pending punktu w planie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Zaktualizuj ilości w punkcie planu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator punktu planu",
+                        "name": "point_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Nowe ilości",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.UpdateReturnPlanPointQuantitiesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowany punkt planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanPointResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body lub przekroczony cel",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu lub punktu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zaktualizować punktu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa pending punkt z planu zwrotu.",
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Usuń punkt z planu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator punktu planu",
+                        "name": "point_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Punkt potwierdzony lub nieprawidłowy identyfikator",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu lub punktu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się usunąć punktu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/{id}/points/{point_id}/confirm": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Potwierdza pending punkt planu i aktualizuje status planu.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Potwierdź oddanie w punkcie",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator punktu planu",
+                        "name": "point_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowany plan",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Punkt nie może zostać potwierdzony",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu lub punktu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się potwierdzić punktu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/{id}/save": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zmienia status draftu na saved.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Zapisz plan",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zapisany plan",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Plan nie może zostać zapisany",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zapisać planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/return_plans/{id}/targets": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zmienia docelowe ilości opakowań w planie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "return-plans"
+                ],
+                "summary": "Zaktualizuj cele planu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator planu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Nowe cele",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.UpdateReturnPlanTargetsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowany plan",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ReturnPlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body lub cele poniżej alokacji",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Nie znaleziono planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zaktualizować planu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/return_points": {
             "get": {
                 "security": [
@@ -1593,6 +2318,158 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/avatar": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca plik avatara zalogowanego użytkownika.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Pobierz avatar",
+                "responses": {
+                    "200": {
+                        "description": "Plik avatara",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak tokenu lub nieprawidłowa autentikacja",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar nie istnieje",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać avatara",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zapisuje avatar zalogowanego użytkownika z surowych bajtów obrazu (Content-Type: image/jpeg, image/png lub image/webp; max 2MiB).",
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Zmień avatar",
+                "parameters": [
+                    {
+                        "description": "Bajty obrazu (raw body)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zaktualizowany użytkownik",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ChangeAvatarResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body lub typ treści",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak tokenu lub nieprawidłowa autentikacja",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zmienić avatara",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zmienia hasło zalogowanego użytkownika po weryfikacji starego hasła.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Zmień hasło",
+                "parameters": [
+                    {
+                        "description": "Stare i nowe hasło",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ChangePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hasło zostało zmienione"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body lub hasła się nie zgadzają",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak tokenu albo nieprawidłowe stare hasło",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zmienić hasła",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/votes/{report_id}": {
             "post": {
                 "security": [
@@ -1736,6 +2613,33 @@ const docTemplate = `{
                 "PointStatusBrakInformacji"
             ]
         },
+        "presenter.AddReturnPlanPointRequest": {
+            "type": "object",
+            "required": [
+                "return_point_id"
+            ],
+            "properties": {
+                "can_count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 3
+                },
+                "glass_count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "pet_count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 5
+                },
+                "return_point_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
         "presenter.BookmarkResponse": {
             "type": "object",
             "properties": {
@@ -1772,6 +2676,50 @@ const docTemplate = `{
                 "user_id": {
                     "type": "string",
                     "format": "uuid"
+                }
+            }
+        },
+        "presenter.ChangeAvatarResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "has_avatar": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_admin": {
+                    "type": "boolean"
+                },
+                "reputation": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.ChangePasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password",
+                "repeat_new_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "old_password": {
+                    "type": "string"
+                },
+                "repeat_new_password": {
+                    "type": "string",
+                    "minLength": 8
                 }
             }
         },
@@ -1848,6 +2796,26 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "presenter.CreateReturnPlanRequest": {
+            "type": "object",
+            "properties": {
+                "target_can": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 15
+                },
+                "target_glass": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 10
+                },
+                "target_pet": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 11
                 }
             }
         },
@@ -2104,6 +3072,154 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.ReturnPlanPointResponse": {
+            "type": "object",
+            "properties": {
+                "can_count": {
+                    "type": "integer"
+                },
+                "confirmed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "glass_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "pet_count": {
+                    "type": "integer"
+                },
+                "point_address": {
+                    "type": "string"
+                },
+                "point_name": {
+                    "type": "string"
+                },
+                "return_plan_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "return_point_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "pending"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "value_grosze": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ReturnPlanResponse": {
+            "type": "object",
+            "properties": {
+                "assigned_can": {
+                    "type": "integer"
+                },
+                "assigned_glass": {
+                    "type": "integer"
+                },
+                "assigned_pet": {
+                    "type": "integer"
+                },
+                "confirmed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "is_complete": {
+                    "type": "boolean"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.ReturnPlanPointResponse"
+                    }
+                },
+                "rate_can_grosze": {
+                    "type": "integer"
+                },
+                "rate_glass_grosze": {
+                    "type": "integer"
+                },
+                "rate_pet_grosze": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "draft"
+                },
+                "target_can": {
+                    "type": "integer"
+                },
+                "target_glass": {
+                    "type": "integer"
+                },
+                "target_pet": {
+                    "type": "integer"
+                },
+                "total_value_grosze": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            }
+        },
+        "presenter.ReturnPlanSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "confirmed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "saved"
+                },
+                "target_can": {
+                    "type": "integer"
+                },
+                "target_glass": {
+                    "type": "integer"
+                },
+                "target_pet": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            }
+        },
         "presenter.ReturnPointDetailsResponse": {
             "type": "object",
             "required": [
@@ -2294,6 +3410,46 @@ const docTemplate = `{
                         "punkt_skupu",
                         "inny"
                     ]
+                }
+            }
+        },
+        "presenter.UpdateReturnPlanPointQuantitiesRequest": {
+            "type": "object",
+            "properties": {
+                "can_count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 3
+                },
+                "glass_count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 2
+                },
+                "pet_count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 5
+                }
+            }
+        },
+        "presenter.UpdateReturnPlanTargetsRequest": {
+            "type": "object",
+            "properties": {
+                "target_can": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 15
+                },
+                "target_glass": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 10
+                },
+                "target_pet": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 11
                 }
             }
         },

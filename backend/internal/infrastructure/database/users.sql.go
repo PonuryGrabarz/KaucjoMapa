@@ -26,7 +26,7 @@ VALUES (
     $8,
     $9
 )
-RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject
+RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject, avatar_path
 `
 
 type CreateUserParams struct {
@@ -67,12 +67,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.TotalConfirmations,
 		&i.TotalRejections,
 		&i.GoogleSubject,
+		&i.AvatarPath,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject FROM users WHERE email = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject, avatar_path FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -91,12 +92,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.TotalConfirmations,
 		&i.TotalRejections,
 		&i.GoogleSubject,
+		&i.AvatarPath,
 	)
 	return i, err
 }
 
 const getUserByGoogleSubject = `-- name: GetUserByGoogleSubject :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject FROM users WHERE google_subject = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject, avatar_path FROM users WHERE google_subject = $1
 `
 
 func (q *Queries) GetUserByGoogleSubject(ctx context.Context, googleSubject sql.NullString) (User, error) {
@@ -115,12 +117,13 @@ func (q *Queries) GetUserByGoogleSubject(ctx context.Context, googleSubject sql.
 		&i.TotalConfirmations,
 		&i.TotalRejections,
 		&i.GoogleSubject,
+		&i.AvatarPath,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject FROM users WHERE id = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject, avatar_path FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -139,12 +142,13 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.TotalConfirmations,
 		&i.TotalRejections,
 		&i.GoogleSubject,
+		&i.AvatarPath,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject FROM users WHERE username = $1
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject, avatar_path FROM users WHERE username = $1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
@@ -163,12 +167,13 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.TotalConfirmations,
 		&i.TotalRejections,
 		&i.GoogleSubject,
+		&i.AvatarPath,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject FROM users
+SELECT id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject, avatar_path FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -193,6 +198,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.TotalConfirmations,
 			&i.TotalRejections,
 			&i.GoogleSubject,
+			&i.AvatarPath,
 		); err != nil {
 			return nil, err
 		}
@@ -213,6 +219,22 @@ DELETE FROM users
 
 func (q *Queries) ResetUsers(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, resetUsers)
+	return err
+}
+
+const updateUserAvatar = `-- name: UpdateUserAvatar :exec
+UPDATE users
+SET avatar_path = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateUserAvatarParams struct {
+	ID         uuid.UUID
+	AvatarPath sql.NullString
+}
+
+func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserAvatar, arg.ID, arg.AvatarPath)
 	return err
 }
 
@@ -300,7 +322,7 @@ ON CONFLICT (email) DO UPDATE SET
     updated_at = NOW()
 WHERE users.google_subject IS NULL
    OR users.google_subject = EXCLUDED.google_subject
-RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject
+RETURNING id, email, username, password_hash, reputation, is_admin, is_banned, created_at, updated_at, total_confirmations, total_rejections, google_subject, avatar_path
 `
 
 type UpsertGoogleUserByEmailParams struct {
@@ -333,6 +355,7 @@ func (q *Queries) UpsertGoogleUserByEmail(ctx context.Context, arg UpsertGoogleU
 		&i.TotalConfirmations,
 		&i.TotalRejections,
 		&i.GoogleSubject,
+		&i.AvatarPath,
 	)
 	return i, err
 }
