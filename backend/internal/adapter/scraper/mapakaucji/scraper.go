@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/adapter/http/presenter"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
 	"github.com/google/uuid"
@@ -36,10 +37,15 @@ func (s *Scraper) FetchReturnPoints(ctx context.Context) ([]entity.ReturnPoint, 
 	zabkaKaucjomatyList := zabkaGeoJSON.Features
 
 	for _, retPoint := range kaucjomatyList {
+		pointStyle := presenter.ResolvePointStyle(retPoint.Brand)
+
 		returnPoints = append(returnPoints, entity.ReturnPoint{
 			ID:           uuid.New(),
 			UserID:       nil,
 			Name:         retPoint.Brand,
+			ShortName:    pointStyle.ShortName,
+			BgColor:      pointStyle.BgColor,
+			TextColor:    pointStyle.TextColor,
 			Type:         entity.PointTypeButelkomat,
 			Address:      fmt.Sprintf("%s %s", retPoint.City, retPoint.Address),
 			Latitude:     retPoint.Lat,
@@ -81,10 +87,15 @@ func (s *Scraper) FetchReturnPoints(ctx context.Context) ([]entity.ReturnPoint, 
 			openingHours.Sun = retPoint.Properties.OpeningHours.Sun
 		}
 
+		pointStyle := presenter.ResolvePointStyle("Żabka")
+
 		returnPoints = append(returnPoints, entity.ReturnPoint{
 			ID:            uuid.New(),
 			UserID:        nil,
 			Name:          "Żabka",
+			ShortName:     pointStyle.ShortName,
+			BgColor:       pointStyle.BgColor,
+			TextColor:     pointStyle.TextColor,
 			Type:          entity.PointTypeButelkomat,
 			Address:       fmt.Sprintf("%s %s", retPoint.Properties.Town, retPoint.Properties.Street),
 			Latitude:      retPoint.Properties.Lat,

@@ -17,6 +17,9 @@ type OpeningHours struct {
 
 type CreateReturnPointRequest struct {
 	Name          string       `json:"name" validate:"required,max=255"`
+	ShortName     *string      `json:"short_name"`
+	BgColor       *string      `json:"bg_color"`
+	TextColor     *string      `json:"text_color"`
 	Type          string       `json:"type" validate:"required,oneof=butelkomat sklep punkt_skupu inny" enums:"butelkomat,sklep,punkt_skupu,inny"`
 	Address       string       `json:"address"`
 	Latitude      float64      `json:"latitude" validate:"latitude"`
@@ -32,6 +35,9 @@ type CreateReturnPointRequest struct {
 
 type UpdateKaucjomatRequest struct {
 	Name         *string       `json:"name" validate:"omitempty,required,max=255"`
+	ShortName    *string       `json:"short_name"`
+	BgColor      *string       `json:"bg_color"`
+	TextColor    *string       `json:"text_color"`
 	Type         *string       `json:"type" validate:"omitempty,oneof=butelkomat sklep punkt_skupu inny" enums:"butelkomat,sklep,punkt_skupu,inny"`
 	Address      *string       `json:"address"`
 	Latitude     *float64      `json:"latitude" validate:"omitempty,latitude"`
@@ -81,7 +87,6 @@ type ReturnPointPage struct {
 }
 
 func CreateReturnPointSuccessResponse(p entity.ReturnPoint) ReturnPointDetailsResponse {
-	style := ResolvePointStyle(p.Name)
 	refundMethod := []string{}
 
 	for _, method := range p.RefundMethod {
@@ -92,10 +97,10 @@ func CreateReturnPointSuccessResponse(p entity.ReturnPoint) ReturnPointDetailsRe
 		ID:           p.ID.String(),
 		UserID:       p.UserID,
 		Type:         string(p.Type),
-		ShortName:    style.ShortName,
+		ShortName:    p.ShortName,
 		Name:         p.Name,
-		BgColor:      style.BgColor,
-		TextColor:    style.TextColor,
+		BgColor:      p.BgColor,
+		TextColor:    p.TextColor,
 		Latitude:     p.Latitude,
 		Longitude:    p.Longitude,
 		DistanceKm:   p.DistanceKm,

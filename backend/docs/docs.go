@@ -2831,6 +2831,9 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "bg_color": {
+                    "type": "string"
+                },
                 "can": {
                     "type": "boolean"
                 },
@@ -2874,6 +2877,12 @@ const docTemplate = `{
                             "karta"
                         ]
                     }
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "text_color": {
+                    "type": "string"
                 },
                 "type": {
                     "type": "string",
@@ -3366,6 +3375,9 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "bg_color": {
+                    "type": "string"
+                },
                 "can": {
                     "type": "boolean"
                 },
@@ -3401,6 +3413,12 @@ const docTemplate = `{
                             "karta"
                         ]
                     }
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "text_color": {
+                    "type": "string"
                 },
                 "type": {
                     "type": "string",

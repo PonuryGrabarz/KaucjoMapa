@@ -18,7 +18,10 @@ INSERT INTO return_points (
   pet,
   can,
   glass,
-  refund_methods
+  refund_methods,
+  short_name,
+  bg_color,
+  text_color
 ) VALUES (
   $1,
   $2,
@@ -38,7 +41,10 @@ INSERT INTO return_points (
   $16,
   $17,
   $18,
-  $19
+  $19,
+  $20,
+  $21,
+  $22
   ) RETURNING *;
 
 -- name: GetAllReturnPoints :many

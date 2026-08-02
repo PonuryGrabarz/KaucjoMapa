@@ -138,7 +138,10 @@ INSERT INTO return_points (
   pet,
   can,
   glass,
-  refund_methods
+  refund_methods,
+  short_name,
+  bg_color,
+  text_color
 ) VALUES (
   $1,
   $2,
@@ -158,8 +161,11 @@ INSERT INTO return_points (
   $16,
   $17,
   $18,
-  $19
-  ) RETURNING id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods
+  $19,
+  $20,
+  $21,
+  $22
+  ) RETURNING id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods, short_name, bg_color, text_color
 `
 
 type CreatePointParams struct {
@@ -182,6 +188,9 @@ type CreatePointParams struct {
 	Can                bool
 	Glass              bool
 	RefundMethods      []RefundMethod
+	ShortName          sql.NullString
+	BgColor            sql.NullString
+	TextColor          sql.NullString
 }
 
 func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (ReturnPoint, error) {
@@ -205,6 +214,9 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 		arg.Can,
 		arg.Glass,
 		pq.Array(arg.RefundMethods),
+		arg.ShortName,
+		arg.BgColor,
+		arg.TextColor,
 	)
 	var i ReturnPoint
 	err := row.Scan(
@@ -227,6 +239,9 @@ func (q *Queries) CreatePoint(ctx context.Context, arg CreatePointParams) (Retur
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		pq.Array(&i.RefundMethods),
+		&i.ShortName,
+		&i.BgColor,
+		&i.TextColor,
 	)
 	return i, err
 }
@@ -241,7 +256,7 @@ func (q *Queries) DeletePointById(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllReturnPoints = `-- name: GetAllReturnPoints :many
-SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods FROM return_points
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods, short_name, bg_color, text_color FROM return_points
 `
 
 func (q *Queries) GetAllReturnPoints(ctx context.Context) ([]ReturnPoint, error) {
@@ -273,6 +288,9 @@ func (q *Queries) GetAllReturnPoints(ctx context.Context) ([]ReturnPoint, error)
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			pq.Array(&i.RefundMethods),
+			&i.ShortName,
+			&i.BgColor,
+			&i.TextColor,
 		); err != nil {
 			return nil, err
 		}
@@ -315,7 +333,7 @@ func (q *Queries) GetPointByDistance(ctx context.Context, arg GetPointByDistance
 }
 
 const getPointById = `-- name: GetPointById :one
-SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods FROM return_points WHERE id = $1
+SELECT id, user_id, name, type, address, latitude, longitude, pet, can, glass, opening_hours, description, current_status, confirmations_count, rejections_count, is_verified, created_at, updated_at, refund_methods, short_name, bg_color, text_color FROM return_points WHERE id = $1
 `
 
 func (q *Queries) GetPointById(ctx context.Context, id uuid.UUID) (ReturnPoint, error) {
@@ -341,12 +359,15 @@ func (q *Queries) GetPointById(ctx context.Context, id uuid.UUID) (ReturnPoint, 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		pq.Array(&i.RefundMethods),
+		&i.ShortName,
+		&i.BgColor,
+		&i.TextColor,
 	)
 	return i, err
 }
 
 const listReturnPoints = `-- name: ListReturnPoints :many
-SELECT return_points.id, return_points.user_id, return_points.name, return_points.type, return_points.address, return_points.latitude, return_points.longitude, return_points.pet, return_points.can, return_points.glass, return_points.opening_hours, return_points.description, return_points.current_status, return_points.confirmations_count, return_points.rejections_count, return_points.is_verified, return_points.created_at, return_points.updated_at, return_points.refund_methods,
+SELECT return_points.id, return_points.user_id, return_points.name, return_points.type, return_points.address, return_points.latitude, return_points.longitude, return_points.pet, return_points.can, return_points.glass, return_points.opening_hours, return_points.description, return_points.current_status, return_points.confirmations_count, return_points.rejections_count, return_points.is_verified, return_points.created_at, return_points.updated_at, return_points.refund_methods, return_points.short_name, return_points.bg_color, return_points.text_color,
     CAST(CASE
         WHEN $1::DOUBLE PRECISION IS NULL THEN 0.0
         ELSE earth_distance(
@@ -462,6 +483,9 @@ type ListReturnPointsRow struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	RefundMethods      []RefundMethod
+	ShortName          sql.NullString
+	BgColor            sql.NullString
+	TextColor          sql.NullString
 	DistanceKm         float64
 }
 
@@ -509,6 +533,9 @@ func (q *Queries) ListReturnPoints(ctx context.Context, arg ListReturnPointsPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			pq.Array(&i.RefundMethods),
+			&i.ShortName,
+			&i.BgColor,
+			&i.TextColor,
 			&i.DistanceKm,
 		); err != nil {
 			return nil, err
@@ -574,7 +601,7 @@ SET
     is_verified = false,
     updated_at = NOW()
 WHERE rp.id = $12::UUID
-RETURNING rp.id, rp.user_id, rp.name, rp.type, rp.address, rp.latitude, rp.longitude, rp.pet, rp.can, rp.glass, rp.opening_hours, rp.description, rp.current_status, rp.confirmations_count, rp.rejections_count, rp.is_verified, rp.created_at, rp.updated_at, rp.refund_methods
+RETURNING rp.id, rp.user_id, rp.name, rp.type, rp.address, rp.latitude, rp.longitude, rp.pet, rp.can, rp.glass, rp.opening_hours, rp.description, rp.current_status, rp.confirmations_count, rp.rejections_count, rp.is_verified, rp.created_at, rp.updated_at, rp.refund_methods, rp.short_name, rp.bg_color, rp.text_color
 `
 
 type UpdatePointByIdParams struct {
@@ -628,6 +655,9 @@ func (q *Queries) UpdatePointById(ctx context.Context, arg UpdatePointByIdParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		pq.Array(&i.RefundMethods),
+		&i.ShortName,
+		&i.BgColor,
+		&i.TextColor,
 	)
 	return i, err
 }
