@@ -201,6 +201,8 @@ definitions:
     properties:
       address:
         type: string
+      bg_color:
+        type: string
       can:
         type: boolean
       current_status:
@@ -232,6 +234,10 @@ definitions:
           - karta
           type: string
         type: array
+      short_name:
+        type: string
+      text_color:
+        type: string
       type:
         enum:
         - butelkomat
@@ -567,6 +573,8 @@ definitions:
     properties:
       address:
         type: string
+      bg_color:
+        type: string
       can:
         type: boolean
       description:
@@ -592,6 +600,10 @@ definitions:
           - karta
           type: string
         type: array
+      short_name:
+        type: string
+      text_color:
+        type: string
       type:
         enum:
         - butelkomat

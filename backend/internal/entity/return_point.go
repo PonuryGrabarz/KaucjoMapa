@@ -37,6 +37,9 @@ type ReturnPoint struct {
 	ID            uuid.UUID
 	UserID        *uuid.UUID
 	Name          string
+	ShortName     string
+	BgColor       string
+	TextColor     string
 	Type          PointType
 	Latitude      float64
 	Longitude     float64

@@ -373,6 +373,9 @@ type ReturnPoint struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	RefundMethods      []RefundMethod
+	ShortName          sql.NullString
+	BgColor            sql.NullString
+	TextColor          sql.NullString
 }
 
 type User struct {
