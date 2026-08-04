@@ -1,31 +1,14 @@
 {
-  "extends": "astro/tsconfigs/base",
-  "include": [
-    ".astro/types.d.ts",
-    "**/*"
-  ],
-  "exclude": [
-    "dist"
-  ],
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@layouts/*": [
-        "./src/shared/layouts/*"
-      ],
-      "@components/*": [
-        "./src/shared/components/*"
-      ],
-      "@features/*": [
-        "./src/features/*"
-      ],
-      "@api/*": [
-        "./src/shared/api/*"
-      ],
-    }
-  }
+	"extends": "astro/tsconfigs/strict",
+	"compilerOptions": {
+		"noUncheckedIndexedAccess": true,
+		"paths": {
+			"@/*": ["./src/*"],
+      "@layouts/*": ["./src/layouts/*"],
+			"@features/*": ["./src/features/*"],
+			"@shared/*": ["./src/shared/*"]
+		}
+	},
+	"include": [".astro/types.d.ts", ".astro/env.d.ts", "src/**/*", "tests/**/*", "*.config.*"],
+	"exclude": ["dist", "node_modules"]
 }

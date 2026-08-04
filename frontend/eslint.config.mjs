@@ -1,98 +1,83 @@
 import js from "@eslint/js";
 import globals from "globals";
 import astro from "eslint-plugin-astro";
-import babelParser from "@kaucjomapa/eslint-parser";
-import reactHooks from "eslint-plugin-react-hooks";
+import tseslint from "typescript-eslint";
+import svelte from "eslint-plugin-svelte";
 
-import { defineConfig } from "eslint/config";
+import svelteConfig from "./svelte.config.js";
 
-
-const typescriptParserOptions = {
-	requireConfigFile: false,
-	babelOptions: {
-		babelrc: false,
-		configFile: false,
-		parserOpts: {
-			plugins: ["typescript", "jsx"],
-		},
-	},
-};
-
-const javascriptRecommended = {
-	...js.configs.recommended,
-	name: "project/javascript-recommended",
-	files: ["**/*.{js,mjs,cjs,jsx}"],
-};
-
-export default defineConfig([
+export default [
 	{
-		name: "project/ignores",
-		ignores: [".astro/**", "dist/**"],
+		ignores: [
+			".astro/**",
+			"dist/**",
+			"node_modules/**",
+		],
 	},
-	javascriptRecommended,
+	js.configs.recommended,
+	...tseslint.configs.recommended,
+	...astro.configs["flat/recommended"],
+	...astro.configs["flat/jsx-a11y-recommended"],
+	...svelte.configs["flat/recommended"],
 	{
-		name: "project/source-globals",
-		files: ["src/**/*.{js,mjs,cjs,jsx,ts,tsx}"],
+		files: ["**/*.{js,mjs,cjs,ts}"],
 		languageOptions: {
-			globals: globals.browser,
-		},
-	},
-	{
-		name: "project/config-globals",
-		files: ["*.{js,mjs,cjs,ts}"],
-		languageOptions: {
-			globals: globals.node,
-		},
-	},
-	...astro.configs.recommended,
-	{
-		name: "project/typescript",
-		files: ["**/*.{ts,tsx}"],
-		languageOptions: {
-			parser: babelParser,
-			parserOptions: typescriptParserOptions,
+			globals: {
+				...globals.browser,
+				...globals.node,
+			},
 		},
 		rules: {
-			// The TypeScript compiler, rather than Babel's JavaScript scope analysis,
-			// reports type-only names and unused bindings in TypeScript files.
-			"no-undef": "off",
-			"no-unused-vars": "off",
+			"@typescript-eslint/no-explicit-any": "error",
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{ argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+			],
+			"no-restricted-syntax": [
+				"error",
+				{
+					selector: "CallExpression[callee.name='fetch']",
+					message: "Użyj ApiClienta lub wstrzykiwanego transportu zamiast bezpośredniego fetch().",
+				},
+			],
 		},
 	},
 	{
-		name: "project/astro-typescript",
 		files: ["**/*.astro"],
 		languageOptions: {
 			parserOptions: {
-				parser: babelParser,
-				...typescriptParserOptions,
+				parser: tseslint.parser,
 			},
-		},
-		rules: {
-			// TypeScript handles undefined type names. The current parser also does not
-			// mark imported Astro components as used when they appear in templates.
-			"no-undef": "off",
-			"no-unused-vars": ["error", { varsIgnorePattern: "^[A-Z]" }],
 		},
 	},
 	{
-		name: "project/preact",
-		files: ["**/*.{jsx,tsx}"],
+		files: ["**/*.svelte"],
 		languageOptions: {
 			parserOptions: {
-				ecmaFeatures: {
-					jsx: true,
-				},
+				extraFileExtensions: [".svelte"],
+				parser: tseslint.parser,
+				svelteConfig,
 			},
 		},
-		plugins: {
-			"react-hooks": reactHooks,
-		},
 		rules: {
-			// The current Babel parser does not mark JSX component identifiers as variable uses.
-			"no-unused-vars": ["error", { varsIgnorePattern: "^[A-Z]" }],
-			"react-hooks/rules-of-hooks": "error",
-			"react-hooks/exhaustive-deps": "warn",
+			"no-undef": "off",
+			"svelte/no-at-html-tags": "error",
+			"@typescript-eslint/no-unused-vars": "off",
 		},
 	},
-]);
+	{
+		files: ["**/*.svelte.{js,ts}"],
+		languageOptions: {
+			parser: tseslint.parser,
+			parserOptions: {
+				svelteConfig,
+			},
+		},
+	},
+	{
+		files: ["src/shared/api/**/*.ts", "src/features/**/api/**/*.ts", "src/pages/api/**/*.ts"],
+		rules: {
+			"no-restricted-syntax": "off",
+		},
+	},
+];
