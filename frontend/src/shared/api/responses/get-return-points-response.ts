@@ -45,7 +45,7 @@ export class OpeningHours {
 
 export class ReturnPoint {
   address?: string;
-  bg_color!: string;
+  bg_color?: string | null;
   can!: boolean;
   created_at!: string;
   current_status!: ReturnPointStatus;
@@ -60,8 +60,8 @@ export class ReturnPoint {
   opening_hours!: OpeningHours;
   pet!: boolean;
   refund_method!: ReturnPointRefundMethod[];
-  short_name!: string;
-  text_color!: string;
+  short_name?: string | null;
+  text_color?: string | null;
   type!: ReturnPointType;
   updated_at!: string;
   user_id!: string;

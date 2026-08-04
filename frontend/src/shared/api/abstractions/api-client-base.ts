@@ -6,6 +6,7 @@ import { ApiError, toApiError } from "../errors";
 
 interface ApiResponseMap {
 	"login": responses.LoginResponse;
+	"get-avatar": responses.GetAvatarResponse;
 	"get-notifications": responses.GetNotificationsResponse;
 	"create-notification": responses.CreateNotificationResponse;
 	"mark-notification-seen": responses.MarkNotificationSeenResponse;
@@ -24,6 +25,7 @@ interface ApiResponseMap {
 }
 
 type ApiRequest =
+	| requests.GetAvatarRequest
 	| requests.GetNotificationsRequest
 	| requests.CreateNotificationRequest
 	| requests.MarkNotificationSeenRequest
@@ -74,6 +76,8 @@ export abstract class ApiClientBase {
 			const context = this.createCallContext(options);
 
 			switch (request.kind) {
+				case "get-avatar":
+					return (await this.handleGetAvatarRequest(request, context)) as ApiResponse<TRequest>;
 				case "get-notifications":
 					return (await this.handleGetNotificationsRequest(request, context)) as ApiResponse<TRequest>;
 				case "create-notification":
@@ -129,6 +133,9 @@ export abstract class ApiClientBase {
 
 		return { headers, signal: options.signal };
 	}
+
+	protected abstract handleGetAvatarRequest(request: requests.GetAvatarRequest, context: ApiCallContext):
+    Promise<Result<responses.GetAvatarResponse>>;
 
 	protected abstract handleGetNotificationsRequest(request: requests.GetNotificationsRequest, context: ApiCallContext):
     Promise<Result<responses.GetNotificationsResponse>>;

@@ -1,5 +1,6 @@
 export { LoginRequest } from "./login-request";
 export { RegisterRequest } from "./register-request";
+export { GetAvatarRequest } from "./get-avatar-request";
 export { RevokeTokenRequest } from "./revoke-token-request";
 export { RefreshTokenRequest } from "./refresh-token-request";
 export { CreateBookmarkRequest } from "./create-bookmark-request";

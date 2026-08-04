@@ -12,7 +12,7 @@
 	import type { HTMLAttributes } from "svelte/elements";
 
 	export type PointMarkerProps = Omit<HTMLAttributes<HTMLSpanElement>, "children"> & {
-		shortName: string;
+		shortName?: string | null;
 		size?: number;
 		pending?: boolean;
 		pendingLabel?: string;

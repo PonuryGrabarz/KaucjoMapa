@@ -140,9 +140,9 @@ export const drawMarkerImage = (style: MarkerStyle): ImageData => {
 }
 
 export const markerStyleOf = (point: ReturnPoint): MarkerStyle => ({
-	backgroundColor: point.bg_color,
-	textColor: point.text_color,
-	shortName: point.short_name,
+	backgroundColor: resolveMarkerBackground(point.bg_color),
+	textColor: resolveMarkerText(point.text_color),
+	shortName: resolveMarkerLabel(point.short_name),
 	status: point.current_status,
 });
 

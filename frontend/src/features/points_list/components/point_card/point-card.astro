@@ -6,8 +6,12 @@ import IconifyIcon from "@shared/components/iconify_icon/iconify-icon.svelte";
 
 import { RETURN_POINT_MATERIALS } from "@shared/api/responses";
 import { returnPointStructuredData } from "@shared/helpers/structured-data";
-import { resolveMarkerBackground, resolveMarkerText } from "@shared/helpers/marker-appearance";
 import { formatHourRange, isOpenNow, openingHoursEntries } from "@shared/helpers/opening-hours";
+import {
+  resolveMarkerBackground,
+  resolveMarkerLabel,
+  resolveMarkerText,
+} from "@shared/helpers/marker-appearance";
 
 import {
   OPENING_HOURS_LABELS,
@@ -55,7 +59,7 @@ const structuredData = returnPointStructuredData(point, new URL(href, Astro.site
             style={pinStyle}
             aria-hidden="true"
           >
-            {point.short_name}
+            {resolveMarkerLabel(point.short_name)}
           </span>
 
           <div class:list={Styles["point-card__link__surface__header__identity__heading"]}>

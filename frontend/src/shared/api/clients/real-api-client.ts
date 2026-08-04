@@ -24,6 +24,7 @@ const ENDPOINTS = {
 	refreshToken: "auth/token",
 	revokeToken: "auth/revoke",
 	notifications: "notifications",
+	avatar: "users/avatar",
 } as const;
 
 const REFRESH_COOKIE_NAME = "RefreshToken";
@@ -72,6 +73,26 @@ export class RealApiClient extends ApiClientBase {
 		if (options.fetch) kyOptions.fetch = options.fetch;
 
 		this.http = ky.create(kyOptions);
+	}
+
+	protected async handleGetAvatarRequest(_request: requests.GetAvatarRequest, context: ApiCallContext):
+    Promise<Result<responses.GetAvatarResponse>>
+  {
+		try {
+			const response = await this.http.get(ENDPOINTS.avatar, {
+				headers: context.headers,
+				signal: context.signal,
+			});
+
+			return Result.success({
+				data: await response.arrayBuffer(),
+				contentType: response.headers.get("content-type") ?? "application/octet-stream",
+			});
+		} catch (error) {
+			return Result.failure<responses.GetAvatarResponse>(
+				this.toApiError(error, ENDPOINTS.avatar),
+			);
+		}
 	}
 
 	protected async handleGetNotificationsRequest(_request: requests.GetNotificationsRequest, context: ApiCallContext):

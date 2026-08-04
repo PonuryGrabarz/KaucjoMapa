@@ -5,6 +5,7 @@ const CLAIMS_SCHEMA = z
     user_id: z.uuid(),
     username: z.string().min(1),
     email: z.string(),
+    avatar_url: z.string().optional(),
     is_admin: z.boolean(),
     reputation: z.number(),
     exp: z.number().optional(),
@@ -17,6 +18,7 @@ export interface AccessTokenClaims {
   email: string;
   isAdmin: boolean;
   reputation: number;
+  hasAvatar: boolean;
   expiresAtSeconds?: number;
 }
 
@@ -53,6 +55,7 @@ export const decodeAccessToken = (token: string): AccessTokenClaims | undefined 
     email: parsed.data.email,
     isAdmin: parsed.data.is_admin,
     reputation: parsed.data.reputation,
+    hasAvatar: (parsed.data.avatar_url ?? "").trim().length > 0,
     expiresAtSeconds: parsed.data.exp,
   };
 };
@@ -69,10 +72,13 @@ export const isAccessTokenExpired = (
   return claims.expiresAtSeconds - skewSeconds <= Math.floor(now.getTime() / 1000);
 };
 
+export const AVATAR_PROXY_PATH = "/konto/avatar";
+
 export const toSessionUser = (claims: AccessTokenClaims): App.SessionUser => ({
   id: claims.userId,
   username: claims.username,
   email: claims.email,
   isAdmin: claims.isAdmin,
   reputation: claims.reputation,
+  ...(claims.hasAvatar ? { avatarUrl: AVATAR_PROXY_PATH } : {}),
 });
