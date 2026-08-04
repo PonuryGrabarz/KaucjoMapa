@@ -1,0 +1,18 @@
+{#if iconUrl}
+	<span
+		{...rest}
+		class={["iconify-icon", className]}
+		class:iconify-icon--colored={colored}
+		style:--iconify-icon-url={iconUrl}
+		style:--iconify-icon-width={normalizeSize(width ?? size)}
+		style:--iconify-icon-height={normalizeSize(height ?? size)}
+		style:--iconify-icon-rotation={rotate === undefined ? undefined : `${rotate}deg`}
+		style:--iconify-icon-scale-x={flip === "horizontal" || flip === "both" ? -1 : undefined}
+		style:--iconify-icon-scale-y={flip === "vertical" || flip === "both" ? -1 : undefined}
+		style:color={normalizeText(color)}
+		role={role ?? (hasAccessibleName && !explicitlyHidden ? "img" : undefined)}
+		aria-label={accessibleLabel}
+		aria-labelledby={labelledBy}
+		aria-hidden={ariaHidden ?? (hasAccessibleName ? undefined : "true")}
+	></span>
+{/if}

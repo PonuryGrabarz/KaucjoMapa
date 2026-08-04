@@ -1,0 +1,97 @@
+.text-field
+  display: grid
+  gap: 6px
+  min-width: 0
+
+  .text-field__label-row
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 12px
+    min-width: 0
+
+  .text-field__label
+    color: var(--color-text-primary)
+    font-size: var(--font-size-small)
+    font-weight: 600
+    line-height: 1.35
+
+  .text-field__label-end
+    font-size: var(--font-size-label)
+    line-height: 1.35
+    white-space: nowrap
+
+  .text-field__control-row
+    position: relative
+    display: flex
+    align-items: center
+    min-width: 0
+
+    &:focus-within .text-field__icon
+      color: var(--color-primary)
+
+  .text-field__icon
+    position: absolute
+    left: 12px
+    display: inline-flex
+    color: var(--color-icon-subtle)
+    pointer-events: none
+
+  .text-field__control
+    width: 100%
+    min-width: 0
+    padding: 9px 12px
+    border: 1px solid var(--color-border-strong)
+    border-radius: var(--radius-md)
+    background: var(--color-surface)
+    color: var(--color-text-primary)
+    font: inherit
+    line-height: 1.45
+    transition: border-color 140ms var(--ease-standard), box-shadow 140ms var(--ease-standard)
+
+    &:focus-visible
+      outline: none
+      border-color: var(--color-primary)
+      box-shadow: var(--focus-500)
+
+    &::placeholder
+      color: var(--color-icon-subtle)
+
+    &:disabled
+      background: var(--color-disabled-surface)
+      cursor: default
+
+    &[aria-invalid="true"]
+      border-color: var(--color-danger-strong)
+
+    &.text-field__control--multiline
+      resize: vertical
+      min-height: 96px
+
+  .text-field__control-row--with-icon .text-field__control
+    padding-left: 44px
+
+  .text-field__control-row--with-toggle .text-field__control
+    padding-right: 48px
+
+    @media (pointer: coarse)
+      min-height: var(--touch-target)
+
+  .text-field__toggle
+    position: absolute
+    right: 2px
+    top: 50%
+    transform: translateY(-50%)
+    display: inline-flex
+
+  .text-field__hint
+    margin: 0
+    color: var(--color-text-secondary)
+    font-size: var(--font-size-label)
+    line-height: 1.35
+
+  .text-field__error
+    margin: 0
+    color: var(--color-danger-strong)
+    font-size: var(--font-size-label)
+    line-height: 1.35

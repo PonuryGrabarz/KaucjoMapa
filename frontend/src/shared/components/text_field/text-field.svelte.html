@@ -1,0 +1,64 @@
+<div class={["text-field", className]}>
+	<div class="text-field__label-row">
+		<label class={["text-field__label", labelHidden && "visually-hidden"]} for={controlId}>
+			{label}
+		</label>
+
+		{#if labelEnd}
+			<div class="text-field__label-end">{@render labelEnd()}</div>
+		{/if}
+	</div>
+
+	<div
+		class={[
+			"text-field__control-row",
+			icon && "text-field__control-row--with-icon",
+			isPassword && "text-field__control-row--with-toggle",
+		]}
+	>
+		{#if icon}
+			<span class="text-field__icon">
+				<IconifyIcon {icon} size={20} />
+			</span>
+		{/if}
+
+		{#if multiline}
+			<textarea
+				{...rest}
+				id={controlId}
+				class="text-field__control text-field__control--multiline"
+				aria-invalid={error ? "true" : undefined}
+				aria-describedby={describedBy}
+				bind:value
+			></textarea>
+		{:else}
+			<input
+				{...inputAttributes}
+				id={controlId}
+				class="text-field__control"
+				aria-invalid={error ? "true" : undefined}
+				aria-describedby={describedBy}
+				bind:value
+			/>
+		{/if}
+
+		{#if isPassword}
+			<span class="text-field__toggle">
+				<IconButton
+					icon={revealed ? HIDE_ICON : REVEAL_ICON}
+					aria-label={revealed ? "Ukryj hasło" : "Pokaż hasło"}
+					aria-controls={controlId}
+					iconSize={20}
+					disabled={Boolean(rest.disabled)}
+					onclick={() => (revealed = !revealed)}
+				/>
+			</span>
+		{/if}
+	</div>
+
+	{#if error}
+		<p class="text-field__error" id={errorId}>{error}</p>
+	{:else if hint}
+		<p class="text-field__hint" id={hintId}>{hint}</p>
+	{/if}
+</div>

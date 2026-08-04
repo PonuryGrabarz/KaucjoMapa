@@ -1,0 +1,30 @@
+<div class="account-menu" bind:this={triggerElement}>
+	<Button
+		class="account-menu__button"
+		variant="text"
+		aria-label="Menu konta"
+		aria-expanded={open}
+		aria-controls={MENU_ID}
+		onclick={() => (open = !open)}
+	>
+		{@render avatar?.()}
+
+		<span class="account-menu__button__label">Konto</span>
+
+		<span class="account-menu__button__chevron">
+			<IconifyIcon icon="material-symbols:expand-more-rounded" size={18} />
+		</span>
+	</Button>
+
+	<Menu bind:open id={MENU_ID} aria-label="Menu konta" {triggerElement}>
+		<MenuItem href="/profil">
+			<IconifyIcon icon="material-symbols:person-outline-rounded" size={20} />
+			Profil
+		</MenuItem>
+
+		<MenuItem danger separatorBefore onclick={() => void handleLogout()}>
+			<IconifyIcon icon="material-symbols:logout-rounded" size={20} />
+			Wyloguj
+		</MenuItem>
+	</Menu>
+</div>

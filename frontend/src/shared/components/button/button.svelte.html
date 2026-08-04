@@ -1,0 +1,18 @@
+{#if href}
+	<a
+		{...rest}
+		class={classes}
+		href={disabled ? undefined : href}
+		{target}
+		rel={target === "_blank" ? (rel ?? "noopener noreferrer") : rel}
+		aria-disabled={disabled ? "true" : undefined}
+		tabindex={disabled ? -1 : undefined}
+		use:ripple
+	>
+		{@render children()}
+	</a>
+{:else}
+	<button {...rest} class={classes} {type} {form} {disabled} aria-pressed={ariaPressed} use:ripple>
+		{@render children()}
+	</button>
+{/if}

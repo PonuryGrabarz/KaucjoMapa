@@ -1,0 +1,31 @@
+<div class={["color-field", className]}>
+	<label class="color-field__label" for={inputId}>{label}</label>
+
+	<div class="color-field__inputs">
+		<input
+			{...rest}
+			id={inputId}
+			class="color-field__inputs__swatch"
+			type="color"
+			{value}
+			{disabled}
+			oninput={handleSwatchInput}
+		/>
+
+		<input
+			id={hexId}
+			class="color-field__inputs__hex"
+			type="text"
+			value={draft}
+			{disabled}
+			maxlength={7}
+			spellcheck="false"
+			autocapitalize="off"
+			autocomplete="off"
+			aria-label="{label} (kod szesnastkowy)"
+			aria-invalid={invalid ? "true" : undefined}
+			oninput={handleHexInput}
+			onblur={handleHexBlur}
+		/>
+	</div>
+</div>

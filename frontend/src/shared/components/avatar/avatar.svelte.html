@@ -1,0 +1,22 @@
+<span class="avatar" style:--avatar-size="{size}px">
+	{#if showImage}
+		<img
+			class="avatar__media"
+			src={avatarUrl}
+			{alt}
+			width={size}
+			height={size}
+			decoding="async"
+			onerror={() => (failedUrl = avatarUrl ?? null)}
+		/>
+	{:else}
+		<span
+			class="avatar__initials"
+			role={alt ? "img" : undefined}
+			aria-label={alt || undefined}
+			aria-hidden={alt ? undefined : "true"}
+		>
+			{initials}
+		</span>
+	{/if}
+</span>

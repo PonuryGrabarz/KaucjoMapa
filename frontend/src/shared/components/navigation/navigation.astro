@@ -1,115 +1,90 @@
 ---
+import NavItem from "@shared/components/nav_item/nav-item.svelte";
 import Styles from "./navigation.module.sass";
-import NavigationSheet from "./navigation-sheet";
-import IconifyIcon from "@components/iconify_icon/iconify-icon";
+
+import { accountItems, guestItems, isPathActive, mainItems } from "@shared/helpers/navigation-links";
+import { normalizePathname } from "@shared/helpers/path";
 
 interface Props {
-    links: Link[];
-    class?: string;
-    ariaLabel?: string;
+	unreadCount?: number;
 }
 
-export type Link = {
-    icon: string;
-    href: string;
-    label: string;
-};
+const { unreadCount = 0 } = Astro.props;
 
-const { links, class: className, ariaLabel = "Główna nawigacja" } = Astro.props;
+const pathname = normalizePathname(Astro.url.pathname);
 
-const normalizePath = (path: string) => path.replace(/\/+$/, "") || "/";
+const isUserLoggedIn = Astro.locals.session != null;
 
-const currentPath = normalizePath(Astro.url.pathname);
-
-const isActive = (href: string) => {
-    const targetUrl = new URL(href, Astro.url);
-
-    if (targetUrl.origin !== Astro.url.origin) return false;
-    if (targetUrl.hash || href.endsWith("#")) return false;
-
-    const targetPath = normalizePath(targetUrl.pathname);
-
-    return (
-        currentPath === targetPath ||
-        (targetPath !== "/" && currentPath.startsWith(`${targetPath}/`))
-    );
-};
-
-const linksWithState = links.map((link) => ({
-    ...link,
-    active: isActive(link.href),
-}));
-
-const hasMobileOverflow = links.length > 4;
-
-const mobilePrimaryCount = hasMobileOverflow ? 3 : links.length;
-
-const sheetLinks = linksWithState.slice(mobilePrimaryCount);
-
-const sheetActive = sheetLinks.some(({ active }) => active);
+const MAIN_LABEL_ID = "navigation-main-label";
+const ACCOUNT_LABEL_ID = "navigation-account-label";
 ---
 
-<nav class:list={[Styles["navigation"], className]} aria-label={ariaLabel}>
-    <ul class:list={[Styles["navigation__list"]]}>
-        {
-            linksWithState.map(({ href, label, icon, active }, index) => {
-                const mobileOverflow =
-                    hasMobileOverflow && index >= mobilePrimaryCount;
+<nav class={Styles["navigation"]} aria-label="Nawigacja główna" transition:name="navigation">
+  <div class={Styles["navigation__container"]}>
+    <span class={Styles["navigation__container__label"]} id={MAIN_LABEL_ID}>Główne</span>
 
-                return (
-                    <li
-                        class:list={[
-                            Styles["navigation__item"],
-                            {
-                                [Styles["navigation__item--mobile-overflow"]]:
-                                    mobileOverflow,
-                            },
-                        ]}
-                        data-mobile-overflow={
-                            mobileOverflow ? "true" : undefined
-                        }
-                    >
-                        <a
-                            href={href}
-                            class:list={[
-                                Styles["navigation__link"],
-                                {
-                                    [Styles["navigation__link--active"]]:
-                                        active,
-                                },
-                            ]}
-                            aria-current={active ? "page" : undefined}
-                            data-active={active ? "true" : undefined}
-                        >
-                            <span
-                                class={Styles["navigation__indicator"]}
-                                aria-hidden="true"
-                            >
-                                <IconifyIcon icon={icon} />
-                            </span>
-
-                            <span class={Styles["navigation__label"]}>
-                                {label}
-                            </span>
-                        </a>
-                    </li>
-                );
-            })
-        }
-
-        {
-            hasMobileOverflow && (
-                <li
-                    class:list={[Styles["navigation__item"]]}
-                    data-mobile-more="true"
-                >
-                    <NavigationSheet
-                        client:load
-                        links={sheetLinks}
-                        active={sheetActive}
-                    />
-                </li>
-            )
-        }
+    <ul class={Styles["navigation__container__list"]} aria-labelledby={MAIN_LABEL_ID}>
+      {
+        mainItems.map((item) => (
+          <li>
+            <NavItem
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              activeIcon={item.activeIcon}
+              active={isPathActive(pathname, item.href)}
+            />
+          </li>
+        ))
+      }
     </ul>
+
+    <span class={Styles["navigation__container__spacer"]} aria-hidden="true"></span>
+
+    {
+      isUserLoggedIn ? (
+        <>
+          <span class={Styles["navigation__container__label"]} id={ACCOUNT_LABEL_ID}>
+            Konto i aktywność
+          </span>
+
+          <ul class={Styles["navigation__container__list"]} aria-labelledby={ACCOUNT_LABEL_ID}>
+            {accountItems.map((item) => {
+              const shared = {
+                href: item.href,
+                label: item.label,
+                icon: item.icon,
+                activeIcon: item.activeIcon,
+                active: isPathActive(pathname, item.href),
+              };
+
+              return (
+                <li>
+                  {item.href === "/powiadomienia" ? (
+                    <NavItem client:load liveBadge badgeCount={unreadCount} {...shared} />
+                  ) : (
+                    <NavItem {...shared} />
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      ) : (
+        <ul class={Styles["navigation__container__list"]} aria-label="Konto">
+          {guestItems.map((item) => (
+            <li>
+              <NavItem
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+                activeIcon={item.activeIcon}
+                active={isPathActive(pathname, item.href, item.activeFor)}
+              />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
 </nav>

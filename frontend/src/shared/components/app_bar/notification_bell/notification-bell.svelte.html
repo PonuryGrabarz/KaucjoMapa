@@ -1,0 +1,99 @@
+<div class="notification-bell" bind:this={triggerElement}>
+	<Button
+		class="notification-bell__trigger"
+		variant="text"
+		aria-haspopup="dialog"
+		aria-expanded={open}
+		aria-controls={POPOVER_ID}
+		aria-label={unreadCount === 0
+			? "Powiadomienia, brak nowych"
+			: `Powiadomienia, ${unreadCount} nieprzeczytanych`}
+		onclick={() => (open = !open)}
+	>
+		<IconifyIcon icon="material-symbols:notifications-outline-rounded" size={24} />
+
+		{#if unreadCount > 0}
+			<span class="notification-bell__trigger__badge" aria-hidden="true">{badgeLabel}</span>
+		{/if}
+	</Button>
+
+	<Popover
+		bind:open
+		id={POPOVER_ID}
+		aria-label="Powiadomienia"
+		role="dialog"
+		width="min(376px, calc(100vw - 20px))"
+		padding="0"
+		{triggerElement}
+	>
+		<header class="notification-bell__popover-header">
+			<h2 class="notification-bell__popover-title">Powiadomienia</h2>
+
+			<p class="notification-bell__popover-count" aria-live="polite">
+				{unreadCountText(unreadCount)}
+			</p>
+		</header>
+
+		<div class="notification-bell__popover-body">
+			{#if notifications.length === 0}
+				<div class="notification-bell__popover-body__empty">
+					<span class="notification-bell__popover-body__empty__icon">
+						<IconifyIcon icon="material-symbols:notifications-outline-rounded" size={24} />
+					</span>
+
+					<strong>Brak powiadomień</strong>
+
+					<span>Gdy pojawi się coś nowego, zobaczysz to tutaj.</span>
+				</div>
+			{:else}
+				<ul class="notification-bell__popover-body__list">
+					{#each notifications as notification (notification.id)}
+						<li class="notification-bell__popover-body__list__item" data-read={notification.seen}>
+							<div class="notification-bell__popover-body__list__item__heading">
+								<h3 class="notification-bell__popover-body__list__item__heading__title">
+									{notification.name}
+								</h3>
+
+								{#if !notification.seen}
+									<span class="notification-bell__popover-body__list__item__heading__new">Nowe</span>
+								{/if}
+							</div>
+
+							<p class="notification-bell__popover-body__list__item__message">
+								{notification.description}
+							</p>
+
+							<div class="notification-bell__popover-body__list__item__meta">
+								<time
+									datetime={notification.created_at}
+									aria-label={dateTimeLabel(notification.created_at)}
+								>
+									{relativeTimeLabel(notification.created_at)}
+								</time>
+
+								{#if notification.seen}
+									<span class="notification-bell__popover-body__list__item__meta__store">
+										Przeczytane
+									</span>
+								{:else}
+									<Button
+										class="notification-bell__popover-body__list__item__meta__mark-seen"
+										variant="text"
+										aria-label={`Oznacz jako przeczytane: ${notification.name}`}
+										onclick={() => void handleMarkSeen(notification.id)}
+									>
+										Oznacz jako przeczytane
+									</Button>
+								{/if}
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+
+		<footer class="notification-bell__popover-footer">
+			<a class="notification-bell__popover-footer__link" href="/powiadomienia">Pokaż wszystkie</a>
+		</footer>
+	</Popover>
+</div>

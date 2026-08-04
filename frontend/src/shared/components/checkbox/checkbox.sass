@@ -1,0 +1,26 @@
+.checkbox
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  min-height: 32px
+  color: var(--color-text-primary)
+  font-size: var(--font-size-body)
+  cursor: pointer
+
+  &:has(.checkbox__input:disabled)
+    color: var(--color-disabled)
+    cursor: default
+
+  .checkbox__input
+    flex: none
+    width: 18px
+    height: 18px
+    margin: 0
+    accent-color: var(--color-primary)
+
+    &:focus-visible
+      outline: none
+      box-shadow: var(--focus-500)
+
+  .checkbox__label
+    min-width: 0

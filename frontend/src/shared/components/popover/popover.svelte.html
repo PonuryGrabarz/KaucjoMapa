@@ -1,0 +1,19 @@
+<svelte:window onkeydown={handleWindowKeydown} />
+
+{#if open}
+	<div
+		{...rest}
+		class={["popover", `popover--align-${align}`, className]}
+		style:--popover-width={width}
+		style:--popover-padding={padding}
+		role={resolvedRole}
+		aria-modal={modal ? "true" : undefined}
+		tabindex="-1"
+		onfocusout={handleFocusOut}
+		use:autoFocus
+		use:trapFocus={modal}
+		use:clickOutside={{ onOutside: close, ignore: triggerElement }}
+	>
+		{@render children()}
+	</div>
+{/if}

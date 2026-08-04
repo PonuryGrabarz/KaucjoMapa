@@ -1,0 +1,13 @@
+<a {...rest} {href} class={classes} aria-current={active ? "page" : undefined}>
+	<span class="nav-item__icon">
+		<IconifyIcon icon={resolvedIcon} size={24} />
+	</span>
+
+	<span class="nav-item__label">{label}</span>
+
+	{#if resolvedBadgeCount}
+		<span class="nav-item__badge" aria-hidden="true">{badgeText}</span>
+
+		<span class="visually-hidden">{badgeDescription}</span>
+	{/if}
+</a>

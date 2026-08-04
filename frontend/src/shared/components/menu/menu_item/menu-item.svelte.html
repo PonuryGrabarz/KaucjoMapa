@@ -1,0 +1,7 @@
+{#if separatorBefore}
+	<hr class="menu-item-separator" />
+{/if}
+
+<Button {...rest} {href} variant={danger ? "menu-danger" : "menu"} class={className}>
+	{@render children()}
+</Button>

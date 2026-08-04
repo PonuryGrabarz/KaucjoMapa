@@ -1,0 +1,29 @@
+.point-marker
+  position: relative
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  flex: none
+  width: var(--point-marker-size)
+  height: var(--point-marker-size)
+  border: 2px solid var(--paper-50)
+  border-radius: 50% 50% 50% 16%
+  box-shadow: var(--shadow-sm)
+  transform: rotate(45deg)
+
+  .point-marker__label
+    font-size: calc(var(--point-marker-size) * 0.3)
+    font-weight: 800
+    line-height: 1
+    transform: rotate(-45deg)
+
+  .point-marker__badge
+    position: absolute
+    top: calc(var(--point-marker-size) * -0.075)
+    right: calc(var(--point-marker-size) * -0.075)
+    width: calc(var(--point-marker-size) * 0.3)
+    height: calc(var(--point-marker-size) * 0.3)
+    border: 2px solid var(--paper-50)
+    border-radius: 50%
+    background: var(--color-warning)
+    transform: rotate(-45deg)

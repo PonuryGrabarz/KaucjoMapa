@@ -1,0 +1,55 @@
+<div class="distance-range" aria-disabled={!enabled}>
+	<div class="distance-range__header">
+		<span>{legend}</span>
+
+		<span>{min} km<span aria-hidden="true">–</span>{max} km</span>
+	</div>
+
+	<div
+		class="distance-range__slider"
+		style:--range-min={percent(min)}
+		style:--range-max={percent(max)}
+	>
+		<span class="distance-range__slider__track" aria-hidden="true">
+			<span class="distance-range__slider__track__range"></span>
+		</span>
+
+		<input
+			type="range"
+			name={minName}
+			min="0"
+			max={maxKm}
+			value={min}
+			disabled={!enabled}
+			aria-label="Minimalna odległość"
+			aria-valuetext="{min} km"
+			oninput={(event) => setMin(event.currentTarget.valueAsNumber)}
+		/>
+
+		<input
+			type="range"
+			name={maxName}
+			min="0"
+			max={maxKm}
+			value={max}
+			disabled={!enabled}
+			aria-label="Maksymalna odległość"
+			aria-valuetext="{max} km"
+			oninput={(event) => setMax(event.currentTarget.valueAsNumber)}
+		/>
+	</div>
+
+	<div class="distance-range__scale" aria-hidden="true">
+		<span>0 km</span>
+
+		<span>{maxKm} km</span>
+	</div>
+
+	{#if !enabled}
+		<p class="distance-range__notice">{unavailableMessage}</p>
+	{:else if emitPosition && position}
+		<input type="hidden" name={latName} value={position.lat} />
+
+		<input type="hidden" name={lonName} value={position.lon} />
+	{/if}
+</div>

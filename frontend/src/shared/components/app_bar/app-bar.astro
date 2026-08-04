@@ -1,0 +1,60 @@
+---
+import Styles from "./app-bar.module.sass";
+import LogoSvg from "@shared/assets/logo.svg";
+import Avatar from "@shared/components/avatar/avatar.svelte";
+import AccountMenu from "./account_menu/account-menu.svelte";
+import AddLocation from "./add_location/add-location.svelte";
+import NotificationBell from "./notification_bell/notification-bell.svelte";
+
+import { normalizePathname } from "@shared/helpers/path";
+
+import type { Notification } from "@shared/api/responses";
+
+interface Props {
+	title: string;
+	notifications?: Notification[];
+}
+
+const {
+	title,
+	notifications = [],
+} = Astro.props;
+
+const pathname = normalizePathname(Astro.url.pathname);
+
+const username = Astro.locals.session?.user?.username || "";
+const avatarUrl = Astro.locals.session?.user?.avatarUrl;
+
+const isHome = pathname === "/";
+const isUserLoggedIn = Astro.locals.session != null;
+---
+
+<header class={Styles["app-bar"]} transition:name="app-bar">
+  <div class:list={[Styles["app-bar__container"], isHome && Styles["app-bar__container--home"]]}>
+    <a href="/" class={Styles["app-bar__container__brand"]} aria-label="KaucjoMapa, przejdź do Mapy">
+      <LogoSvg width={24} height={24} />
+
+      <span>KaucjoMapa</span>
+    </a>
+
+    <span class={Styles["app-bar__container__divider"]} aria-hidden="true" />
+
+    <span class={Styles["app-bar__container__title"]}>{title}</span>
+
+    <span class={Styles["app-bar__container__spacer"]} />
+
+    {
+      isUserLoggedIn && (
+        <div class={Styles["app-bar__container__actions"]}>
+          {isHome && <AddLocation client:idle />}
+
+          <NotificationBell client:idle transition:persist="notification-bell" initialNotifications={notifications} />
+
+          <AccountMenu client:idle transition:persist="account-menu">
+            <Avatar slot="avatar" username={username} avatarUrl={avatarUrl} />
+          </AccountMenu>
+        </div>
+      )
+    }
+  </div>
+</header>

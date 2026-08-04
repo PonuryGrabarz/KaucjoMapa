@@ -1,0 +1,19 @@
+<fieldset class="filter-group">
+	<legend>{legend}</legend>
+
+	{#if submitEmpty}
+		<input type="hidden" {name} value="" />
+	{/if}
+
+	<div class={["filter-group__options", columns && "filter-group__options--columns"]}>
+		{#each options as option (option.value)}
+			<Checkbox
+				label={option.label}
+				{name}
+				value={option.value}
+				checked={checked.includes(option.value)}
+				onchange={(event) => onToggle?.(option.value, event.currentTarget.checked)}
+			/>
+		{/each}
+	</div>
+</fieldset>
