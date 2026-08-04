@@ -1,0 +1,228 @@
+:root
+  --ink-100: rgba(14, 42, 27, 0.10)
+  --ink-200: rgba(14, 42, 27, 0.16)
+  --ink-800: #1c3a29
+  --ink-900: #0e2a1b
+
+  --muted-400: #869389
+  --muted-500: #5a6b60
+
+  --paper-50: #ffffff
+  --paper-100: #f5faf6
+
+  --mint-50: #f3f9f4
+  --mint-100: #eaf5ed
+  --mint-200: #e7efe9
+  --mint-300: #e1efe6
+
+  --grass-100: rgba(52, 184, 90, 0.12)
+  --grass-400: #5fd37e
+  --grass-500: #34b85a
+  --grass-700: #1f7a3c
+  --grass-800: #1c5132
+
+  --coin-100: rgba(240, 180, 41, 0.15)
+  --coin-500: #f0b429
+  --coin-700: #cf950e
+  --coin-800: #8a6508
+
+  --busy-100: rgba(232, 146, 74, 0.16)
+  --busy-500: #e8924a
+
+  --off-100: rgba(154, 166, 160, 0.20)
+  --off-400: #9aa6a0
+
+  --danger-500: #d65a4a
+  --danger-700: #b23c2e
+
+  --focus-500: 0 0 0 3px rgba(52, 184, 90, 0.40)
+
+  --shadow-lg: 0 24px 60px -18px rgba(14, 42, 27, 0.40)
+  --shadow-md: 0 14px 32px -14px rgba(14, 42, 27, 0.28)
+  --shadow-sm: 0 6px 16px -10px rgba(14, 42, 27, 0.32)
+
+  --overlay-100: rgba(234, 245, 237, 0.72)
+  --overlay-700: rgba(31, 122, 60, 0.70)
+
+  --bg-gradient: radial-gradient(900px 500px at 50% -10%, rgba(95, 211, 126, 0.16), transparent 60%), #e8f1ea
+
+  --color-background: var(--paper-100)
+
+  --color-surface: var(--paper-50)
+  --color-surface-subtle: var(--mint-50)
+  --color-surface-subtle-2: var(--mint-100)
+
+  --color-text-primary: var(--ink-900)
+  --color-text-secondary: var(--muted-500)
+
+  --color-icon-subtle: var(--muted-400)
+
+  --color-border: var(--ink-100)
+  --color-border-strong: var(--ink-200)
+
+  --color-primary: var(--grass-700)
+  --color-primary-hover: var(--grass-800)
+
+  --color-primary-active: var(--ink-800)
+
+  --color-on-primary: var(--paper-50)
+
+  --color-primary-subtle: var(--grass-100)
+
+  --color-accent: var(--grass-500)
+
+  --color-warning: var(--coin-700)
+  --color-warning-surface: var(--coin-100)
+  --color-warning-strong: var(--coin-800)
+
+  --color-busy: var(--busy-500)
+  --color-busy-surface: var(--busy-100)
+
+  --color-off: var(--off-400)
+  --color-off-surface: var(--off-100)
+
+  --color-danger: var(--danger-500)
+  --color-danger-strong: var(--danger-700)
+
+  --color-disabled: var(--off-400)
+  --color-disabled-surface: var(--off-100)
+
+  --color-focus-ring: rgba(52, 184, 90, 0.40)
+
+  --color-scrollbar-thumb: var(--muted-400)
+  --color-scrollbar-thumb-hover: var(--grass-700)
+
+  --radius-sm: 6px
+  --radius-md: 10px
+  --radius-lg: 14px
+  --radius-pill: 999px
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1)
+  --ease-decelerate: cubic-bezier(0, 0, 0, 1)
+  --ease-accelerate: cubic-bezier(0.3, 0, 1, 1)
+
+  --font-size-headline: 22px
+  --font-size-title: 18px
+  --font-size-body: 15px
+  --font-size-small: 14px
+  --font-size-label: 12px
+
+  --control-height: 40px
+  --touch-target: 44px
+  --appbar-height: 56px
+  --appbar-height-compact: 52px
+  --sidebar-width: 240px
+  --rail-width: 96px
+  --bottomnav-height: 60px
+
+*,
+*::before,
+*::after
+  box-sizing: border-box
+
+html
+  height: 100%
+
+body
+  margin: 0
+  height: 100%
+  font-family: var(--font-ui)
+  font-size: var(--font-size-body)
+  line-height: 1.5
+  color: var(--color-text-primary)
+  background: var(--color-background)
+  text-rendering: optimizeLegibility
+  -webkit-font-smoothing: antialiased
+
+h1,
+h2,
+h3,
+p
+  margin: 0
+
+h1
+  font-size: var(--font-size-headline)
+  font-weight: 600
+  line-height: 1.25
+  &[tabindex='-1']:focus
+    outline: none
+    box-shadow: none
+
+h2
+  font-size: var(--font-size-title)
+  font-weight: 600
+  line-height: 1.3
+
+button
+  font: inherit
+  color: inherit
+  background: none
+  border: 0
+  padding: 0
+  cursor: pointer
+
+.visually-hidden
+  position: absolute
+  width: 1px
+  height: 1px
+  padding: 0
+  margin: -1px
+  overflow: hidden
+  clip: rect(0 0 0 0)
+  white-space: nowrap
+  border: 0
+
+.skip-link
+  position: fixed
+  top: 8px
+  left: 8px
+  z-index: 100
+  padding: 10px 16px
+  border-radius: var(--radius-md)
+  background: var(--color-primary)
+  color: var(--color-on-primary)
+  font-weight: 600
+  transform: translateY(-200%)
+  transition: transform 150ms var(--ease-standard)
+  &:focus-visible
+    transform: translateY(0)
+    text-decoration: none
+
+.ripple-ink
+  position: absolute
+  border-radius: 50%
+  background: currentColor
+  opacity: 0
+  pointer-events: none
+  transform: scale(0)
+  animation: ripple-spread 450ms var(--ease-decelerate) forwards
+
+:focus-visible
+  outline: none
+  box-shadow: var(--focus-500)
+
+@keyframes ripple-spread
+  0%
+    opacity: 0.12
+    transform: scale(0)
+  60%
+    opacity: 0.12
+  100%
+    opacity: 0
+    transform: scale(1)
+
+@keyframes popover-in
+  from
+    opacity: 0
+    transform: translateY(-4px) scale(0.98)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
+
+@media (prefers-reduced-motion: reduce)
+  *,
+  *::before,
+  *::after
+    animation-duration: 0.01ms !important
+    animation-iteration-count: 1 !important
+    transition-duration: 0.01ms !important
