@@ -1,0 +1,225 @@
+{#if point}
+	<Dialog
+		bind:open
+		title={point.name}
+		closeLabel="Zamknij szczegóły punktu"
+		maxWidth={500}
+		onclose={handleClose}
+	>
+		<div class="point-detail">
+			<div class="point-detail__identity">
+				<PointMarker
+					shortName={point.short_name}
+					backgroundColor={point.bg_color}
+					textColor={point.text_color}
+					size={40}
+				/>
+
+				<p class="point-detail__identity__type">{RETURN_POINT_TYPE_LABELS[point.type]}</p>
+			</div>
+
+			<div class="point-detail__summary">
+				<StatusPill status={point.current_status} dot />
+
+				{#if !point.is_verified}
+					<span class="point-detail__summary__verification">Oczekuje na weryfikację</span>
+				{/if}
+
+				{#if openNow !== undefined}
+					<span
+						class={["point-detail__summary__hours", openNow && "point-detail__summary__hours--open"]}
+					>
+						{openNow ? "Otwarte teraz" : "Zamknięte teraz"}
+					</span>
+				{/if}
+			</div>
+
+			{#if !point.is_verified}
+				<p class="point-detail__note">
+					Punkt oczekuje na weryfikację. Na razie jest widoczny tylko dla Ciebie. Po zatwierdzeniu
+					przez administratora zobaczą go wszyscy użytkownicy.
+				</p>
+			{/if}
+
+			<dl class="point-detail__facts">
+				<div>
+					<dt>Adres</dt>
+
+					<dd>{point.address || "Brak adresu"}</dd>
+				</div>
+
+				<div>
+					<dt>Przyjmowane opakowania</dt>
+
+					<dd>
+						{#if materials.length > 0}
+							<ul class="point-detail__facts__packages">
+								{#each materials as material (material)}
+									<li>{material}</li>
+								{/each}
+							</ul>
+						{:else}
+							<span class="point-detail__facts__empty">Brak przyjmowanych materiałów</span>
+						{/if}
+					</dd>
+				</div>
+
+				<div>
+					<dt>Godziny</dt>
+
+					<dd>
+						{#if hoursEntries.length > 0}
+							<ul class="point-detail__facts__hours">
+								{#each hoursEntries as [key, value] (key)}
+									<li>
+										<span>{OPENING_HOURS_LABELS[key]}</span>
+
+										<strong>{formatHourRange(value)}</strong>
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<span class="point-detail__facts__empty">Brak informacji o godzinach otwarcia</span>
+						{/if}
+					</dd>
+				</div>
+
+				<div class="point-detail__facts__row--wide">
+					<dt>Formy rozliczenia</dt>
+
+					<dd>
+						{#if point.refund_method.length > 0}
+							<ul class="point-detail__facts__methods">
+								{#each point.refund_method as method (method)}
+									<li>{RETURN_POINT_REFUND_METHOD_LABELS[method]}</li>
+								{/each}
+							</ul>
+						{:else}
+							<span class="point-detail__facts__empty">Brak informacji o formie rozliczenia</span>
+						{/if}
+					</dd>
+				</div>
+
+				<div class="point-detail__facts__row--wide">
+					<dt>Opis</dt>
+
+					<dd>{point.description || "Brak dodatkowego opisu"}</dd>
+				</div>
+			</dl>
+
+			<section class="point-detail__reports">
+				<div class="point-detail__reports__header">
+					<div>
+						<h3>Zgłoszenia społeczności</h3>
+
+						<p>Aktualne informacje przekazane przez użytkowników.</p>
+					</div>
+
+					<span class="point-detail__reports__header__count">{reports.length}</span>
+				</div>
+
+				{#if reportsLoading}
+					<p class="point-detail__reports__empty">Wczytywanie zgłoszeń…</p>
+				{:else if reports.length === 0}
+					<p class="point-detail__reports__empty">Brak zgłoszeń statusu dla tego punktu.</p>
+				{:else}
+					<ul class="point-detail__reports__list">
+						{#each reports as entry (entry.report.id)}
+							<li class="point-detail__reports__list__item">
+								<div class="point-detail__reports__list__item__author">
+									<span class="point-detail__reports__list__item__author__avatar" aria-hidden="true">
+										{entry.username.slice(0, 2).toUpperCase()}
+									</span>
+
+									<span class="point-detail__reports__list__item__author__identity">
+										<strong>{entry.username}</strong>
+
+										<span class="point-detail__reports__list__item__author__identity__trust">
+											{#each TRUST_STARS as index (index)}
+												<span
+													class={index < trustStars(entry.reputation) ? "is-filled" : undefined}
+													aria-hidden="true"
+												>★</span>
+											{/each}
+
+											<span class="visually-hidden">
+												Poziom zaufania: {trustStars(entry.reputation)} z 5
+											</span>
+										</span>
+									</span>
+								</div>
+
+								<div class="point-detail__reports__list__item__meta">
+									<StatusPill status={entry.report.status} />
+
+									<time datetime={entry.report.created_at}>
+										{dateTimeLabel(entry.report.created_at)}
+									</time>
+								</div>
+
+								{#if entry.report.description}
+									<p class="point-detail__reports__list__item__message">
+										{entry.report.description}
+									</p>
+								{/if}
+
+								{#if votedReportIds.includes(entry.report.id)}
+									<p class="point-detail__reports__list__item__vote-result" role="status">
+										Dziękujemy za ocenę tego zgłoszenia.
+									</p>
+								{:else if isLoggedIn}
+									<div class="point-detail__reports__list__item__votes">
+										<Button
+											variant="secondary"
+											disabled={pendingVoteReportId === entry.report.id}
+											onclick={() => handleVote(entry.report.id, "confirm")}
+										>
+											Potwierdź
+										</Button>
+
+										<Button
+											variant="text"
+											disabled={pendingVoteReportId === entry.report.id}
+											onclick={() => handleVote(entry.report.id, "reject")}
+										>
+											Zaprzecz
+										</Button>
+									</div>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{/if}
+
+				{#if !isLoggedIn}
+					<p class="point-detail__note">Zaloguj się, aby oceniać zgłoszenia albo dodać nowe.</p>
+				{/if}
+			</section>
+		</div>
+
+		{#snippet footer()}
+			{#if isLoggedIn}
+				<span class="point-detail__bookmark">
+					<Button
+						variant={bookmarked ? "tonal" : "text"}
+						disabled={bookmarkPending}
+						aria-pressed={bookmarked}
+						onclick={toggleBookmark}
+					>
+						{bookmarked ? "Zapisany" : "Zapisz punkt"}
+					</Button>
+				</span>
+			{/if}
+
+			{#if isLoggedIn && point.is_verified}
+				<Button variant="secondary" onclick={() => (reportDialogOpen = true)}>
+					Dodaj zgłoszenie
+				</Button>
+			{/if}
+
+			<Button href={navigateHref} target="_blank">Nawiguj</Button>
+		{/snippet}
+	</Dialog>
+
+	<ReportDialog bind:open={reportDialogOpen} {point} onsubmitted={handleReportSubmitted} />
+{/if}

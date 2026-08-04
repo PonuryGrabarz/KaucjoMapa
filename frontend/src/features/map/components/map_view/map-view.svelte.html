@@ -1,0 +1,102 @@
+<svelte:window onoffline={() => (isOffline = true)} ononline={() => (isOffline = false)} />
+
+{#snippet notice(icon: string, title: string, text: string, offline = false)}
+  <div
+    class={["map-view__notices__item", offline && "map-view__notices__item--offline"]}
+    role="status"
+  >
+    <span class="map-view__notices__item__icon">
+      <IconifyIcon {icon} size={20} />
+    </span>
+
+    <span>
+      <strong>{title}</strong>
+      {text}
+    </span>
+  </div>
+{/snippet}
+
+{#snippet statusCard(title: string, message: string, failed: boolean, action?: Snippet)}
+  <div class="map-view__status">
+    <span class={["map-view__status__mark", failed && "map-view__status__mark--failed"]}>
+      <IconifyIcon
+        icon={failed ? "material-symbols:error-outline-rounded" : "material-symbols:map-outline-rounded"}
+        size={24}
+      />
+    </span>
+
+    <div class="map-view__status__message">
+      <strong>{title}</strong>
+
+      <span>{message}</span>
+
+      {#if action}
+        {@render action()}
+      {/if}
+    </div>
+  </div>
+{/snippet}
+
+<div class="map-view__notices">
+  {#if isOffline}
+    {@render notice(
+      "material-symbols:error-outline-rounded",
+      "Brak połączenia.",
+      "Sprawdź połączenie z internetem i spróbuj ponownie.",
+      true,
+    )}
+  {/if}
+
+  {#if mapState.locationState === "denied"}
+    {@render notice(
+      "material-symbols:my-location-rounded",
+      "Brak zgody na lokalizację.",
+      "Wyszukaj miejsce lub zmień uprawnienie w przeglądarce.",
+    )}
+  {/if}
+</div>
+
+{#if webglUnsupported}
+  {@render statusCard(
+    "Mapa jest niedostępna",
+    "Twoja przeglądarka nie obsługuje WebGL, więc mapa jest niedostępna na tym urządzeniu.",
+    true,
+    pointListAction,
+  )}
+{:else}
+  {#key mapAttempt}
+    <div class="map-view__map" {@attach initMap}></div>
+  {/key}
+
+  {#if mapError}
+    {@render statusCard("Mapa jest niedostępna", mapError, true, retryAction)}
+  {:else if !mapLoaded}
+    {@render statusCard("Ładowanie mapy", "Przygotowujemy warstwy i punkty.", false)}
+  {/if}
+
+  <p class="map-view__result-count" aria-hidden="true">{viewportCountLabel}</p>
+
+  <p class="visually-hidden" role="status">{filteredCountLabel}</p>
+
+  {#if pickingLocation}
+    <div class="map-view__add-point-picker" role="status">
+      <IconifyIcon icon="material-symbols:add-location-alt-outline-rounded" size={20} />
+
+      <div>
+        <strong>Wskaż lokalizację punktu</strong>
+
+        <small>Kliknij dokładne miejsce na mapie.</small>
+      </div>
+
+      <Button variant="text" onclick={() => (pickingLocation = false)}>Anuluj</Button>
+    </div>
+  {/if}
+{/if}
+
+{#snippet pointListAction()}
+  <Button href="/punkty" variant="secondary">Zobacz listę punktów</Button>
+{/snippet}
+
+{#snippet retryAction()}
+  <Button variant="secondary" onclick={retryMap}>Spróbuj ponownie</Button>
+{/snippet}

@@ -1,0 +1,174 @@
+<Dialog
+	bind:open
+	title="Dodaj punkt zwrotu"
+	closeLabel="Zamknij formularz"
+	maxWidth={640}
+	onclose={handleClose}
+>
+	<form id={formId} class="add-point" aria-busy={submitState.pending} onsubmit={handleSubmit}>
+		<p class="add-point__lead">
+			Wypełnij podstawowe informacje, aby zgłosić nowy punkt do weryfikacji.
+		</p>
+
+		<div class="add-point__notice">
+			<IconifyIcon icon="material-symbols:info-outline-rounded" size={20} />
+
+			<span class="add-point__notice__text">
+				<strong>Zanim dodasz punkt</strong>
+
+				<small>Nowe punkty trafiają na mapę dopiero po weryfikacji przez społeczność.</small>
+			</span>
+		</div>
+
+		<section class="add-point__section">
+			<h3>Podstawowe informacje</h3>
+
+			<div class="add-point__section__grid">
+				<SelectField label="Typ punktu" options={TYPE_OPTIONS} bind:value={type} />
+
+				<SelectField label="Aktualny status" options={STATUS_OPTIONS} bind:value={currentStatus} />
+
+				<div class="add-point__section__grid__wide">
+					<TextField
+						label="Nazwa punktu"
+						bind:value={name}
+						required
+						maxlength={255}
+						placeholder="np. Butelkomat przy Galerii Słonecznej"
+					/>
+				</div>
+
+				<div class="add-point__section__grid__wide">
+					<TextField
+						label="Pełny adres"
+						bind:value={address}
+						placeholder="ul. Przykładowa 1, Warszawa"
+					/>
+				</div>
+			</div>
+		</section>
+
+		<section class="add-point__section">
+			<h3>Wygląd znacznika</h3>
+
+			<p class="add-point__section__hint">
+				Podgląd orientacyjny. Ostateczny wygląd znacznika wyznacza serwer na podstawie nazwy punktu.
+			</p>
+
+			<div class="add-point__section__appearance">
+				<div class="add-point__section__appearance__preview">
+					<span>Podgląd</span>
+
+					<PointMarker
+						shortName={previewShortName}
+						backgroundColor={backgroundColor}
+						textColor={textColor}
+						size={48}
+					/>
+				</div>
+
+				<div class="add-point__section__appearance__fields">
+					<TextField
+						label="Krótka nazwa"
+						bind:value={shortName}
+						maxlength={3}
+						placeholder="np. BTL"
+						autocapitalize="characters"
+						autocomplete="off"
+						spellcheck="false"
+						hint="Maksymalnie 3 znaki, wyświetlane na znaczniku."
+					/>
+
+					<div class="add-point__section__appearance__fields__colors">
+						<ColorField label="Kolor tła" bind:value={backgroundColor} />
+
+						<ColorField label="Kolor tekstu" bind:value={textColor} />
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="add-point__section">
+			<h3>Lokalizacja na mapie</h3>
+
+			<button
+				class="add-point__section__location"
+				type="button"
+				data-selected={pickedLocation ? "true" : "false"}
+				onclick={startLocationPick}
+			>
+				<span class="add-point__section__location__icon">
+					<IconifyIcon icon="material-symbols:add-location-alt-outline-rounded" size={20} />
+				</span>
+
+				<span class="add-point__section__location__text">
+					<strong>{pickedLocation ? "Lokalizacja wybrana" : "Wskaż punkt na mapie"}</strong>
+
+					<small>{locationLabel}</small>
+				</span>
+			</button>
+		</section>
+
+		<section class="add-point__section">
+			<h3>Przyjmowane opakowania</h3>
+
+			<div class="add-point__section__checks">
+				<Checkbox label="Butelki PET" bind:checked={pet} />
+
+				<Checkbox label="Puszki" bind:checked={can} />
+
+				<Checkbox label="Butelki szklane" bind:checked={glass} />
+			</div>
+		</section>
+
+		<section class="add-point__section">
+			<h3>Formy rozliczenia</h3>
+
+			<div class="add-point__section__checks">
+				{#each RETURN_POINT_REFUND_METHODS as method (method)}
+					<Checkbox
+						label={RETURN_POINT_REFUND_METHOD_LABELS[method]}
+						bind:checked={refundMethods[method]}
+					/>
+				{/each}
+			</div>
+		</section>
+
+		<section class="add-point__section">
+			<h3>Godziny otwarcia <small>opcjonalnie</small></h3>
+
+			<div class="add-point__section__grid">
+				<TextField label="Pon–pt" bind:value={hoursWeekday} placeholder="np. 09:00-18:00" />
+
+				<TextField label="Weekend" bind:value={hoursWeekend} placeholder="np. 10:00-14:00" />
+			</div>
+		</section>
+
+		<section class="add-point__section">
+			<h3>Opis <small>opcjonalnie</small></h3>
+
+			<TextField
+				label="Opis punktu"
+				labelHidden
+				multiline
+				bind:value={description}
+				rows={4}
+				maxlength={DESCRIPTION_MAX_LENGTH}
+			/>
+		</section>
+
+		{#if submitState.error}
+			<p class="add-point__error" role="alert">{submitState.error}</p>
+		{/if}
+	</form>
+
+	{#snippet footer()}
+		<Button variant="text" disabled={submitState.pending} onclick={() => (open = false)}>
+			Anuluj
+		</Button>
+
+		<Button type="submit" form={formId} disabled={submitState.pending}>
+			{submitState.pending ? "Wysyłanie…" : "Dodaj do weryfikacji"}
+		</Button>
+	{/snippet}
+</Dialog>

@@ -1,0 +1,73 @@
+.points-list-header
+  flex: none
+  display: flex
+  flex-direction: column
+  background: var(--color-surface)
+  border-bottom: 1px solid var(--color-border)
+  z-index: 10
+
+  .points-list-header__form
+    position: relative
+    display: grid
+    grid-template-columns: minmax(0, 1fr)
+    align-items: center
+    gap: 8px
+    min-width: 0
+    padding: 10px 12px
+    padding-left: calc(12px + env(safe-area-inset-left))
+    padding-right: calc(12px + env(safe-area-inset-right))
+
+    @media (min-width: 600px)
+      padding: 12px 16px
+
+    @media (min-width: 900px)
+      grid-template-columns: minmax(240px, 560px) auto
+      gap: 12px
+      padding: 12px 28px
+
+    .points-list-header__search
+      min-width: 0
+
+    .points-list-header__actions
+      display: flex
+      align-items: center
+      gap: 6px
+      min-width: 0
+
+      @media (max-width: 899.98px)
+        justify-content: stretch
+
+      @media (min-width: 900px)
+        justify-content: flex-end
+
+      > *
+        min-width: 0
+
+        @media (max-width: 899.98px)
+          flex: 1 1 0
+
+        @media (min-width: 900px)
+          flex: none
+
+  .points-list-header__status
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    padding: 0 12px 10px
+    padding-left: calc(12px + env(safe-area-inset-left))
+    padding-right: calc(12px + env(safe-area-inset-right))
+
+    @media (min-width: 600px)
+      padding: 0 16px 12px
+
+    @media (min-width: 900px)
+      padding: 0 28px 12px
+
+    .points-list-header__count
+      overflow: hidden
+      font-size: var(--font-size-small)
+      color: var(--color-text-secondary)
+      line-height: 1.4
+      text-overflow: ellipsis
+      white-space: nowrap

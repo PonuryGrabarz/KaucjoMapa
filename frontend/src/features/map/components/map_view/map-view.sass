@@ -1,0 +1,154 @@
+.map-view__status
+  position: absolute
+  z-index: 14
+  inset: 0
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 12px
+  padding: 20px
+  background: var(--bg-gradient)
+  color: var(--color-text-primary)
+
+  .map-view__status__mark
+    display: inline-grid
+    place-items: center
+    flex: none
+    width: 48px
+    height: 48px
+    border-radius: 50%
+    background: var(--color-surface)
+    color: var(--color-primary)
+    border: 1px solid var(--color-border)
+    animation: loading-breathe 1400ms var(--ease-standard) infinite alternate
+
+    @media (prefers-reduced-motion: reduce)
+      animation: none
+
+    &.map-view__status__mark--failed
+      color: var(--color-danger-strong)
+      animation: none
+
+  .map-view__status__message
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 4px
+    max-width: 360px
+
+    strong
+      font-size: var(--font-size-title)
+
+    span
+      color: var(--color-text-secondary)
+      margin-bottom: 6px
+
+.map-view__map
+  position: absolute
+  inset: 0
+
+.map-view__result-count
+  position: absolute
+  z-index: 10
+  left: 12px
+  bottom: 14px
+  margin: 0
+  min-height: 32px
+  padding: 6px 10px
+  border: 1px solid var(--color-border)
+  border-radius: var(--radius-pill)
+  background: var(--color-surface)
+  color: var(--color-text-primary)
+  box-shadow: var(--shadow-sm)
+  font-size: 14px
+  font-weight: 600
+
+  @media (max-width: 767.98px)
+    left: calc(8px + env(safe-area-inset-left))
+    bottom: 10px
+    max-width: calc(100% - 78px)
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+.map-view__notices
+  position: relative
+  z-index: 18
+  flex: none
+
+  .map-view__notices__item
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 36px
+    padding: 6px 12px
+    background: var(--color-warning-surface)
+    color: var(--color-text-primary)
+    border-bottom: 1px solid rgb(207 149 14 / 0.22)
+    font-size: 14px
+    line-height: 1.4
+
+    @media (max-width: 767.98px)
+      justify-content: flex-start
+      padding-inline: 12px
+
+    &.map-view__notices__item--offline
+      background: var(--color-off-surface)
+      border-color: var(--color-border)
+
+      .map-view__notices__item__icon
+        color: var(--color-text-secondary)
+
+    .map-view__notices__item__icon
+      display: inline-flex
+      flex: none
+      color: var(--color-warning-strong)
+
+.map-view__add-point-picker
+  position: absolute
+  z-index: 16
+  top: 16px
+  left: 50%
+  transform: translateX(-50%)
+  display: flex
+  align-items: center
+  gap: 12px
+  max-width: min(480px, calc(100% - 32px))
+  padding: 10px 10px 10px 14px
+  border-radius: var(--radius-pill)
+  background: var(--color-surface)
+  border: 1px solid var(--color-warning)
+  box-shadow: var(--shadow-md)
+  font-size: 14px
+
+:global(.map-view__hover-popup)
+  :global(.maplibregl-popup-content)
+    display: flex
+    flex-direction: column
+    gap: 2px
+    padding: 9px 12px
+    border: 1px solid var(--color-border)
+    border-radius: var(--radius-md)
+    background: var(--color-surface)
+    color: var(--color-text-primary)
+    box-shadow: var(--shadow-sm)
+    font-family: var(--font-ui)
+
+  :global(strong)
+    font-size: 14px
+    font-weight: 600
+
+  :global(span)
+    color: var(--color-text-secondary)
+    font-size: 12px
+
+  :global(.maplibregl-popup-tip)
+    border-top-color: var(--color-surface)
+
+
+@keyframes loading-breathe
+  from
+    transform: scale(0.96)
+  to
+    transform: scale(1.04)

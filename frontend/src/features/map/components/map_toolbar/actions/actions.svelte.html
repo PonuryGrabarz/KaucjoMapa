@@ -1,0 +1,24 @@
+<div class="actions">
+  <FilterPanel
+    groups={FILTER_GROUPS}
+    activeCount={mapState.activeGroupCount}
+    distanceMaxKm={RADIUS_MAX_KM}
+    emitPosition={false}
+    bind:openNow={mapState.openNowOnly}
+    bind:distanceMin={mapState.minRadiusKm}
+    bind:distanceMax={mapState.maxRadiusKm}
+    onreset={() => mapState.reset()}
+  />
+
+  <span class="actions__location-button">
+    <Button
+      variant="tonal"
+      disabled={mapState.locationState === "requesting"}
+      onclick={requestLocation}
+    >
+      <IconifyIcon icon="material-symbols:my-location-rounded" size={20} />
+
+      <span class="actions__location-button-label">{locationButtonLabel}</span>
+    </Button>
+  </span>
+</div>

@@ -1,0 +1,11 @@
+---
+import Styles from "./map-toolbar.module.sass";
+import Search from "./search/search.svelte";
+import Actions from "./actions/actions.svelte";
+---
+
+<div class:list={Styles["map-toolbar"]}>
+  <Search client:idle />
+
+  <Actions client:idle />
+</div>

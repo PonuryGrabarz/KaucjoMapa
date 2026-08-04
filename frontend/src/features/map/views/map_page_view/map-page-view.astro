@@ -1,0 +1,46 @@
+---
+import Styles from "./map-page-view.module.sass";
+import MapView from "../../components/map_view/map-view.svelte";
+import MapToolbar from "../../components/map_toolbar/map-toolbar.astro";
+import AddPointDialog from "../../components/add_point_dialog/add-point-dialog.svelte";
+import PointDetail from "../../components/point_detail_dialog/point-detail-dialog.svelte";
+
+import { actions } from "astro:actions";
+
+import type { ReturnPoint } from "@shared/api/responses";
+
+const isUserLoggedIn = Astro.locals.session != null;
+
+const [listResponse, mineResponse] = await Promise.all([
+  Astro.callAction(actions.returnPoints.list, {}),
+  isUserLoggedIn ? Astro.callAction(actions.returnPoints.list, { onlyMine: true }) : undefined,
+]);
+
+const publicPoints: ReturnPoint[] = listResponse.data?.return_points ?? [];
+
+const publicPointIds = new Set(publicPoints.map((point) => point.id));
+
+const ownPoints = (mineResponse?.data?.return_points ?? []).filter(
+  (point) => !publicPointIds.has(point.id),
+);
+
+const initialReturnPoints = [...publicPoints, ...ownPoints];
+---
+
+<script is:inline define:vars={{ initialReturnPoints }}>
+  window.initialReturnPoints = initialReturnPoints;
+</script>
+
+<section class:list={Styles["map-page"]}>
+  <MapToolbar />
+
+  <div class:list={Styles["map-page__map"]}>
+    <div class:list={Styles["map-page__map__canvas"]}>
+      <MapView client:load />
+
+      <PointDetail client:load isLoggedIn={isUserLoggedIn} />
+
+      { isUserLoggedIn && <AddPointDialog client:idle /> }
+    </div>
+  </div>
+</section>

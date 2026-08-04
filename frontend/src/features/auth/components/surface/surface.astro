@@ -1,0 +1,81 @@
+---
+import Styles from "./surface.module.sass";
+import LogoSvg from "@shared/assets/logo.svg";
+import IconifyIcon from "@shared/components/iconify_icon/iconify-icon.svelte";
+
+interface Props {
+  type: "login" | "register";
+}
+
+interface SurfaceCopy {
+  brandTitle: string;
+  brandDescription: string;
+  heading: string;
+  intro: string;
+}
+
+const COPY: Record<Props["type"], SurfaceCopy> = {
+  login: {
+    brandTitle: "Twoje miejsca zawsze pod ręką",
+    brandDescription:
+      "Wróć do zapisanych punktów, zgłoszeń i historii zwrotów bez szukania od początku.",
+    heading: "Zaloguj się",
+    intro:
+      "Wprowadź swoje dane, aby uzyskać dostęp do swojego konta i wszystkich zapisanych punktów.",
+  },
+  register: {
+    brandTitle: "Zacznij od swojego konta",
+    brandDescription: "Zapisuj punkty, zgłoszenia i historię zwrotów w jednym miejscu.",
+    heading: "Zarejestruj się",
+    intro: "Utwórz konto, aby zacząć korzystać z KaucjoMapa i zapisywać swoje punkty.",
+  },
+};
+
+const { type } = Astro.props;
+
+const copy = COPY[type];
+---
+
+<div class:list={Styles["surface"]}>
+  <div class:list={Styles["surface__content"]}>
+    <div class:list={Styles["surface__content__inner"]}>
+      <aside class:list={Styles["surface__content__inner__brand"]}>
+        <div class:list={Styles["surface__content__inner__brand__product"]}>
+          <LogoSvg width={32} height={32} />
+
+          <span>KaucjoMapa</span>
+        </div>
+
+        <div class:list={Styles["surface__content__inner__brand__copy"]}>
+          <p class:list={Styles["surface__content__inner__brand__copy__title"]}>
+            {copy.brandTitle}
+          </p>
+
+          <p>{copy.brandDescription}</p>
+        </div>
+
+        <div class:list={Styles["surface__content__inner__brand__route"]} aria-hidden="true">
+          <span class:list={Styles["surface__content__inner__brand__route__stop"]}></span>
+
+          <span class:list={Styles["surface__content__inner__brand__route__stop"]}></span>
+
+          <span class:list={Styles["surface__content__inner__brand__route__stop"]}></span>
+
+          <span class:list={Styles["surface__content__inner__brand__route__pin"]}>
+            <IconifyIcon icon="material-symbols:location-on-rounded" size={20} />
+          </span>
+        </div>
+      </aside>
+
+      <div class:list={Styles["surface__content__inner__panel"]}>
+        <header class:list={Styles["surface__content__inner__panel__heading"]}>
+          <h1>{copy.heading}</h1>
+
+          <p>{copy.intro}</p>
+        </header>
+
+        <slot />
+      </div>
+    </div>
+  </div>
+</div>

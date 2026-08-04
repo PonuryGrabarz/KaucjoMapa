@@ -1,11 +1,83 @@
 ---
 import Styles from "./register-page-view.module.sass";
-import AuthHero from "../../components/auth_hero/auth-hero.astro";
-import RegisterForm from "../../components/register_form/register-form";
+import Button from "@shared/components/button/button.svelte";
+import Surface from "../../components/surface/surface.astro";
+import TextField from "@shared/components/text_field/text-field.svelte";
+import GoogleOAuthButton from "../../components/google_oauth_button/google-oauth-button.svelte";
+
+import { actions } from "astro:actions";
+
+interface Props {
+  inputErrors?: Record<string, string[] | undefined>;
+  formError?: string;
+}
+
+const { inputErrors = {}, formError } = Astro.props;
 ---
 
-<AuthHero />
+<Surface type="register">
+  <GoogleOAuthButton href="/api/auth/google?zrodlo=rejestracja" />
 
-<section class:list={Styles["auth-body"]} aria-labelledby="register-form-title">
-  <RegisterForm client:load />
-</section>
+  <p class:list={Styles["login-page__divider"]}>
+    <span>lub zarejestruj się e-mailem</span>
+  </p>
+
+  <form class:list={Styles["login-page__form"]} method="POST" action={actions.auth.register}>
+    {
+      formError && (
+        <p class:list={Styles["login-page__form__alert"]} role="alert">
+          {formError}
+        </p>
+      )
+    }
+
+    <TextField
+      label="Nazwa użytkownika"
+      name="username"
+      autocomplete="username"
+      icon="material-symbols:person-outline-rounded"
+      error={inputErrors.username?.join(" ")}
+      required
+    />
+
+    <TextField
+      type="email"
+      label="Adres e-mail"
+      name="email"
+      autocomplete="email"
+      icon="material-symbols:mail-outline-rounded"
+      error={inputErrors.email?.join(" ")}
+      required
+    />
+
+    <TextField
+      client:load
+      type="password"
+      label="Hasło"
+      name="password"
+      autocomplete="new-password"
+      minlength={8}
+      icon="material-symbols:lock-outline-rounded"
+      error={inputErrors.password?.join(" ")}
+      required
+    />
+
+    <TextField
+      client:load
+      type="password"
+      label="Potwierdź hasło"
+      name="confirmPassword"
+      autocomplete="new-password"
+      minlength={8}
+      icon="material-symbols:lock-outline-rounded"
+      error={inputErrors.confirmPassword?.join(" ")}
+      required
+    />
+
+    <Button type="submit">Utwórz konto</Button>
+  </form>
+
+  <p class:list={Styles["login-page__footer"]}>
+    Masz już konto? <a href="/logowanie">Zaloguj się</a>
+  </p>
+</Surface>
