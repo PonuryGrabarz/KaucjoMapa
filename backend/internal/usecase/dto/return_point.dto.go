@@ -15,6 +15,9 @@ type CreateReturnPointInput struct {
 	Pet           bool
 	Can           bool
 	Glass         bool
+	ShortName     string
+	BgColor       string
+	TextColor     string
 	RefundMethod  []entity.RefundMethod
 	OpeningHours  entity.OpeningHours
 	Description   string

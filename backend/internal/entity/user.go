@@ -13,6 +13,7 @@ type User struct {
 	PasswordHash       string
 	Token              string
 	Reputation         int32
+	AvatarPath         string
 	TotalConfirmations int32
 	TotalRejections    int32
 	IsAdmin            bool

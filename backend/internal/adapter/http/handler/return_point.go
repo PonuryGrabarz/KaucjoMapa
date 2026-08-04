@@ -53,8 +53,32 @@ func (h *ReturnPointHandler) Create(c fiber.Ctx) error {
 		refundMethods = append(refundMethods, entity.RefundMethod(method))
 	}
 
+	defaultPointStyle := presenter.ResolvePointStyle(req.Name)
+
+	pointStyle := presenter.PointStyle{}
+	if req.BgColor != nil {
+		pointStyle.BgColor = *req.BgColor
+	} else {
+		pointStyle.BgColor = defaultPointStyle.BgColor
+	}
+
+	if req.TextColor != nil {
+		pointStyle.TextColor = *req.TextColor
+	} else {
+		pointStyle.TextColor = defaultPointStyle.TextColor
+	}
+
+	if req.ShortName != nil {
+		pointStyle.ShortName = *req.ShortName
+	} else {
+		pointStyle.ShortName = defaultPointStyle.ShortName
+	}
+
 	returnPoint, err := h.svc.Create(c.Context(), dto.CreateReturnPointInput{
 		Name:         req.Name,
+		ShortName:    pointStyle.ShortName,
+		BgColor:      pointStyle.BgColor,
+		TextColor:    pointStyle.TextColor,
 		UserID:       claims.UserID,
 		Type:         req.Type,
 		Address:      req.Address,

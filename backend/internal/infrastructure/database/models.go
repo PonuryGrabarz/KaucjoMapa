@@ -373,6 +373,9 @@ type ReturnPoint struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	RefundMethods      []RefundMethod
+	ShortName          sql.NullString
+	BgColor            sql.NullString
+	TextColor          sql.NullString
 }
 
 type User struct {
@@ -388,6 +391,7 @@ type User struct {
 	TotalConfirmations int32
 	TotalRejections    int32
 	GoogleSubject      sql.NullString
+	AvatarPath         sql.NullString
 }
 
 type UserNotification struct {
