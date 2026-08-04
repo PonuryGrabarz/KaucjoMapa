@@ -1,34 +1,50 @@
+import { z } from "zod";
+
 import { Result } from "../result";
 
+export interface LoginParams {
+  username: string;
+  password: string;
+}
+
+const SCHEMA = z.strictObject(
+  {
+    username: z
+      .string({ error: "Nazwa użytkownika: wartość musi być tekstem." })
+      .trim()
+      .min(1, { error: "Nazwa użytkownika: pole jest wymagane." }),
+    password: z
+      .string({ error: "Hasło: wartość musi być tekstem." })
+      .min(1, { error: "Hasło: pole jest wymagane." }),
+  },
+  { error: "Żądanie zawiera nieznany parametr." },
+);
+
+const toErrors = (error: z.ZodError): Error[] =>
+  error.issues.map((issue) => new Error(issue.message));
+
 export class LoginRequest {
-  private readonly requestType = "login";
+  public readonly kind = "login" as const;
 
-  readonly username: string;
-  readonly password: string;
+  private readonly params: Readonly<z.infer<typeof SCHEMA>>;
 
-  private constructor(username: string, password: string) {
-    this.username = username;
-    this.password = password;
+  private constructor(params: z.infer<typeof SCHEMA>) {
+    this.params = Object.freeze({ ...params });
   }
 
-  public static create(
-    username: string,
-    password: string,
-  ): Result<LoginRequest> {
-    const errors: Error[] = [];
+  public static create(params: LoginParams): Result<LoginRequest> {
+    const parsed = SCHEMA.safeParse(params);
 
-    if (username.trim().length === 0) {
-      errors.push(new Error("Nazwa użytkownika jest wymagana."));
-    }
+    if (!parsed.success) return Result.failure<LoginRequest>(toErrors(parsed.error));
 
-    if (password.trim().length === 0) {
-      errors.push(new Error("Hasło jest wymagane."));
-    }
+    return Result.success(new LoginRequest(parsed.data));
+  }
 
-    if (errors.length > 0) {
-      return Result.failure<LoginRequest>(errors);
-    }
+  public get username(): string {
+    return this.params.username;
+  }
 
-    return Result.success(new LoginRequest(username, password));
+  public toBody(): Record<string, string> {
+    return { username: this.params.username, password: this.params.password };
   }
 }

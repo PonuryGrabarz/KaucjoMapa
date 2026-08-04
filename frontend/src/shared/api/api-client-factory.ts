@@ -1,25 +1,18 @@
-import { API_URL, USE_DUMMY_API } from 'astro:env/client';
+import { MOCK_API } from "astro:env/server";
 
-import type ApiClientBase from './abstractions/api-client-base';
+import type { ApiClientBase } from "./abstractions/api-client-base";
 
 let instance: ApiClientBase;
 
-const useDummyApi = !import.meta.env.PROD && USE_DUMMY_API;
-
-if (useDummyApi) {
-  instance = await import('./implementations/dummy-api-client').then(
-    (module) => new module.DummyApiClient(),
-  );
+if (MOCK_API) {
+  // TODO: Uncomment this when the mock API client is implemented
+	// instance = await import("./implementations/mock-api-client").then(
+	// 	(module) => new module.MockApiClient(),
+	// );
 } else {
-  const apiUrl = API_URL;
-
-  if (!apiUrl) {
-    throw new Error('API_URL must be set when using the real API client.');
-  }
-
-  instance = await import('./implementations/api-client').then(
-    (module) => new module.ApiClient(apiUrl),
-  );
+	instance = await import("./clients/real-api-client").then(
+		(module) => new module.RealApiClient(),
+	);
 }
 
-export const apiClient = instance;
+export const apiClient = instance!;

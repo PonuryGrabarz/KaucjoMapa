@@ -1,55 +1,65 @@
+import { z } from "zod";
+
 import { Result } from "../result";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export interface RegisterParams {
+  username: string;
+  email: string;
+  password: string;
+}
+
+const SCHEMA = z.strictObject(
+  {
+    username: z
+      .string({ error: "Nazwa użytkownika: wartość musi być tekstem." })
+      .trim()
+      .min(1, { error: "Nazwa użytkownika: pole jest wymagane." })
+      .max(64, { error: "Nazwa użytkownika: dozwolone są najwyżej 64 znaki." }),
+    email: z
+      .email({ error: "Adres e-mail: wartość musi być poprawnym adresem." })
+      .trim()
+      .max(254, { error: "Adres e-mail: dozwolone są najwyżej 254 znaki." }),
+    password: z
+      .string({ error: "Hasło: wartość musi być tekstem." })
+      .min(8, { error: "Hasło: wymagane jest co najmniej 8 znaków." })
+      .max(256, { error: "Hasło: dozwolone jest najwyżej 256 znaków." }),
+  },
+  { error: "Żądanie zawiera nieznany parametr." },
+);
+
+const toErrors = (error: z.ZodError): Error[] =>
+  error.issues.map((issue) => new Error(issue.message));
 
 export class RegisterRequest {
-  private readonly requestType = "register";
+  public readonly kind = "register" as const;
 
-  readonly username: string;
-  readonly email: string;
-  readonly password: string;
-  readonly confirmPassword: string;
+  private readonly params: Readonly<z.infer<typeof SCHEMA>>;
 
-  private constructor(
-    username: string,
-    email: string,
-    password: string,
-    confirmPassword: string,
-  ) {
-    this.username = username;
-    this.email = email;
-    this.password = password;
-    this.confirmPassword = confirmPassword;
+  private constructor(params: z.infer<typeof SCHEMA>) {
+    this.params = Object.freeze({ ...params });
   }
 
-  public static create(
-    username: string,
-    email: string,
-    password: string,
-    confirmPassword: string,
-  ): Result<RegisterRequest> {
-    const errors: Error[] = [];
+  public static create(params: RegisterParams): Result<RegisterRequest> {
+    const parsed = SCHEMA.safeParse(params);
 
-    if (username.trim().length === 0)
-      errors.push(new Error("Nazwa użytkownika jest wymagana."));
+    if (!parsed.success) return Result.failure<RegisterRequest>(toErrors(parsed.error));
 
-    if (email.trim().length === 0)
-      errors.push(new Error("Adres e-mail jest wymagany."));
-    else if (!EMAIL_PATTERN.test(email))
-      errors.push(new Error("Adres e-mail ma nieprawidłowy format."));
+    return Result.success(new RegisterRequest(parsed.data));
+  }
 
-    if (password.trim().length === 0)
-      errors.push(new Error("Hasło jest wymagane."));
+  public get username(): string {
+    return this.params.username;
+  }
 
-    if (confirmPassword.trim().length === 0)
-      errors.push(new Error("Potwierdzenie hasła jest wymagane."));
-    else if (password !== confirmPassword)
-      errors.push(new Error("Hasła muszą być takie same."));
+  public get email(): string {
+    return this.params.email;
+  }
 
-    if (errors.length > 0) return Result.failure<RegisterRequest>(errors);
-
-    return Result.success(
-      new RegisterRequest(username, email, password, confirmPassword),
-    );
+  public toBody(): Record<string, string> {
+    return {
+      username: this.params.username,
+      email: this.params.email,
+      password: this.params.password,
+    };
   }
 }
