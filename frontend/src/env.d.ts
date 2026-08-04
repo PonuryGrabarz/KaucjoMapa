@@ -1,20 +1,23 @@
-/// <reference types="astro/client" />
+interface Window {
+	initialReturnPoints?: import("@shared/api/responses").ReturnPoint[];
+}
 
 declare namespace App {
   interface SessionUser {
-    authenticatedAt: Date;
-    createdAt: string;
-    email: string;
     id: string;
-    isAdmin: boolean;
-    isBanned: boolean;
-    reputation: number;
-    updatedAt: string;
     username: string;
+    email: string;
+    isAdmin: boolean;
+    reputation: number;
+    avatarUrl?: string;
   }
 
-  interface SessionData {
-    token: string;
+  interface Session {
     user: SessionUser;
+    accessToken: string;
   }
+
+	interface Locals {
+		session: Session | null;
+	}
 }

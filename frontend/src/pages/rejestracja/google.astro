@@ -1,0 +1,11 @@
+---
+import { completeOAuthHandoff } from "@shared/api/auth";
+
+const sessionContext = { cookies: Astro.cookies, url: Astro.url };
+
+const completed = completeOAuthHandoff(sessionContext, Astro.locals.session);
+
+if (completed) return Astro.redirect("/", 303);
+
+return Astro.redirect("/rejestracja?blad=google", 303);
+---

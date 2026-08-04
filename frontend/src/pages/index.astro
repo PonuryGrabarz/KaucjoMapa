@@ -1,14 +1,49 @@
 ---
-import Topbar from "@components/topbar/topbar.astro";
 import AppLayout from "@layouts/app_layout/app-layout.astro";
-import MainLayout from "@layouts/main_layout/main-layout.astro";
-import HomePageView from "@features/return_points/views/home_page_view/home-page-view.astro";
+import MapPageView from "@features/map/views/map_page_view/map-page-view.astro";
+import MapPageLoadingView from "@features/map/views/map_page_loading_view/map-page-loading-view.astro";
+
+const isUserLoggedIn = Astro.locals.session != null;
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "KaucjoMapa",
+  url: new URL("/", Astro.site).toString(),
+  applicationCategory: "TravelApplication",
+  operatingSystem: "Web",
+  inLanguage: "pl-PL",
+  description:
+    "Mapa punktów zwrotu opakowań kaucyjnych w Polsce — butelkomaty, sklepy i punkty skupu wraz z godzinami otwarcia i formą rozliczenia kaucji.",
+  areaServed: { "@type": "Country", name: "Polska" },
+  offers: { "@type": "Offer", price: "0", priceCurrency: "PLN" },
+};
 ---
 
-<MainLayout>
-    <AppLayout>
-        <Topbar />
+<AppLayout
+	title="Mapa"
+	description="KaucjoMapa — znajdź najbliższy punkt zwrotu opakowań kaucyjnych."
+	noindex={isUserLoggedIn}
+>
+  { !isUserLoggedIn && (
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData)}
+    />
+  ) }
 
-        <HomePageView />
-    </AppLayout>
-</MainLayout>
+  <div class="visually-hidden">
+    <h1>Mapa punktów zwrotu opakowań kaucyjnych w Polsce</h1>
+
+    <p>
+      Znajdź najbliższy butelkomat, sklep albo punkt skupu przyjmujący butelki PET, puszki i
+      butelki szklane. Sprawdź godziny otwarcia, formę zwrotu kaucji i aktualny status punktu
+      zgłaszany przez społeczność.
+    </p>
+  </div>
+
+  <MapPageView server:defer>
+    <MapPageLoadingView slot="fallback" />
+  </MapPageView>
+</AppLayout>
