@@ -35,3 +35,9 @@ type ErrorReport struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
+
+type UserErrorReport struct {
+	Report          ErrorReport
+	Username        string
+	ReturnPointName string
+}

@@ -80,6 +80,13 @@ func ReturnPlansRouter(app fiber.Router, returnPlanHandler handler.ReturnPlanHan
 	app.Delete("/return_plans/:id/points/:point_id", middleware.RequireJWT(auth, JWTSecret), returnPlanHandler.DeletePoint)
 }
 
+func DataErrorReportRouter(app fiber.Router, dataErrorReportHandler handler.DataErrorReportHandler, JWTSecret string, auth port.ITokenSigner) {
+	app.Post("/return_points/:return_point_id/error_reports", middleware.RequireJWT(auth, JWTSecret), dataErrorReportHandler.Create)
+	app.Get("/error_reports", middleware.RequireJWT(auth, JWTSecret), dataErrorReportHandler.List)
+	app.Delete("/error_reports/:id", middleware.RequireJWT(auth, JWTSecret), dataErrorReportHandler.Delete)
+	app.Put("/error_reports/:id/status", middleware.RequireJWT(auth, JWTSecret), dataErrorReportHandler.ChangeStatus)
+}
+
 func DocsRouter(app fiber.Router) {
 	openAPISepcDir, err := filepath.Abs("docs")
 	if err != nil {

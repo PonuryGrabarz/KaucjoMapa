@@ -822,6 +822,158 @@ const docTemplate = `{
                 }
             }
         },
+        "/error_reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Zwraca listę wszystkich zgłoszeń błędów danych.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-error-reports"
+                ],
+                "summary": "Pobierz zgłoszenia błędów danych",
+                "responses": {
+                    "200": {
+                        "description": "Lista zgłoszeń błędów danych",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/presenter.DataErrorReportSuccessResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się pobrać zgłoszeń",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/error_reports/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Usuwa wskazane zgłoszenie błędu danych.",
+                "tags": [
+                    "data-error-reports"
+                ],
+                "summary": "Usuń zgłoszenie błędu danych",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator zgłoszenia błędu danych",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy identyfikator zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się usunąć zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/error_reports/{id}/status": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Aktualizuje status wskazanego zgłoszenia błędu danych (oczekujace, rozpatrzone, odrzucone).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-error-reports"
+                ],
+                "summary": "Zmień status zgłoszenia błędu danych",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator zgłoszenia błędu danych",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Nowy status zgłoszenia",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ChangeDataErrorReportStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania lub identyfikator zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się zmienić statusu zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Weryfikuje dane logowania, zwraca access token i ustawia cookie RefreshToken.",
@@ -2272,6 +2424,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/return_points/{return_point_id}/error_reports": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tworzy zgłoszenie błędu danych dotyczące wskazanego punktu zwrotu, przypisane do zalogowanego użytkownika.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-error-reports"
+                ],
+                "summary": "Utwórz zgłoszenie błędu danych",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identyfikator punktu zwrotu",
+                        "name": "return_point_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dane zgłoszenia błędu",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.CreateDataErrorReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Utworzone zgłoszenie błędu danych",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.DataErrorReportSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowe body żądania lub identyfikator punktu zwrotu",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Brak lub nieprawidłowy access token",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Nie udało się utworzyć zgłoszenia",
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "post": {
                 "description": "Tworzy konto użytkownika i zwraca access token.",
@@ -2537,6 +2754,25 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.Category": {
+            "type": "string",
+            "enum": [
+                "adres_lokalizacja",
+                "opis_punktu",
+                "formy_rozliczenia",
+                "godziny_otwarcia",
+                "przyjmowane_opakowania",
+                "inne_dane"
+            ],
+            "x-enum-varnames": [
+                "CategoryAddressLocationError",
+                "CategoryDescriptionError",
+                "CategoryRefundMethodError",
+                "CategoryOpeningHoursError",
+                "CategoryAcceptedBottlesError",
+                "CategoryOtherError"
+            ]
+        },
         "entity.CommunityReport": {
             "type": "object",
             "properties": {
@@ -2598,6 +2834,19 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "VoteConfirm",
                 "VoteReject"
+            ]
+        },
+        "entity.ErrorReportStatus": {
+            "type": "string",
+            "enum": [
+                "oczekujace",
+                "rozpatrzone",
+                "odrzucone"
+            ],
+            "x-enum-varnames": [
+                "ErrorReportStatusPending",
+                "ErrorReportStatusReviewed",
+                "ErrorReportStatusRejected"
             ]
         },
         "entity.PointStatus": {
@@ -2702,6 +2951,22 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.ChangeDataErrorReportStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "oczekujace",
+                        "rozpatrzone",
+                        "odrzucone"
+                    ]
+                }
+            }
+        },
         "presenter.ChangePasswordRequest": {
             "type": "object",
             "required": [
@@ -2785,6 +3050,27 @@ const docTemplate = `{
                         "confirm",
                         "reject"
                     ]
+                }
+            }
+        },
+        "presenter.CreateDataErrorReportRequest": {
+            "type": "object",
+            "required": [
+                "categories",
+                "description"
+            ],
+            "properties": {
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "suggested_correction": {
+                    "type": "string"
                 }
             }
         },
@@ -2911,6 +3197,41 @@ const docTemplate = `{
                     "minLength": 8
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.DataErrorReportSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Category"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "return_point_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/entity.ErrorReportStatus"
+                },
+                "suggested_correction": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }
