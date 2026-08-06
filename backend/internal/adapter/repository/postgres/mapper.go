@@ -694,3 +694,62 @@ func toBookmarksWithReturnPoints(rows []database.ListBookmarksWithReturnPointsBy
 
 	return result
 }
+
+func toCreateDataErrorReportParams(report entity.ErrorReport) database.CreateDataErrorReportParams {
+	categories := []database.DataErrorCategory{}
+	for _, cat := range report.Categories {
+		categories = append(categories, database.DataErrorCategory(cat))
+	}
+
+	return database.CreateDataErrorReportParams{
+		ID:                  report.ID,
+		UserID:              *report.UserID,
+		ReturnPointID:       *report.ReturnPointID,
+		Categories:          categories,
+		Description:         report.Description,
+		SuggestedCorrection: toNullString(report.SuggestedCorrection),
+		Status:              database.DataErrorReportStatus(report.Status),
+	}
+}
+
+func toErrorReportEntity(row database.DataErrorReport) entity.ErrorReport {
+	categories := []entity.Category{}
+	for _, cat := range row.Categories {
+		categories = append(categories, entity.Category(cat))
+	}
+
+	return entity.ErrorReport{
+		ID:                  row.ID,
+		UserID:              &row.UserID,
+		ReturnPointID:       &row.ReturnPointID,
+		Categories:          categories,
+		Description:         row.Description,
+		SuggestedCorrection: row.SuggestedCorrection.String,
+		Status:              entity.ErrorReportStatus(row.Status),
+		CreatedAt:           row.CreatedAt,
+		UpdatedAt:           row.UpdatedAt,
+	}
+}
+
+func toUserErrorReportEntity(row database.GetDataErrorReportByIdRow) entity.UserErrorReport {
+	categories := []entity.Category{}
+	for _, cat := range row.Categories {
+		categories = append(categories, entity.Category(cat))
+	}
+
+	return entity.UserErrorReport{
+		Report: entity.ErrorReport{
+			ID:                  row.ID,
+			UserID:              &row.UserID,
+			ReturnPointID:       &row.ReturnPointID,
+			Categories:          categories,
+			Description:         row.Description,
+			SuggestedCorrection: row.SuggestedCorrection.String,
+			Status:              entity.ErrorReportStatus(row.Status),
+			CreatedAt:           row.CreatedAt,
+			UpdatedAt:           row.UpdatedAt,
+		},
+		Username:        row.Username,
+		ReturnPointName: row.ReturnPointName,
+	}
+}

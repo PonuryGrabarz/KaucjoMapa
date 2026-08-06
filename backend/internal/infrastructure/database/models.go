@@ -56,6 +56,95 @@ func (ns NullCommunityReportVoteValue) Value() (driver.Value, error) {
 	return string(ns.CommunityReportVoteValue), nil
 }
 
+type DataErrorCategory string
+
+const (
+	DataErrorCategoryAdresLokalizacja      DataErrorCategory = "adres_lokalizacja"
+	DataErrorCategoryOpisPunktu            DataErrorCategory = "opis_punktu"
+	DataErrorCategoryFormyRozliczenia      DataErrorCategory = "formy_rozliczenia"
+	DataErrorCategoryGodzinyOtwarcia       DataErrorCategory = "godziny_otwarcia"
+	DataErrorCategoryPrzyjmowaneOpakowania DataErrorCategory = "przyjmowane_opakowania"
+	DataErrorCategoryInneDane              DataErrorCategory = "inne_dane"
+)
+
+func (e *DataErrorCategory) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DataErrorCategory(s)
+	case string:
+		*e = DataErrorCategory(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DataErrorCategory: %T", src)
+	}
+	return nil
+}
+
+type NullDataErrorCategory struct {
+	DataErrorCategory DataErrorCategory
+	Valid             bool // Valid is true if DataErrorCategory is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDataErrorCategory) Scan(value interface{}) error {
+	if value == nil {
+		ns.DataErrorCategory, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DataErrorCategory.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDataErrorCategory) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DataErrorCategory), nil
+}
+
+type DataErrorReportStatus string
+
+const (
+	DataErrorReportStatusOczekujace  DataErrorReportStatus = "oczekujace"
+	DataErrorReportStatusRozpatrzone DataErrorReportStatus = "rozpatrzone"
+	DataErrorReportStatusOdrzucone   DataErrorReportStatus = "odrzucone"
+)
+
+func (e *DataErrorReportStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DataErrorReportStatus(s)
+	case string:
+		*e = DataErrorReportStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DataErrorReportStatus: %T", src)
+	}
+	return nil
+}
+
+type NullDataErrorReportStatus struct {
+	DataErrorReportStatus DataErrorReportStatus
+	Valid                 bool // Valid is true if DataErrorReportStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDataErrorReportStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.DataErrorReportStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DataErrorReportStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDataErrorReportStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DataErrorReportStatus), nil
+}
+
 type PointStatus string
 
 const (
@@ -297,6 +386,18 @@ type CommunityReportVote struct {
 	Vote              CommunityReportVoteValue
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
+}
+
+type DataErrorReport struct {
+	ID                  uuid.UUID
+	UserID              uuid.UUID
+	ReturnPointID       uuid.UUID
+	Categories          []DataErrorCategory
+	Description         string
+	SuggestedCorrection sql.NullString
+	Status              DataErrorReportStatus
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 }
 
 type PasswordResetChallenge struct {

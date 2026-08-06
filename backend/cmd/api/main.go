@@ -56,6 +56,7 @@ func main() {
 	bookmarkRepo := postgres.NewBookmarkRepo(db.Queries)
 	returnPlanRepo := postgres.NewReturnPlanRepo(db.Queries)
 	oAuthRepo := postgres.NewOAuthRepo(db.Queries)
+	dataErrorReportRepo := postgres.NewDataErrorReportsRepo(db.Queries)
 	recoveryRepo := postgres.NewPasswordRecoveryRepo(db.Queries)
 	tokenSigner := token.NewTokenSigner(cfg.JWTSecret, time.Second*3600)
 	hasher := crypto.NewHasher()
@@ -75,6 +76,7 @@ func main() {
 	returnPlanSvc := usecase.NewReturnPlanService(returnPlanRepo, returnPointRepo)
 	oAuthSvc := usecase.NewGoogleOAuthService(oAuthRepo, tokenRepo, tokenSigner)
 	recoverySvc := usecase.NewPasswordRecoveryService(recoveryRepo, userRepo, tokenRepo, hasher, mailSender)
+	dataErrorReportsSvc := usecase.NewDataErrorReportsService(dataErrorReportRepo)
 
 	seedSvc := usecase.NewSeedService(returnPointRepo, userRepo, &scraper, cfg.AdminUsername, hasher)
 
@@ -92,7 +94,7 @@ func main() {
 		fmt.Printf("Error scraping points: %v", err)
 	}
 
-	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, notificationsSvc, bookmarkSvc, returnPlanSvc, oAuthSvc, recoverySvc, tokenSigner, hasher, cfg)
+	server := http.New(returnPointSvc, userSvc, authSvc, reportSvc, voteSvc, notificationsSvc, bookmarkSvc, returnPlanSvc, oAuthSvc, recoverySvc, dataErrorReportsSvc, tokenSigner, hasher, cfg)
 
 	certsDir, err := filepath.Abs("certs")
 	if err != nil {
