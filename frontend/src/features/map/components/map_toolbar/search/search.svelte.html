@@ -1,0 +1,14 @@
+<form class="search" role="search" onsubmit={handleSubmit}>
+  <SearchField
+    label="Szukaj adresu, miasta lub punktu"
+    placeholder="Szukaj adresu, miasta lub punktu"
+    bind:value={searchQuery}
+    {suggestions}
+    minQueryLength={MIN_QUERY_LENGTH}
+    submitOnEnter={false}
+    submitOnSelect={false}
+    invalid={mapState.searchNoResults}
+    onselect={handleSelect}
+    onquerychange={handleQueryChange}
+  />
+</form>

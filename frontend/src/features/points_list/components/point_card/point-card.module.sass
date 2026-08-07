@@ -1,0 +1,300 @@
+.point-card
+  min-width: 0
+  min-height: 230px
+
+  .point-card__link
+    position: relative
+    display: block
+    height: 100%
+    color: inherit
+    border-radius: var(--radius-lg)
+    outline: none
+    cursor: pointer
+    text-decoration: none
+    overflow: hidden
+
+    &.point-card__link--pending
+      border-style: dashed
+
+      .point-card__link__surface
+        border-style: dashed
+
+    &:hover
+      text-decoration: none
+
+      .point-card__link__surface
+        border-color: var(--color-accent)
+        box-shadow: var(--shadow-sm)
+        transform: translateY(-2px)
+
+    &:active .point-card__link__surface
+      transform: translateY(0)
+      box-shadow: none
+      
+    &:focus-visible
+      box-shadow: var(--focus-500)
+
+    .point-card__link__surface
+      display: flex
+      flex-direction: column
+      height: 100%
+      min-width: 0
+      gap: 12px
+      padding: 14px
+      background: var(--color-surface)
+      border: 1px solid var(--color-border)
+      border-radius: var(--radius-lg)
+      transition: border-color 160ms var(--ease-standard), box-shadow 160ms var(--ease-standard), transform 160ms var(--ease-standard)
+
+      .point-card__link__surface__header
+        display: grid
+        min-width: 0
+        gap: 9px
+
+        .point-card__link__surface__header__identity
+          display: flex
+          align-items: flex-start
+          gap: 10px
+          min-width: 0
+
+          .point-card__link__surface__header__identity__pin
+            display: inline-grid
+            place-items: center
+            flex: none
+            width: 40px
+            height: 40px
+            padding: 3px
+            border-radius: var(--radius-md)
+            font-size: var(--font-size-label)
+            font-weight: 700
+            box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35)
+            letter-spacing: -0.02em
+            line-height: 1
+            text-align: center
+            overflow: hidden
+
+          .point-card__link__surface__header__identity__heading
+            min-width: 0
+
+            .point-card__link__surface__header__identity__heading__name
+              font-size: var(--font-size-body)
+              font-weight: 600
+              line-height: 1.3
+              color: var(--color-text-primary)
+              overflow-wrap: anywhere
+
+            .point-card__link__surface__header__identity__heading__address
+              display: block
+              margin-top: 3px
+              font-size: var(--font-size-label)
+              font-style: normal
+              color: var(--color-text-secondary)
+              line-height: 1.4
+              overflow-wrap: anywhere
+
+        .point-card__link__surface__header__status-row
+          display: flex
+          align-items: center
+          justify-content: space-between
+          flex-wrap: wrap
+          gap: 6px 10px
+
+          .point-card__link__surface__header__status-row__pending-badge
+            display: inline-flex
+            align-items: center
+            height: 24px
+            padding: 0 9px
+            border-radius: var(--radius-pill)
+            background: var(--color-warning-surface)
+            color: var(--color-warning-strong)
+            font-size: var(--font-size-label)
+            font-weight: 600
+            white-space: nowrap
+            overflow: hidden
+            text-overflow: ellipsis
+            max-width: 100%
+
+            &::before
+              content: ""
+              flex: none
+              width: 7px
+              height: 7px
+              border-radius: 50%
+              background: currentcolor
+              margin-right: 6px
+
+          .point-card__link__surface__header__status-row__distance
+            font-size: var(--font-size-label)
+            font-weight: 600
+            color: var(--color-text-secondary)
+            font-feature-settings: "tnum"
+            white-space: nowrap
+
+      .point-card__link__surface__body
+        display: grid
+        gap: 9px
+        min-width: 0
+
+        .point-card__link__surface__body__type
+          margin: 0
+          font-size: var(--font-size-label)
+          font-weight: 600
+          color: var(--color-text-secondary)
+
+        .point-card__link__surface__body__description
+          display: -webkit-box
+          margin: 0
+          color: var(--color-text-secondary)
+          font-size: var(--font-size-label)
+          line-height: 1.5
+          overflow: hidden
+          -webkit-box-orient: vertical
+          -webkit-line-clamp: 2
+
+        .point-card__link__surface__body__opening-hours
+          display: flex
+          align-items: flex-start
+          justify-content: space-between
+          flex-wrap: wrap
+          gap: 8px
+
+          .point-card__link__surface__body__opening-hours__schedule
+            display: grid
+            flex: 1 1 150px
+            min-width: 0
+            gap: 3px
+
+            ul
+              display: grid
+              gap: 2px
+              padding: 0
+              margin: 0
+              list-style: none
+
+              li
+                display: grid
+                grid-template-columns: minmax(58px, auto) minmax(0, 1fr)
+                gap: 2px
+                align-items: baseline
+                column-gap: 8px
+                font-size: var(--font-size-label)
+
+                span
+                  color: var(--color-text-secondary)
+                  white-space: nowrap
+
+                strong
+                  color: var(--color-text-primary)
+                  font-size: var(--font-size-label)
+                  font-weight: 600
+                  font-feature-settings: "tnum"
+                  white-space: nowrap
+
+            .point-card__link__surface__body__opening-hours__schedule__hours-label
+              color: var(--color-text-secondary)
+              font-size: var(--font-size-label)
+
+            .point-card__link__surface__body__opening-hours__schedule__empty
+              color: var(--color-text-secondary)
+              font-size: var(--font-size-label)
+
+          .point-card__link__surface__body__opening-hours__open-state
+            display: inline-flex
+            align-items: center
+            gap: 5px
+            padding: 3px 7px
+            border-radius: var(--radius-pill)
+            background: var(--color-off-surface)
+            color: var(--color-text-secondary)
+            font-size: var(--font-size-label)
+            font-weight: 600
+            white-space: nowrap
+
+            &[data-open="true"]
+              background: var(--color-primary-subtle)
+              color: var(--color-primary-hover)
+
+            &::before
+              content: ""
+              width: 6px
+              height: 6px
+              border-radius: 50%
+              background: currentcolor
+
+        .point-card__link__surface__body__package-types
+          .point-card__link__surface__body__package-types__label
+            color: var(--color-text-secondary)
+            font-size: var(--font-size-label)
+            font-weight: 600
+        
+          ul 
+            li
+              display: inline-flex
+              align-items: center
+              gap: 2px
+              min-height: 24px
+              padding: 2px 6px
+              border: 1px solid var(--color-border)
+              border-radius: var(--radius-pill)
+              background: var(--color-surface-subtle)
+              color: var(--color-primary-hover)
+              font-size: var(--font-size-label)
+              font-weight: 600
+              white-space: nowrap
+
+              &[data-accepted="false"]
+                background: rgb(214 90 74 / 0.08)
+                color: var(--color-danger-strong)
+                border-color: rgb(214 90 74 / 0.24)
+
+        .point-card__link__surface__body__package-types,
+        .point-card__link__surface__body__settlement
+          display: flex
+          align-items: center
+          flex-wrap: wrap
+          gap: 6px
+
+        .point-card__link__surface__body__package-types,
+        .point-card__link__surface__body__settlement
+          ul
+            display: flex
+            flex-wrap: wrap
+            gap: 5px
+            padding: 0
+            margin: 0
+            list-style: none
+  
+        .point-card__link__surface__body__settlement 
+          .point-card__link__surface__body__settlement__label
+            color: var(--color-text-secondary)
+            font-size: var(--font-size-label)
+            font-weight: 600
+
+          .point-card__link__surface__body__settlement__empty
+            color: var(--color-text-secondary)
+            font-size: var(--font-size-label)
+
+          ul 
+            li
+              display: inline-flex
+              align-items: center
+              min-height: 24px
+              padding: 2px 7px
+              border-radius: var(--radius-pill)
+              background: var(--color-primary-subtle)
+              color: var(--color-primary-hover)
+              font-size: var(--font-size-label)
+              font-weight: 600
+              line-height: 1.3
+
+      .point-card__link__surface__footer
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 10px
+        padding-top: 10px
+        border-top: 1px solid var(--color-border)
+        margin-top: auto
+        font-size: var(--font-size-label)
+        font-weight: 600
+        color: var(--color-primary)

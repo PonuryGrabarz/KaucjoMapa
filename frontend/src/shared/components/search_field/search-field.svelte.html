@@ -1,0 +1,66 @@
+<div class="search-field">
+	<span class="search-field__icon">
+		<IconifyIcon icon="material-symbols:search-rounded" size={20} />
+	</span>
+
+	<label class="visually-hidden" for={inputId}>{label}</label>
+
+	<input
+		bind:this={inputElement}
+		bind:value
+		id={inputId}
+		class="search-field__input"
+		type="search"
+		{name}
+		{placeholder}
+		role="combobox"
+		autocomplete="off"
+		aria-autocomplete="list"
+		aria-controls={listboxId}
+		aria-expanded={isOpen && hasSuggestions}
+		aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
+		aria-invalid={invalid ? "true" : undefined}
+		oninput={handleInput}
+		onkeydown={handleKeydown}
+		onfocus={() => (focused = true)}
+		onblur={() => (focused = false)}
+	/>
+
+	<ul
+		id={listboxId}
+		class="search-field__panel search-field__suggestions"
+		role="listbox"
+		aria-label={label}
+		hidden={!isOpen || !hasSuggestions}
+		onpointerdown={(event) => event.preventDefault()}
+	>
+		{#each visibleSuggestions as suggestion, index (suggestion.key)}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<li
+				id={optionId(index)}
+				class={["search-field__option", index === activeIndex && "search-field__option--active"]}
+				role="option"
+				aria-selected={index === activeIndex}
+				onclick={() => choose(suggestion, true)}
+			>
+				{#if suggestion.icon}
+					<span class="search-field__option__icon">
+						<IconifyIcon icon={suggestion.icon} size={20} />
+					</span>
+				{/if}
+
+				<span class="search-field__option__text">
+					<strong>{suggestion.label}</strong>
+
+					{#if suggestion.secondary}
+						<small>{suggestion.secondary}</small>
+					{/if}
+				</span>
+			</li>
+		{/each}
+	</ul>
+
+	{#if isOpen && !hasSuggestions}
+		<p class="search-field__panel search-field__empty" role="status">{emptyMessage}</p>
+	{/if}
+</div>

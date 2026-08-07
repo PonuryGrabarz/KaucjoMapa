@@ -1,11 +1,71 @@
 ---
+import { actions } from "astro:actions";
+
 import Styles from "./login-page-view.module.sass";
-import LoginForm from "../../components/login_form/login-form";
-import AuthHero from "../../components/auth_hero/auth-hero.astro";
+import Surface from "../../components/surface/surface.astro";
+import Button from "@shared/components/button/button.svelte";
+import Checkbox from "@shared/components/checkbox/checkbox.svelte";
+import TextField from "@shared/components/text_field/text-field.svelte";
+import GoogleOAuthButton from "../../components/google_oauth_button/google-oauth-button.svelte";
+
+interface Props {
+  inputErrors?: Record<string, string[] | undefined>;
+  formError?: string;
+}
+
+const { inputErrors = {}, formError } = Astro.props;
 ---
 
-<AuthHero />
+<Surface type="login">
+  <GoogleOAuthButton href="/api/auth/google" />
 
-<section class:list={Styles["auth-body"]} aria-labelledby="login-form-title">
-  <LoginForm client:load />
-</section>
+  <p class:list={Styles["login-page__divider"]}>
+    <span>lub zaloguj się e-mailem</span>
+  </p>
+
+  <form class:list={Styles["login-page__form"]} method="POST" action={actions.auth.login}>
+    {
+      formError && (
+        <p class:list={Styles["login-page__form__alert"]} role="alert">
+          {formError}
+        </p>
+      )
+    }
+
+    <TextField
+      label="Nazwa użytkownika"
+      name="username"
+      autocomplete="username"
+      icon="material-symbols:person-outline-rounded"
+      error={inputErrors.username?.join(" ")}
+      required
+    />
+
+    <TextField
+      client:load
+      type="password"
+      label="Hasło"
+      name="password"
+      autocomplete="current-password"
+      icon="material-symbols:lock-outline-rounded"
+      error={inputErrors.password?.join(" ")}
+      required
+    >
+      <a
+        class:list={Styles["login-page__form__recovery"]}
+        slot="labelEnd"
+        href="/odzyskiwanie-hasla"
+      >
+        Nie pamiętasz hasła?
+      </a>
+    </TextField>
+
+    <Checkbox label="Zapamiętaj mnie" name="remember" value="true" />
+
+    <Button type="submit">Zaloguj się</Button>
+  </form>
+
+  <p class:list={Styles["login-page__footer"]}>
+    Nie masz konta? <a href="/rejestracja">Zarejestruj się</a>
+  </p>
+</Surface>

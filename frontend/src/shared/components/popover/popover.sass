@@ -1,0 +1,23 @@
+.popover
+  position: absolute
+  top: calc(100% + 6px)
+  z-index: 60
+  width: var(--popover-width, auto)
+  min-width: var(--popover-width, 208px)
+  padding: var(--popover-padding, 6px)
+  border-radius: var(--radius-lg)
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  box-shadow: var(--shadow-md)
+  animation: popover-in 160ms var(--ease-decelerate)
+
+  @media (prefers-reduced-motion: reduce)
+    animation: none
+
+  &.popover--align-end
+    right: 0
+    transform-origin: top right
+
+  &.popover--align-start
+    left: 0
+    transform-origin: top left

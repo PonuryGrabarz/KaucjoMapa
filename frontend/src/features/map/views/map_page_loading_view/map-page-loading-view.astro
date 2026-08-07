@@ -1,0 +1,26 @@
+---
+import Styles from "./map-page-loading-view.module.sass";
+import IconifyIcon from "@shared/components/iconify_icon/iconify-icon.svelte";
+---
+
+<section class:list={Styles["map-page-loading"]} aria-busy="true">
+  <div class:list={Styles["map-page-loading__toolbar"]}>
+    <span class:list={Styles["map-page-loading__toolbar__search"]}></span>
+
+    <span class:list={Styles["map-page-loading__toolbar__actions"]}></span>
+  </div>
+
+  <div class:list={Styles["map-page-loading__canvas"]}>
+    <div class:list={Styles["map-page-loading__canvas__card"]} role="status">
+      <span class:list={Styles["map-page-loading__canvas__card__mark"]}>
+        <IconifyIcon icon="material-symbols:map-outline-rounded" size={24} />
+      </span>
+
+      <div class:list={Styles["map-page-loading__canvas__card__message"]}>
+        <strong>Ładowanie mapy</strong>
+
+        <span>Pobieramy punkty zwrotu z całej Polski.</span>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+<span
+	{...rest}
+	class={["point-marker", className]}
+	style:--point-marker-size="{safeSize}px"
+	style:background={safeBackground}
+	style:color={safeText}
+	role={accessibleLabel ? "img" : undefined}
+	aria-label={accessibleLabel}
+	aria-hidden={accessibleLabel ? undefined : "true"}
+>
+	<span class="point-marker__label">{shortLabel}</span>
+
+	{#if pending}
+		<span class="point-marker__badge"></span>
+	{/if}
+</span>

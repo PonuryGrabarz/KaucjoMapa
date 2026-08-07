@@ -1,0 +1,48 @@
+<Button
+	class="sheet-trigger"
+	variant="bottomnav"
+	aria-haspopup="dialog"
+	aria-expanded={open}
+	aria-current={active ? "page" : undefined}
+	onclick={() => (open = true)}
+>
+	<span class="sheet-trigger__icon">
+		<IconifyIcon icon="material-symbols:more-horiz" size={24} />
+	</span>
+
+	<span class="sheet-trigger__label">Więcej</span>
+</Button>
+
+<Dialog bind:open title="Więcej" variant="sheet">
+	<ul class="sheet-dialog__list">
+		{#each accountItems as item (item.href)}
+			<li>
+				<Button
+					href={item.href}
+					variant="menu"
+					aria-current={pathname === item.href ? "page" : undefined}
+				>
+					<IconifyIcon icon={pathname === item.href ? item.activeIcon : item.icon} size={20} />
+
+					<span>{item.label}</span>
+
+					{#if item.href === "/powiadomienia" && resolvedUnreadCount}
+						<span class="sheet-dialog__badge" aria-hidden="true">
+							{resolvedUnreadCount > 99 ? "99+" : resolvedUnreadCount}
+						</span>
+
+						<span class="visually-hidden">{unreadCountText(resolvedUnreadCount)}</span>
+					{/if}
+				</Button>
+			</li>
+		{/each}
+	</ul>
+
+	<hr class="sheet-dialog__separator" aria-hidden="true" />
+
+	<Button variant="menu-danger" onclick={handleLogout}>
+		<IconifyIcon icon="material-symbols:logout" size={20} />
+
+		<span>Wyloguj</span>
+	</Button>
+</Dialog>

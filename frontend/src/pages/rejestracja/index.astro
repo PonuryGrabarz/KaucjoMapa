@@ -1,16 +1,30 @@
 ---
-import AuthLayout from "@layouts/auth_layout/auth-layout.astro";
-import MainLayout from "@layouts/main_layout/main-layout.astro";
+import { actions, isInputError } from "astro:actions";
+
+import AppLayout from "@layouts/app_layout/app-layout.astro";
 import RegisterPageView from "@features/auth/views/register_page_view/register-page-view.astro";
+
+if (Astro.locals.session) return Astro.redirect("/", 303);
+
+const result = Astro.getActionResult(actions.auth.register);
+
+if (result && !result.error) return Astro.redirect("/", 303);
+
+const inputErrors = result && isInputError(result.error) ? result.error.fields : {};
+
+const googleFailed = Astro.url.searchParams.get("blad") === "google";
+
+const formError = result?.error && !isInputError(result.error)
+  ? result.error.message
+  : googleFailed
+    ? "Nie udało się zarejestrować przez Google. Spróbuj ponownie."
+    : undefined;
 ---
 
-<MainLayout
-  title="KaucjoMapa – Rejestracja"
-  description="Załóż konto w KaucjoMapie, aby dodawać punkty zwrotu, aktualizować ich statusy i współtworzyć mapę."
-  canonical="/rejestracja"
-  noIndex
+<AppLayout
+  title="Rejestracja"
+  description="Zarejestruj się w KaucjoMapa, aby zapisywać punkty zwrotu, dodawać zgłoszenia i śledzić historię zwrotów."
+  noindex
 >
-  <AuthLayout>
-    <RegisterPageView />
-  </AuthLayout>
-</MainLayout>
+  <RegisterPageView inputErrors={inputErrors} formError={formError} />
+</AppLayout>

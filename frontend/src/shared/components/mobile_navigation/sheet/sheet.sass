@@ -1,0 +1,48 @@
+.sheet-trigger__icon
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 44px
+  height: 26px
+  border-radius: var(--radius-pill)
+  color: var(--color-icon-subtle)
+  transition: background-color 160ms var(--ease-standard), color 160ms var(--ease-standard)
+
+:global(.sheet-trigger[aria-current="page"]) .sheet-trigger__icon
+  background: var(--color-primary-subtle)
+  color: var(--color-primary)
+
+.sheet-trigger__label
+  font-size: 12px
+  font-weight: 600
+  letter-spacing: 0.02em
+
+.sheet-dialog__list
+  display: flex
+  flex-direction: column
+  gap: 4px
+  list-style: none
+  margin: 0
+  padding: 0
+
+.sheet-dialog__badge
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  margin-left: auto
+  min-width: 20px
+  height: 20px
+  padding: 2px 6px 0
+  border-radius: var(--radius-pill)
+  background: var(--color-danger)
+  color: var(--color-on-primary)
+  font-size: 12px
+  font-weight: 600
+  line-height: 1
+  text-align: center
+
+.sheet-dialog__separator
+  height: 1px
+  margin: 12px 4px
+  border: 0
+  background: var(--color-border)

@@ -1,0 +1,62 @@
+---
+import Styles from "./mobile-navigation.module.sass";
+import Sheet from "./sheet/sheet.svelte";
+import NavItem from "@shared/components/nav_item/nav-item.svelte";
+
+import { normalizePathname } from "@shared/helpers/path";
+import { accountItems, guestItems, isPathActive, mainItems } from "@shared/helpers/navigation-links";
+
+interface Props {
+	unreadCount?: number;
+}
+
+const { unreadCount = 0 } = Astro.props;
+
+const pathname = normalizePathname(Astro.url.pathname);
+
+const isUserLoggedIn = Astro.locals.session != null;
+
+const isAccountPathActive = accountItems.some((item) => isPathActive(pathname, item.href));
+---
+
+<nav
+  class={Styles["mobile-navigation"]}
+  aria-label="Nawigacja dolna"
+  transition:name="mobile-navigation"
+>
+  <ul class={Styles["mobile-navigation__content"]}>
+    {
+      mainItems.map((item) => (
+        <li class={Styles["mobile-navigation__content__item"]}>
+          <NavItem
+            href={item.href}
+            label={item.label}
+            icon={item.icon}
+            activeIcon={item.activeIcon}
+            active={isPathActive(pathname, item.href)}
+            variant="bottomnav"
+          />
+        </li>
+      ))
+    }
+
+    <li class={Styles["mobile-navigation__content__item"]}>
+      {
+        isUserLoggedIn ? (
+          <Sheet client:media="(max-width: 767.98px)" active={isAccountPathActive} {pathname} {unreadCount} />
+        ) : (
+          guestItems.map((item) => (
+            <NavItem
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              activeIcon={item.activeIcon}
+              active={isPathActive(pathname, item.href, item.activeFor)}
+              variant="bottomnav"
+            />
+          ))
+        )
+      }
+    </li>
+  </ul>
+</nav>

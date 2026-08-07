@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://kaucjo-mapa.pl/sitemap-index.xml

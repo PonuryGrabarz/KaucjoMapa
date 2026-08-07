@@ -1,0 +1,21 @@
+<div class={["select-field", className]}>
+	<label class={["select-field__label", labelHidden && "visually-hidden"]} for={controlId}>
+		{label}
+	</label>
+
+	<select
+		{...rest}
+		id={controlId}
+		class="select-field__control"
+		aria-describedby={hint ? hintId : undefined}
+		bind:value
+	>
+		{#each options as option (option.value)}
+			<option value={option.value}>{option.label}</option>
+		{/each}
+	</select>
+
+	{#if hint}
+		<p class="select-field__hint" id={hintId}>{hint}</p>
+	{/if}
+</div>

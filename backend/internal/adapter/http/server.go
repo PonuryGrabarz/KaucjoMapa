@@ -151,7 +151,8 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 
 	server.Use(recover.New())
 	server.Use(encryptcookie.New(encryptcookie.Config{
-		Key: os.Getenv("COOKIE_SECRET"),
+		Key:    os.Getenv("COOKIE_SECRET"),
+		Except: []string{handler.HandoffAccessCookie, handler.HandoffRefreshCookie},
 	}))
 	server.Use(helmet.New())
 	server.Use(requestid.New())
@@ -168,7 +169,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	notificationsHandler := handler.NewNotificationsHandler(server.NotificationsSvc)
 	bookmarkHandler := handler.NewBookmarkHandler(server.BookmarkSvc)
 	returnPlanHandler := handler.NewReturnPlanHandler(server.ReturnPlanSvc)
-	oAuthHandler := handler.NewOAuthHandler(server.UserSvc, server.HasherSvc, server.OAuthSvc)
+	oAuthHandler := handler.NewOAuthHandler(server.UserSvc, server.HasherSvc, server.OAuthSvc, tokenSvc, cfg.FrontendURL)
 	recoveryHandler := handler.NewPasswordRecoveryHandler(server.PasswordRecoverySvc)
 	dataErrorReportHandler := handler.NewDataErrorReportHandler(server.DataErrorReportSvc)
 

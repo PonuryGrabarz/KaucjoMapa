@@ -1,0 +1,170 @@
+---
+import Styles from "./point-card.module.sass";
+import PointDistance from "./point_distance/point-distance.svelte";
+import StatusPill from "@shared/components/status_pill/status-pill.svelte";
+import IconifyIcon from "@shared/components/iconify_icon/iconify-icon.svelte";
+
+import { RETURN_POINT_MATERIALS } from "@shared/api/responses";
+import { returnPointStructuredData } from "@shared/helpers/structured-data";
+import { formatHourRange, isOpenNow, openingHoursEntries } from "@shared/helpers/opening-hours";
+import {
+  resolveMarkerBackground,
+  resolveMarkerLabel,
+  resolveMarkerText,
+} from "@shared/helpers/marker-appearance";
+
+import {
+  OPENING_HOURS_LABELS,
+  RETURN_POINT_MATERIAL_LABELS,
+  RETURN_POINT_MATERIAL_SHORT_LABELS,
+  RETURN_POINT_REFUND_METHOD_LABELS,
+  RETURN_POINT_TYPE_LABELS,
+} from "@shared/helpers/return-point-labels";
+
+import type { ReturnPoint, ReturnPointMaterial } from "@shared/api/responses";
+
+interface Props {
+  point: ReturnPoint;
+}
+
+const { point } = Astro.props;
+
+const hoursEntries = openingHoursEntries(point.opening_hours);
+const openNow = isOpenNow(point.opening_hours);
+
+const href = `/?point=${encodeURIComponent(point.id)}`;
+
+const pinStyle = `background:${resolveMarkerBackground(point.bg_color)}; color:${resolveMarkerText(point.text_color)};`;
+
+const materials: { material: ReturnPointMaterial; accepted: boolean }[] = RETURN_POINT_MATERIALS.map(
+  (material) => ({
+    material,
+    accepted: material === "pet" ? point.pet : material === "can" ? point.can : point.glass,
+  }),
+);
+
+const structuredData = returnPointStructuredData(point, new URL(href, Astro.site).toString());
+---
+
+<li class:list={Styles["point-card"]}>
+  <a
+    class:list={[Styles["point-card__link"], !point.is_verified && Styles["point-card__link--pending"]]}
+    href={href}
+  >
+    <article class:list={Styles["point-card__link__surface"]}>
+      <header class:list={Styles["point-card__link__surface__header"]}>
+        <div class:list={Styles["point-card__link__surface__header__identity"]}>
+          <span
+            class:list={Styles["point-card__link__surface__header__identity__pin"]}
+            style={pinStyle}
+            aria-hidden="true"
+          >
+            {resolveMarkerLabel(point.short_name)}
+          </span>
+
+          <div class:list={Styles["point-card__link__surface__header__identity__heading"]}>
+            <h2 class:list={Styles["point-card__link__surface__header__identity__heading__name"]}>{point.name}</h2>
+
+            {point.address && (
+              <address class:list={Styles["point-card__link__surface__header__identity__heading__address"]}>
+                {point.address}
+              </address>
+            )}
+          </div>
+        </div>
+
+        <div class:list={Styles["point-card__link__surface__header__status-row"]}>
+          {!point.is_verified ? (
+            <span class:list={Styles["point-card__link__surface__header__status-row__pending-badge"]}>Oczekuje na weryfikację</span>
+          ) : (
+            <StatusPill status={point.current_status} dot />
+          )}
+
+          <PointDistance
+            client:idle
+            latitude={point.latitude}
+            longitude={point.longitude}
+            class={Styles["point-card__link__surface__header__status-row__distance"]}
+          />
+        </div>
+      </header>
+
+      <div class:list={Styles["point-card__link__surface__body"]}>
+        <p class:list={Styles["point-card__link__surface__body__type"]}>{RETURN_POINT_TYPE_LABELS[point.type]}</p>
+
+        {point.description && (
+          <p class:list={Styles["point-card__link__surface__body__description"]}>{point.description}</p>
+        )}
+
+        <div class:list={Styles["point-card__link__surface__body__opening-hours"]}>
+          <div class:list={Styles["point-card__link__surface__body__opening-hours__schedule"]}>
+            <span class:list={Styles["point-card__link__surface__body__opening-hours__schedule__hours-label"]}>Godziny otwarcia</span>
+
+            {hoursEntries.length > 0 ? (
+              <ul>
+                {hoursEntries.map(([key, value]) => (
+                  <li>
+                    <span>{OPENING_HOURS_LABELS[key]}</span>
+
+                    <strong>{formatHourRange(value)}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span class:list={Styles["point-card__link__surface__body__opening-hours__schedule__empty"]}>Brak danych</span>
+            )}
+          </div>
+
+          {openNow !== undefined && (
+            <span class:list={Styles["point-card__link__surface__body__opening-hours__open-state"]} data-open={openNow}>
+              {openNow ? "Otwarte teraz" : "Teraz zamknięte"}
+            </span>
+          )}
+        </div>
+
+        <div class:list={Styles["point-card__link__surface__body__package-types"]}>
+          <span class:list={Styles["point-card__link__surface__body__package-types__label"]}>Opakowania:</span>
+
+          <ul>
+            {materials.map(({ material, accepted }) => (
+              <li data-accepted={accepted}>
+                <span>{RETURN_POINT_MATERIAL_SHORT_LABELS[material]}</span>
+
+                <IconifyIcon
+                  icon={accepted ? "material-symbols:check-small-rounded" : "material-symbols:close-rounded"}
+                  size={18}
+                />
+
+                <span class="visually-hidden">
+                  {RETURN_POINT_MATERIAL_LABELS[material]}: {accepted ? "przyjmowane" : "nieprzyjmowane"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class:list={Styles["point-card__link__surface__body__settlement"]}>
+          <span class:list={Styles["point-card__link__surface__body__settlement__label"]}>Odbiór kaucji:</span>
+
+          {point.refund_method.length > 0 ? (
+            <ul>
+              {point.refund_method.map((method) => (
+                <li>{RETURN_POINT_REFUND_METHOD_LABELS[method] ?? method}</li>
+              ))}
+            </ul>
+          ) : (
+            <span class:list={Styles["point-card__link__surface__body__settlement__empty"]}>Brak danych</span>
+          )}
+        </div>
+      </div>
+
+      <footer class:list={Styles["point-card__link__surface__footer"]}>
+        <span>Zobacz na mapie</span>
+
+        <IconifyIcon icon="material-symbols:chevron-right-rounded" size={18} />
+      </footer>
+    </article>
+  </a>
+
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+</li>

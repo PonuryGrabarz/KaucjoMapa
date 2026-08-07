@@ -1,0 +1,173 @@
+.add-point
+  display: grid
+  align-content: start
+  gap: 16px
+  min-width: 0
+
+  .add-point__lead
+    margin: 0
+    color: var(--color-text-secondary)
+    font-size: var(--font-size-small)
+    line-height: 1.4
+
+  .add-point__notice
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    padding: 10px 12px
+    border-radius: var(--radius-md)
+    background: var(--color-warning-surface)
+    color: var(--color-warning-strong)
+
+    .add-point__notice__text
+      display: flex
+      flex-direction: column
+      gap: 2px
+      min-width: 0
+
+      strong
+        font-size: var(--font-size-small)
+        font-weight: 600
+        line-height: 1.3
+
+      small
+        font-size: var(--font-size-label)
+        line-height: 1.4
+
+  .add-point__section
+    display: grid
+    gap: 10px
+    min-width: 0
+
+    h3
+      margin: 0
+      font-size: var(--font-size-body)
+      font-weight: 600
+      line-height: 1.35
+
+      small
+        margin-left: 6px
+        color: var(--color-text-secondary)
+        font-size: var(--font-size-label)
+        font-weight: 400
+
+    .add-point__section__hint
+      margin: -4px 0 0
+      color: var(--color-text-secondary)
+      font-size: var(--font-size-label)
+      line-height: 1.4
+
+    .add-point__section__grid
+      display: grid
+      grid-template-columns: 1fr 1fr
+      gap: 12px
+
+      @media (max-width: 599.98px)
+        grid-template-columns: 1fr
+
+      .add-point__section__grid__wide
+        grid-column: 1 / -1
+        min-width: 0
+
+    .add-point__section__appearance
+      display: flex
+      align-items: flex-start
+      gap: 16px
+      min-width: 0
+
+      @media (max-width: 599.98px)
+        flex-direction: column
+
+      .add-point__section__appearance__preview
+        display: grid
+        justify-items: center
+        gap: 8px
+        flex: none
+        padding: 12px
+        border: 1px solid var(--color-border)
+        border-radius: var(--radius-md)
+        background: var(--color-surface-subtle)
+
+        span
+          color: var(--color-text-secondary)
+          font-size: var(--font-size-label)
+          font-weight: 600
+
+      .add-point__section__appearance__fields
+        display: grid
+        gap: 12px
+        flex: 1
+        min-width: 0
+
+        .add-point__section__appearance__fields__colors
+          display: grid
+          grid-template-columns: 1fr 1fr
+          gap: 12px
+
+          @media (max-width: 479.98px)
+            grid-template-columns: 1fr
+
+    .add-point__section__checks
+      display: grid
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))
+      gap: 4px 16px
+
+    .add-point__section__location
+      display: flex
+      align-items: center
+      gap: 12px
+      width: 100%
+      padding: 12px
+      border: 1px dashed var(--color-border-strong)
+      border-radius: var(--radius-md)
+      background: var(--color-surface)
+      color: var(--color-text-primary)
+      font: inherit
+      text-align: left
+      cursor: pointer
+      transition: border-color 140ms var(--ease-standard), background-color 140ms var(--ease-standard)
+
+      &:hover
+        border-color: var(--color-primary)
+        background: var(--color-primary-subtle)
+
+      &[data-selected="true"]
+        border-style: solid
+        border-color: var(--color-primary)
+        background: var(--color-primary-subtle)
+
+      .add-point__section__location__icon
+        display: inline-grid
+        place-items: center
+        flex: none
+        width: 36px
+        height: 36px
+        border-radius: 50%
+        background: var(--color-primary-subtle)
+        color: var(--color-primary)
+
+      .add-point__section__location__text
+        display: flex
+        flex-direction: column
+        gap: 2px
+        min-width: 0
+
+        strong
+          font-size: var(--font-size-small)
+          font-weight: 600
+          line-height: 1.3
+
+        small
+          color: var(--color-text-secondary)
+          font-size: var(--font-size-label)
+          font-variant-numeric: tabular-nums
+          line-height: 1.35
+
+  .add-point__error
+    margin: 0
+    padding: 9px 10px
+    border-radius: var(--radius-md)
+    background: rgb(214 90 74 / 0.10)
+    color: var(--color-danger-strong)
+    font-size: var(--font-size-small)
+    line-height: 1.4

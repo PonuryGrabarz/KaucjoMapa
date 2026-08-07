@@ -3,7 +3,25 @@
     "javascript",
     "javascriptreact",
     "astro",
+    "svelte",
     "typescript",
     "typescriptreact"
-  ]
+  ],
+
+  "html.validate.scripts": false,
+  "html.validate.styles": false,
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[svelte]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[astro]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "css.validate": false,
+  "scss.validate": false
 }

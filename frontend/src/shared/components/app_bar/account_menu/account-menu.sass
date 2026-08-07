@@ -1,0 +1,36 @@
+.account-menu
+  position: relative
+  display: none
+
+  @media (min-width: 768px)
+    display: inline-flex
+
+  :global(.account-menu__button)
+    height: var(--control-height)
+    padding: 5px 7px 5px 5px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface-subtle)
+    color: var(--color-text-primary)
+    transition: background-color 140ms var(--ease-standard), border-color 140ms var(--ease-standard)
+
+  :global(.account-menu__button:hover),
+  :global(.account-menu__button[aria-expanded="true"])
+    background: var(--color-surface-subtle-2)
+    border-color: var(--color-border-strong)
+
+  .account-menu__button__label
+    display: none
+    font-size: var(--font-size-small)
+    font-weight: 600
+    line-height: 1
+
+    @media (min-width: 1024px)
+      display: inline
+
+  .account-menu__button__chevron
+    display: inline-flex
+    color: var(--color-text-secondary)
+    transition: transform 160ms var(--ease-standard)
+
+:global(.account-menu__button[aria-expanded="true"]) .account-menu__button__chevron
+  transform: rotate(180deg)

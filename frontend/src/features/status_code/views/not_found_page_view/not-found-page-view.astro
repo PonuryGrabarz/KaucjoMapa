@@ -1,0 +1,44 @@
+---
+import Styles from "./not-found-page-view.module.sass";
+import Button from "@shared/components/button/button.svelte";
+import IconifyIcon from "@shared/components/iconify_icon/iconify-icon.svelte";
+
+import { truncateText } from "@shared/helpers/format";
+import { normalizePathname } from "@shared/helpers/path";
+import { mainItems } from "@shared/helpers/navigation-links";
+
+const requestedPath = truncateText(normalizePathname(Astro.url.pathname), 120);
+---
+
+<div class={Styles["not-found-page"]}>
+  <div class={Styles["not-found-page__content"]}>
+    <div class={Styles["not-found-page__content__icon"]}>
+      <IconifyIcon icon="material-symbols:error-outline-rounded" size={24} />
+    </div>
+
+    <h1 class={Styles["not-found-page__content__title"]}>Nie znaleziono strony</h1>
+
+    <p class={Styles["not-found-page__content__description"]}>
+      Adres <code class={Styles["not-found-page__content__description__path"]}>{requestedPath}</code>
+      nie prowadzi do dostępnej podstrony KaucjoMapy.
+    </p>
+
+    <Button variant="secondary" href="/">Wróć do Mapy</Button>
+
+    <nav class={Styles["not-found-page__content__suggestions"]} aria-label="Popularne strony">
+      <ul class={Styles["not-found-page__content__suggestions__list"]}>
+        {
+          mainItems.map((item) => (
+            <li>
+              <Button href={item.href} variant="text">
+                <IconifyIcon icon={item.icon} size={20} />
+
+                <span>{item.label}</span>
+              </Button>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</div>

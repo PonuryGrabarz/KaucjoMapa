@@ -1,16 +1,30 @@
 ---
-import MainLayout from "@layouts/main_layout/main-layout.astro";
-import AuthLayout from "@layouts/auth_layout/auth-layout.astro";
+import { actions, isInputError } from "astro:actions";
+
+import AppLayout from "@layouts/app_layout/app-layout.astro";
 import LoginPageView from "@features/auth/views/login_page_view/login-page-view.astro";
+
+if (Astro.locals.session) return Astro.redirect("/", 303);
+
+const result = Astro.getActionResult(actions.auth.login);
+
+if (result && !result.error) return Astro.redirect("/", 303);
+
+const inputErrors = result && isInputError(result.error) ? result.error.fields : {};
+
+const googleFailed = Astro.url.searchParams.get("blad") === "google";
+
+const formError = result?.error && !isInputError(result.error)
+  ? result.error.message
+  : googleFailed
+    ? "Nie udało się zalogować przez Google. Spróbuj ponownie."
+    : undefined;
 ---
 
-<MainLayout
-  title="KaucjoMapa – Logowanie"
-  description="Zaloguj się do KaucjoMapy, aby zarządzać swoim kontem i korzystać z funkcji społecznościowych mapy punktów zwrotu."
-  canonical="/logowanie"
-  noIndex
+<AppLayout
+  title="Logowanie"
+  description="Zaloguj się do KaucjoMapa, aby zapisywać punkty zwrotu, dodawać zgłoszenia i śledzić historię zwrotów."
+  noindex
 >
-  <AuthLayout>
-    <LoginPageView />
-  </AuthLayout>
-</MainLayout>
+  <LoginPageView inputErrors={inputErrors} formError={formError} />
+</AppLayout>

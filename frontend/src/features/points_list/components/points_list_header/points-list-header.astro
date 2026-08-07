@@ -1,0 +1,124 @@
+---
+import Styles from "./points-list-header.module.sass";
+import Button from "@shared/components/button/button.svelte";
+import SearchField from "@shared/components/search_field/search-field.svelte";
+import FilterPanel from "@shared/components/filter_panel/filter-panel.svelte";
+
+import { pluralPl } from "@shared/helpers/format";
+import { toFilterOptions } from "@shared/helpers/filter-options";
+import { activeFilterGroupCount, DISTANCE_MAX_KM, PARAM } from "../../list-filters";
+
+import {
+  RETURN_POINT_TYPES,
+  RETURN_POINT_STATUSES,
+  RETURN_POINT_MATERIALS,
+  RETURN_POINT_REFUND_METHODS,
+} from "@shared/api/responses";
+
+import {
+  POINT_STATUS_LABELS,
+  RETURN_POINT_TYPE_LABELS,
+  RETURN_POINT_MATERIAL_LABELS,
+  RETURN_POINT_REFUND_METHOD_LABELS,
+} from "@shared/helpers/return-point-labels";
+
+import type { Pagination } from "@shared/api/responses";
+import type { ListFilters } from "../../list-filters";
+import type { FilterPanelGroup } from "@shared/components/filter_panel/filter-panel-types";
+import type { SearchSuggestionGroup } from "@shared/components/search_field/search-field-types";
+
+interface Props {
+  filters: ListFilters;
+  pagination: Pagination;
+  suggestions: SearchSuggestionGroup[];
+}
+
+const { filters, pagination, suggestions } = Astro.props;
+
+const totalCount = pagination.total_count;
+
+const from = (pagination.page - 1) * pagination.page_size + 1;
+const to = Math.min(pagination.page * pagination.page_size, totalCount);
+
+const countLabel =
+  totalCount === 0
+    ? "Brak punktów spełniających wybrane kryteria"
+    : `Wyświetlane ${from}–${to} z ${totalCount} ${pluralPl(totalCount, "punktu", "punktów", "punktów")}`;
+
+const groups: FilterPanelGroup[] = [
+  {
+    legend: "Status",
+    name: PARAM.status,
+    options: toFilterOptions(RETURN_POINT_STATUSES, POINT_STATUS_LABELS),
+    checked: filters.statuses,
+  },
+  {
+    legend: "Typ punktu",
+    name: PARAM.type,
+    options: toFilterOptions(RETURN_POINT_TYPES, RETURN_POINT_TYPE_LABELS),
+    checked: filters.types,
+  },
+  {
+    legend: "Opakowania",
+    name: PARAM.material,
+    options: toFilterOptions(RETURN_POINT_MATERIALS, RETURN_POINT_MATERIAL_LABELS),
+    checked: filters.materials,
+  },
+  {
+    legend: "Formy rozliczenia",
+    name: PARAM.refundMethod,
+    options: toFilterOptions(RETURN_POINT_REFUND_METHODS, RETURN_POINT_REFUND_METHOD_LABELS),
+    checked: filters.refundMethods,
+    columns: true,
+    wide: true,
+  },
+];
+---
+
+<div class:list={Styles["points-list-header"]}>
+  <form
+    class:list={Styles["points-list-header__form"]}
+    action="/punkty"
+    method="get"
+    role="search"
+    aria-label="Filtrowanie punktów zwrotu"
+  >
+    <div class:list={Styles["points-list-header__search"]}>
+      <SearchField
+        client:idle
+        label="Szukaj nazwy lub adresu punktu"
+        placeholder="Szukaj nazwy lub adresu punktu"
+        name={PARAM.query}
+        value={filters.query}
+        source={suggestions}
+        submitOnEnter={false}
+        submitOnSelect={false}
+      />
+    </div>
+
+    <div class:list={Styles["points-list-header__actions"]}>
+      <FilterPanel
+        client:idle
+        groups={groups}
+        activeCount={activeFilterGroupCount(filters)}
+        footer={false}
+        keepMounted
+        submitEmptyGroups
+        hint="Zawęź listę punktów."
+        openNowName={PARAM.openNow}
+        openNow={filters.openNow}
+        distanceMaxKm={DISTANCE_MAX_KM}
+        distanceMin={filters.minDistanceKm}
+        distanceMax={filters.maxDistanceKm}
+      />
+
+      <Button href="/punkty" variant="tonal">Wyczyść</Button>
+
+      <Button type="submit">Pokaż wyniki</Button>
+    </div>
+  </form>
+
+  <div class:list={Styles["points-list-header__status"]}>
+    <span class:list={Styles["points-list-header__count"]}>{countLabel}</span>
+  </div>
+</div>

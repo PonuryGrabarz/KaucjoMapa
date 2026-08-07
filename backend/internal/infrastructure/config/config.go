@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	DBURL              string
+	FrontendURL        string
 	Port               int
 	AdminUsername      string
 	AdminEmail         string
@@ -46,6 +47,7 @@ func NewConfig() *Config {
 	return &Config{
 		DBURL:              dbURL,
 		Port:               p,
+		FrontendURL:        os.Getenv("FRONTEND_URL"),
 		AdminUsername:      os.Getenv("ADMIN_USERNAME"),
 		AdminEmail:         os.Getenv("ADMIN_EMAIL"),
 		AdminPassword:      os.Getenv("ADMIN_PASSWORD"),

@@ -1,0 +1,66 @@
+.color-field
+  display: grid
+  gap: 6px
+
+  .color-field__label
+    color: var(--color-text-primary)
+    font-size: var(--font-size-body)
+    font-weight: 600
+
+  .color-field__inputs
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 44px
+    padding: 4px
+    border: 1px solid var(--color-border-strong)
+    border-radius: var(--radius-md)
+    transition: border-color 140ms var(--ease-standard), box-shadow 140ms var(--ease-standard)
+
+    &:has(:focus-visible)
+      border-color: var(--color-primary)
+      box-shadow: var(--focus-500)
+
+    &:has([aria-invalid="true"])
+      border-color: var(--color-danger-strong)
+
+    &:has(:disabled)
+      background: var(--color-disabled-surface)
+
+    .color-field__inputs__swatch
+      flex: none
+      width: 36px
+      height: 36px
+      padding: 0
+      border: 0
+      border-radius: var(--radius-sm)
+      background: none
+      cursor: pointer
+
+      &:focus-visible
+        outline: none
+
+      &:disabled
+        cursor: default
+
+      &::-webkit-color-swatch-wrapper
+        padding: 0
+
+      &::-webkit-color-swatch
+        border: 1px solid var(--color-border)
+        border-radius: var(--radius-sm)
+
+    .color-field__inputs__hex
+      flex: 1
+      min-width: 0
+      border: 0
+      background: none
+      color: var(--color-text-primary)
+      font: inherit
+      font-variant-numeric: tabular-nums
+
+      &:focus-visible
+        outline: none
+
+      &[aria-invalid="true"]
+        color: var(--color-danger-strong)

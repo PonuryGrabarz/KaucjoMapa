@@ -1,0 +1,87 @@
+<svelte:window onkeydown={handleWindowKeydown} />
+
+<div class="filter-panel">
+	<Button
+		type="button"
+		variant="secondary"
+		aria-label={triggerLabel}
+		aria-expanded={open}
+		aria-controls={panelId}
+		onclick={() => (open = !open)}
+	>
+		<span class="filter-panel__trigger">
+			<IconifyIcon icon="material-symbols:tune-rounded" size={20} />
+
+			{#if activeCount > 0}
+				<span class="filter-panel__trigger__count" aria-hidden="true">{activeCount}</span>
+			{/if}
+		</span>
+
+		<span class="filter-panel__trigger-label">Filtry</span>
+	</Button>
+
+	{#if open || keepMounted}
+		<div id={panelId} class="filter-panel__sheet" hidden={!open}>
+			<div class="filter-panel__sheet__header">
+				<div>
+					<p class="filter-panel__sheet__header__title">{title}</p>
+
+					<p class="filter-panel__sheet__header__hint">{hint}</p>
+				</div>
+
+				<IconButton
+					icon="material-symbols:close-rounded"
+					iconSize={20}
+					aria-label="Zamknij filtry"
+					onclick={closePanel}
+				/>
+			</div>
+
+			<div class="filter-panel__sheet__body">
+				<div class="filter-panel__sheet__body__grid">
+					{#each groups as group (group.name)}
+						<div class={["filter-panel__sheet__body__grid__cell", group.wide && "filter-panel__sheet__body__grid__cell--wide"]}>
+							<FilterGroup
+								legend={group.legend}
+								name={group.name}
+								options={group.options}
+								checked={group.checked}
+								onToggle={group.onToggle}
+								columns={group.columns}
+								submitEmpty={submitEmptyGroups}
+							/>
+						</div>
+					{/each}
+
+					<fieldset class="filter-panel__sheet__body__grid__availability">
+						<legend>{availabilityLegend}</legend>
+
+						<Checkbox
+							label={openNowLabel}
+							name={openNowName}
+							value="1"
+							bind:checked={openNow}
+						/>
+					</fieldset>
+				</div>
+
+				<div class="filter-panel__sheet__body__distance">
+					<DistanceRange
+						maxKm={distanceMaxKm}
+						{emitPosition}
+						bind:min={distanceMin}
+						bind:max={distanceMax}
+					/>
+				</div>
+			</div>
+
+			{#if footer}
+				<div class="filter-panel__sheet__footer">
+					<Button type="button" variant="text" onclick={onreset}>{resetLabel}</Button>
+
+					<Button type="button" onclick={closePanel}>{applyLabel}</Button>
+				</div>
+			{/if}
+		</div>
+	{/if}
+</div>

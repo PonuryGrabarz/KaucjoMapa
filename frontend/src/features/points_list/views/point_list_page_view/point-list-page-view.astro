@@ -1,0 +1,234 @@
+---
+import Styles from "./point-list-page-view.module.sass";
+import Button from "@shared/components/button/button.svelte";
+import PointCard from "../../components/point_card/point-card.astro";
+import IconifyIcon from "@shared/components/iconify_icon/iconify-icon.svelte";
+import PointListHeader from "../../components/points_list_header/points-list-header.astro";
+
+import { actions } from "astro:actions";
+import { buildSearchSuggestions } from "../../point-suggestions";
+import { DISTANCE_MAX_KM, matchesFilters, parseListFilters } from "../../list-filters";
+
+import type { Pagination, ReturnPoint } from "@shared/api/responses";
+
+interface Props {
+  search?: string;
+}
+
+const { search = "" } = Astro.props;
+
+const searchParams = new URLSearchParams(search);
+
+const filters = parseListFilters(searchParams);
+
+const usesDistance =
+  filters.lat !== undefined
+  && filters.lon !== undefined
+  && (filters.minDistanceKm > 0 || filters.maxDistanceKm < DISTANCE_MAX_KM);
+
+const apiFilters = {
+  ...(filters.query ? { query: filters.query } : {}),
+  ...(usesDistance
+    ? {
+        lat: filters.lat,
+        lon: filters.lon,
+        min_distance: filters.minDistanceKm,
+        max_distance: filters.maxDistanceKm,
+      }
+    : {}),
+};
+
+const isUserLoggedIn = Astro.locals.session != null;
+
+const [listResponse, mineResponse] = await Promise.all([
+  Astro.callAction(actions.returnPoints.list, apiFilters),
+  isUserLoggedIn
+    ? Astro.callAction(actions.returnPoints.list, { ...apiFilters, onlyMine: true })
+    : undefined,
+]);
+
+const publicPoints: ReturnPoint[] = listResponse.data?.return_points ?? [];
+
+const publicPointIds = new Set(publicPoints.map((point) => point.id));
+
+const ownPoints = (mineResponse?.data?.return_points ?? []).filter(
+  (point) => !publicPointIds.has(point.id),
+);
+
+const allPoints = [...publicPoints, ...ownPoints];
+
+const matched = allPoints.filter((point) => matchesFilters(point, filters));
+
+const searchSuggestions = buildSearchSuggestions(matched);
+
+const totalPages = Math.max(1, Math.ceil(matched.length / filters.pageSize));
+
+const page = Math.min(filters.page, totalPages);
+
+const pagination: Pagination = {
+  page,
+  page_size: filters.pageSize,
+  total_count: matched.length,
+  total_pages: totalPages,
+};
+
+const returnPoints = matched.slice((page - 1) * filters.pageSize, page * filters.pageSize);
+
+const loadFailed = listResponse.error !== undefined || mineResponse?.error !== undefined;
+
+const itemListStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Punkty zwrotu opakowań kaucyjnych",
+  numberOfItems: pagination.total_count,
+  itemListOrder: "https://schema.org/ItemListUnordered",
+  itemListElement: returnPoints.map((point, index) => ({
+    "@type": "ListItem",
+    position: (page - 1) * filters.pageSize + index + 1,
+    url: new URL(`/?point=${encodeURIComponent(point.id)}`, Astro.site).toString(),
+    name: point.name,
+  })),
+};
+
+type PageToken = number | "ellipsis";
+
+const pageTokens = (current: number, total: number): PageToken[] => {
+  if (total <= 1) return [];
+
+  const visible = new Set<number>([1, total]);
+
+  for (let candidate = Math.max(1, current - 1); candidate <= Math.min(total, current + 1); candidate += 1)
+    visible.add(candidate);
+
+  const tokens: PageToken[] = [];
+
+  let previous = 0;
+
+  for (const candidate of [...visible].sort((a, b) => a - b)) {
+    if (previous && candidate - previous > 1) tokens.push("ellipsis");
+
+    tokens.push(candidate);
+
+    previous = candidate;
+  }
+
+  return tokens;
+}
+
+const pageHref = (target: number): string => {
+  const params = new URLSearchParams(searchParams);
+
+  if (target <= 1) params.delete("page");
+  else params.set("page", String(target));
+
+  const query = params.toString();
+
+  return query ? `/punkty?${query}` : "/punkty";
+}
+
+const tokens = pageTokens(page, totalPages);
+---
+
+<section class:list={Styles["point-list-page"]}>
+  <PointListHeader {filters} {pagination} suggestions={searchSuggestions} />
+
+  {
+    loadFailed && (
+      <p class:list={Styles["point-list-page__error"]} role="status">
+        Nie udało się pobrać punktów. Odśwież stronę albo spróbuj ponownie za chwilę.
+      </p>
+    )
+  }
+
+  <div class:list={Styles["point-list-page__items"]}>
+    {returnPoints.length === 0 ? (
+      <div class:list={Styles["point-list-page__items__empty"]}>
+        <div class:list={Styles["point-list-page__items__empty__icon"]}>
+          <IconifyIcon icon="material-symbols:location-off-rounded" size={24} />
+        </div>
+
+        <h2 class:list={Styles["point-list-page__items__empty__title"]}>Brak punktów</h2>
+
+        <p class:list={Styles["point-list-page__items__empty__text"]}>
+          Nie znaleziono punktów spełniających wybrane kryteria.
+        </p>
+
+        <div class:list={Styles["point-list-page__items__empty__actions"]}>
+          <Button variant="secondary" href="/punkty">Wyczyść filtry i wyszukiwanie</Button>
+        </div>
+      </div>
+    ) : (
+      <ul class:list={Styles["point-list-page__items__list"]} aria-label="Lista punktów zwrotu">
+        {returnPoints.map((point) => <PointCard {point} />)}
+      </ul>
+    )}
+  </div>
+
+  {returnPoints.length > 0 && (
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(itemListStructuredData)} />
+  )}
+
+  {totalPages > 1 && (
+    <nav class:list={Styles["point-list-page__pagination"]} aria-label="Paginacja wyników">
+      {page > 1 ? (
+        <a
+          class:list={Styles["point-list-page__pagination__btn"]}
+          href={pageHref(page - 1)}
+          rel="prev"
+          aria-label="Poprzednia strona"
+        >
+          <IconifyIcon icon="material-symbols:chevron-left-rounded" size={20} />
+        </a>
+      ) : (
+        <span
+          class:list={[
+            Styles["point-list-page__pagination__btn"],
+            Styles["point-list-page__pagination__btn--disabled"],
+          ]}
+          aria-hidden="true"
+        >
+          <IconifyIcon icon="material-symbols:chevron-left-rounded" size={20} />
+        </span>
+      )}
+
+      {tokens.map((token) =>
+        token === "ellipsis" ? (
+          <span class:list={Styles["point-list-page__pagination__ellipsis"]} aria-hidden="true">…</span>
+        ) : (
+          <a
+            class:list={[
+              Styles["point-list-page__pagination__btn"],
+              token === page && Styles["point-list-page__pagination__btn--active"],
+            ]}
+            href={pageHref(token)}
+            aria-label={`Strona ${token}`}
+            aria-current={token === page ? "page" : undefined}
+          >
+            {token}
+          </a>
+        ),
+      )}
+
+      {page < totalPages ? (
+        <a
+          class:list={Styles["point-list-page__pagination__btn"]}
+          href={pageHref(page + 1)}
+          rel="next"
+          aria-label="Następna strona"
+        >
+          <IconifyIcon icon="material-symbols:chevron-right-rounded" size={20} />
+        </a>
+      ) : (
+        <span
+          class:list={[
+            Styles["point-list-page__pagination__btn"],
+            Styles["point-list-page__pagination__btn--disabled"],
+          ]}
+          aria-hidden="true"
+        >
+          <IconifyIcon icon="material-symbols:chevron-right-rounded" size={20} />
+        </span>
+      )}
+    </nav>
+  )}
+</section>

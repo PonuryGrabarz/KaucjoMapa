@@ -1,0 +1,56 @@
+<Dialog
+	bind:open
+	title="Dodaj status punktu"
+	closeLabel="Zamknij zgłoszenie"
+	maxWidth={560}
+	onclose={handleClose}
+>
+	<form id={formId} class="report-dialog__form" aria-busy={submitState.pending} onsubmit={handleSubmit}>
+		<p class="report-dialog__form__point">{point.name}</p>
+
+		<p class="report-dialog__form__lead">Ta informacja pojawi się w zgłoszeniach społeczności.</p>
+
+		<fieldset class="report-dialog__form__statuses">
+			<legend>Jaki jest aktualny status?</legend>
+
+			<div class="report-dialog__form__statuses__options">
+				{#each STATUS_OPTIONS as option (option.value)}
+					<label>
+						<input type="radio" name="status" value={option.value} bind:group={status} />
+
+						<span>
+							<strong>{option.label}</strong>
+
+							<small>{option.hint}</small>
+						</span>
+					</label>
+				{/each}
+			</div>
+		</fieldset>
+
+		<TextField
+			label="Co dokładnie się dzieje?"
+			multiline
+			bind:value={description}
+			rows={4}
+			required
+			maxlength={DESCRIPTION_MAX_LENGTH}
+			placeholder="Np. automat działa, ale nie przyjmuje puszek."
+			hint="Maksymalnie {DESCRIPTION_MAX_LENGTH} znaków."
+		/>
+
+		{#if submitState.error}
+			<p class="report-dialog__form__error" role="alert">{submitState.error}</p>
+		{/if}
+	</form>
+
+	{#snippet footer()}
+		<Button variant="text" disabled={submitState.pending} onclick={() => (open = false)}>
+			Anuluj
+		</Button>
+
+		<Button type="submit" form={formId} disabled={submitState.pending}>
+			{submitState.pending ? "Wysyłanie…" : "Dodaj zgłoszenie"}
+		</Button>
+	{/snippet}
+</Dialog>

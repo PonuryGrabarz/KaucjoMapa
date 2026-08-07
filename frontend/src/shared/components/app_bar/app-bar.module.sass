@@ -1,0 +1,73 @@
+.app-bar
+  flex: none
+  position: sticky
+  top: 0
+  z-index: 40
+
+  .app-bar__container
+    display: flex
+    align-items: center
+    gap: 6px
+    height: var(--appbar-height-compact)
+    padding: 0 10px
+    padding-left: calc(10px + env(safe-area-inset-left))
+    padding-right: calc(10px + env(safe-area-inset-right))
+    background: var(--color-surface)
+    border-bottom: 1px solid var(--color-border)
+
+    &.app-bar__container--home
+      .app-bar__container__brand
+        @media (max-width: 767.98px)
+          display: inline-flex
+
+      .app-bar__container__title
+        @media (max-width: 767.98px)
+          display: none
+
+    @media (min-width: 768px)
+      height: var(--appbar-height)
+      padding: 0 16px
+    
+    .app-bar__container__brand
+      display: inline-flex
+      align-items: center
+      gap: 6px
+      min-height: var(--control-height)
+      padding: 4px 6px
+      border-radius: var(--radius-md)
+      font-weight: 700
+      font-size: var(--font-size-title)
+      color: var(--color-text-primary)
+      text-decoration: none
+
+      &:hover
+        text-decoration: underline
+
+      @media (max-width: 767.98px)
+        display: none
+
+    .app-bar__container__divider
+      flex: none
+      width: 1px
+      height: 24px
+      margin: 0 4px
+      background: var(--color-border-strong)
+
+      @media (max-width: 767.98px)
+        display: none
+
+    .app-bar__container__title
+      font-size: var(--font-size-title)
+      font-weight: 600
+      color: var(--color-text-primary)
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+
+    .app-bar__container__spacer
+      flex: 1
+
+    .app-bar__container__actions
+      display: flex
+      align-items: center
+      gap: 11px

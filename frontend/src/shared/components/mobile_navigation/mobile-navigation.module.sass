@@ -1,0 +1,19 @@
+.mobile-navigation
+  flex: none
+  padding-bottom: env(safe-area-inset-bottom)
+  background: var(--color-surface)
+  border-top: 1px solid var(--color-border)
+
+  @media (min-width: 768px)
+    display: none
+
+  .mobile-navigation__content
+    display: flex
+    height: var(--bottomnav-height)
+    margin: 0
+    padding: 0
+    list-style: none
+
+    .mobile-navigation__content__item
+      display: flex
+      flex: 1 1 0

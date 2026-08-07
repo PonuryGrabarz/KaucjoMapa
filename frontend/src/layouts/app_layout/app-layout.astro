@@ -1,0 +1,73 @@
+---
+import Styles from "./app-layout.module.sass";
+import AppBar from "@shared/components/app_bar/app-bar.astro";
+import BaseLayout from "@layouts/base_layout/base-layout.astro";
+import Navigation from "@shared/components/navigation/navigation.astro";
+import MobileNavigation from "@shared/components/mobile_navigation/mobile-navigation.astro";
+
+import { actions } from "astro:actions";
+
+interface Props {
+	title: string;
+	description: string;
+	noindex?: boolean;
+	bareTitle?: boolean;
+}
+
+const {
+	title,
+	description,
+	noindex = false,
+	bareTitle = false,
+} = Astro.props;
+
+const isUserLoggedIn = Astro.locals.session != null;
+
+const notificationsResult = isUserLoggedIn
+	? await Astro.callAction(actions.notifications.list, undefined)
+	: undefined;
+
+const notifications = notificationsResult?.data?.notifications ?? [];
+
+const unreadCount = notificationsResult?.data?.unreadCount ?? 0;
+---
+
+<BaseLayout {bareTitle} {description} {noindex} {title}>
+  <div class={Styles["app-layout"]}>
+    <AppBar {title} {notifications} />
+
+    <div class={Styles["app-layout__body"]}>
+      <Navigation {unreadCount} />
+
+      <main id="main" class={Styles["app-layout__body__content"]} tabindex="-1">
+        <slot />
+      </main>
+    </div>
+
+    <MobileNavigation {unreadCount} />
+  </div>
+</BaseLayout>
+
+<script>
+  const SCROLL_STATE_KEY = "appLayoutScrollTop";
+
+  const getScroller = () => document.getElementById("main");
+
+  document.addEventListener("astro:before-swap", () => {
+    const scroller = getScroller();
+
+    if (!scroller || !history.state) return;
+
+    history.replaceState({ ...history.state, [SCROLL_STATE_KEY]: scroller.scrollTop }, "");
+  });
+
+  document.addEventListener("astro:after-swap", () => {
+    const scroller = getScroller();
+
+    if (!scroller) return;
+
+    const saved = history.state?.[SCROLL_STATE_KEY];
+
+    scroller.scrollTop = typeof saved === "number" ? saved : 0;
+  });
+</script>

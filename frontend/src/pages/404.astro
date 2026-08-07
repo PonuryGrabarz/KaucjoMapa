@@ -1,0 +1,12 @@
+---
+import AppLayout from "@layouts/app_layout/app-layout.astro";
+import NotFoundPageView from "@features/status_code/views/not_found_page_view/not-found-page-view.astro";
+---
+
+<AppLayout
+	title="Nie znaleziono strony"
+	description="Żądana strona nie istnieje w KaucjoMapie."
+	noindex
+>
+	<NotFoundPageView />
+</AppLayout>
