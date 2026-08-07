@@ -149,7 +149,8 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 
 	server.Use(recover.New())
 	server.Use(encryptcookie.New(encryptcookie.Config{
-		Key: os.Getenv("COOKIE_SECRET"),
+		Key:    os.Getenv("COOKIE_SECRET"),
+		Except: []string{handler.HandoffAccessCookie, handler.HandoffRefreshCookie},
 	}))
 	server.Use(helmet.New())
 	server.Use(requestid.New())
