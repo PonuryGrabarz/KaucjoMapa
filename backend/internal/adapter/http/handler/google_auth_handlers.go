@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/hex"
+	"fmt"
 	"os"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/entity"
 	auth "github.com/PonuryGrabarz/KaucjoMapa/backend/internal/infrastructure/oAuth"
 	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase"
+	"github.com/PonuryGrabarz/KaucjoMapa/backend/internal/usecase/port"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	_ "github.com/joho/godotenv/autoload"
@@ -23,16 +25,20 @@ const (
 )
 
 type OAuthHandler struct {
-	userSvc   usecase.IUserService
-	hasherSvc usecase.IPasswordHasher
-	oAuthSvc  usecase.IGoogleOAuthService
+	userSvc     usecase.IUserService
+	hasherSvc   usecase.IPasswordHasher
+	oAuthSvc    usecase.IGoogleOAuthService
+	tokenSvc    port.ITokenSigner
+	frontendURL string
 }
 
-func NewOAuthHandler(userSvc usecase.IUserService, hasherSvc usecase.IPasswordHasher, oAuthSvc usecase.IGoogleOAuthService) *OAuthHandler {
+func NewOAuthHandler(userSvc usecase.IUserService, hasherSvc usecase.IPasswordHasher, oAuthSvc usecase.IGoogleOAuthService, tokenSvc port.ITokenSigner, frontendURL string) *OAuthHandler {
 	return &OAuthHandler{
-		userSvc:   userSvc,
-		hasherSvc: hasherSvc,
-		oAuthSvc:  oAuthSvc,
+		userSvc:     userSvc,
+		hasherSvc:   hasherSvc,
+		oAuthSvc:    oAuthSvc,
+		tokenSvc:    tokenSvc,
+		frontendURL: frontendURL,
 	}
 }
 
@@ -128,6 +134,7 @@ func (h *OAuthHandler) GoogleCallbackHandler(c fiber.Ctx) error {
 	if entity.IsKind(err, entity.KindNotFound) {
 		randomPasswordHash, hashErr := h.hasherSvc.HashPassword(uuid.NewString())
 		if hashErr != nil {
+			c.Redirect().To(fmt.Sprintf("%s/rejestracja?blad=google", h.frontendURL))
 			return entity.NewInternal(hashErr)
 		}
 
@@ -139,11 +146,13 @@ func (h *OAuthHandler) GoogleCallbackHandler(c fiber.Ctx) error {
 			GoogleID:     googleUser.Subject,
 		})
 		if entity.IsKind(err, entity.KindNotFound) {
+			c.Redirect().To(fmt.Sprintf("%s/rejestracja?blad=google", h.frontendURL))
 			return entity.NewBadRequest("email is already used")
 		}
 	}
 
 	if err != nil {
+		c.Redirect().To(fmt.Sprintf("%s/rejestracja?blad=google", h.frontendURL))
 		return entity.NewInternal(err)
 	}
 
@@ -158,12 +167,22 @@ func (h *OAuthHandler) GoogleCallbackHandler(c fiber.Ctx) error {
 		Value:    rToken.Token,
 		Path:     "/api/auth",
 		Expires:  rToken.ExpiresAt,
-		HTTPOnly: true,
+		SameSite: "strict",
+		Secure:   true,
+	}
+
+	cookieAccessToken := fiber.Cookie{
+		Name:     "AccessToken",
+		Value:    token,
+		Path:     "/api/auth",
+		Expires:  time.Now().Add(time.Second * 3600),
 		SameSite: "strict",
 		Secure:   true,
 	}
 
 	c.Cookie(&cookie)
+	c.Cookie(&cookieAccessToken)
+	c.Redirect().To(fmt.Sprintf("%s/rejestracja/google", h.frontendURL))
 	return c.JSON(presenter.UserSuccessResponse(token))
 }
 
