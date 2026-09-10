@@ -47,10 +47,7 @@
         },
         "/auth/google/callback": {
             "get": {
-                "description": "Weryfikuje odpowiedź Google, tworzy lub łączy konto, zwraca access token i ustawia cookie RefreshToken.",
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Weryfikuje odpowiedź Google, tworzy lub łączy konto, po czym przekierowuje na frontend.\nTokeny wędrują w krótkożyjących cookies OAuthAccess i OAuthRefresh (Path=/, SameSite=Lax),\nktóre strona lądowania frontendu odczytuje raz i kasuje. Każdy błąd również kończy się\nprzekierowaniem — na /logowanie?blad=google lub /rejestracja?blad=google.",
                 "tags": [
                     "auth"
                 ],
@@ -72,40 +69,13 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Access token",
-                        "schema": {
-                            "$ref": "#/definitions/presenter.TokenResponse"
-                        },
+                    "303": {
+                        "description": "Przekierowanie na /logowanie/google lub /rejestracja/google",
                         "headers": {
                             "Set-Cookie": {
                                 "type": "string",
-                                "description": "Cookie RefreshToken; Path=/api/auth; HttpOnly; Secure; SameSite=Strict"
+                                "description": "OAuthAccess i OAuthRefresh; Path=/; HttpOnly; SameSite=Lax; Max-Age=60"
                             }
-                        }
-                    },
-                    "400": {
-                        "description": "Brak authorization code lub email jest już używany",
-                        "schema": {
-                            "$ref": "#/definitions/presenter.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Błąd OAuth Google lub wymiany kodu",
-                        "schema": {
-                            "$ref": "#/definitions/presenter.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Nieprawidłowy state/verifier lub konto zbanowane",
-                        "schema": {
-                            "$ref": "#/definitions/presenter.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Wewnętrzny błąd serwera",
-                        "schema": {
-                            "$ref": "#/definitions/presenter.ErrorResponse"
                         }
                     }
                 }

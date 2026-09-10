@@ -167,7 +167,7 @@ func New(returnPointSvc usecase.IReturnPointService, userSvc usecase.IUserServic
 	notificationsHandler := handler.NewNotificationsHandler(server.NotificationsSvc)
 	bookmarkHandler := handler.NewBookmarkHandler(server.BookmarkSvc)
 	returnPlanHandler := handler.NewReturnPlanHandler(server.ReturnPlanSvc)
-	oAuthHandler := handler.NewOAuthHandler(server.UserSvc, server.HasherSvc, server.OAuthSvc, tokenSvc, cfg.FrontendURL)
+	oAuthHandler := handler.NewOAuthHandler(server.UserSvc, server.HasherSvc, server.OAuthSvc, tokenSvc, cfg.FrontendURL, cfg.CookieSecret)
 	recoveryHandler := handler.NewPasswordRecoveryHandler(server.PasswordRecoverySvc)
 
 	ReturnPointRouter(api, *returnPointHandler, cfg.JWTSecret, tokenSvc)
